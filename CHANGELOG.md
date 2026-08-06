@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [1.0.1] — 2026-08-07
+
+### Changed
+- Installer: user can now choose a custom installation directory via the Inno Setup wizard
+- Installer: custom branded icon applied to `DriftLift_Setup.exe`
+- Installer: added optional "Launch on startup" task during install
+- Installer: added proper uninstall support (kills running process, removes registry keys)
+- Installer: added `AppPublisherURL`, `AppSupportURL`, `AppUpdatesURL` metadata
+- Codebase: removed all redundant inline comments; section/category indicators standardized to `##== Title ==##`
+
+---
+
+
 ## [1.0.0] — 2026-08-07
 
 ### Added
