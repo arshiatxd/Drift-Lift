@@ -1,0 +1,39 @@
+# Binaries and build output
+bin/
+obj/
+publish/
+*.user
+*.suo
+.vs/
+
+# .NET
+*.dll
+*.exe
+!DriftliftApp.exe
+*.pdb
+*.cache
+
+# Logs
+crash.log
+*.log
+
+# User settings (machine-specific)
+settings.json
+profiles/
+
+# Temp files
+*.tmp
+*.temp
+
+# OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+*.swp
+*~
+
+# Inno Setup output
+DriftLift_Setup.exe
