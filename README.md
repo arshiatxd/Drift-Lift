@@ -14,7 +14,7 @@ Fix stick drift, remap buttons, calibrate inputs, and eliminate double-input con
 
 <br/>
 
-![Drift Lift Banner](Assets/banner.png)
+![Drift Lift Banner](Assets/banner.jpg)
 
 <br/>
 
