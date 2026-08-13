@@ -5,6 +5,7 @@ namespace DriftLock.Core.Calibration
 {
     public class DriftProcessor
     {
+        // ##== Fields & Properties ==##
         private readonly int _windowSize;
         private readonly Queue<(double x, double y)> _leftHistory = new();
         private readonly Queue<(double x, double y)> _rightHistory = new();
@@ -45,6 +46,7 @@ namespace DriftLock.Core.Calibration
         {
             return AutoCalibrateBoth(currentLx, currentLy, currentRx, currentRy);
         }
+        // ##== Auto Calibration & Calculation ==##
         public (double lx, double ly, double lDeadzone, double rx, double ry, double rDeadzone) AutoCalibrateBoth(double currentLx, double currentLy, double currentRx, double currentRy)
         {
             double leftX = 0, leftY = 0, leftMax = 0;
@@ -72,6 +74,7 @@ namespace DriftLock.Core.Calibration
             return (Profile.LeftStick.CenterOffsetX, Profile.LeftStick.CenterOffsetY, Profile.LeftStick.DeadzoneRadius,
                     Profile.RightStick.CenterOffsetX, Profile.RightStick.CenterOffsetY, Profile.RightStick.DeadzoneRadius);
         }
+        // ##== Drift Processing Pipeline ==##
         public void Process(ControllerState state, out double outLeftX, out double outLeftY, out double outRightX, out double outRightY)
         {
             double rxLeftX = Math.Clamp(state.LeftThumbX + SimulatedLeftOffsetX, -1.0, 1.0);

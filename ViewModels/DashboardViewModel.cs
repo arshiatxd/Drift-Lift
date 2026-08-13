@@ -18,12 +18,14 @@ namespace DriftLock.ViewModels
 {
     public partial class DashboardViewModel : ObservableObject
     {
+        // ##== Service & State Fields ==##
         private readonly InputLoop _inputLoop;
         private readonly SettingsManager _settingsManager;
         private readonly DispatcherTimer _uiTimer;
         private readonly DispatcherTimer _vibrationTimer;
         private ControllerProfilePair? _activeProfile;
         private HidHideControlService? _hidHideService;
+        // ##== Observable Properties ==##
         [ObservableProperty]
         private ObservableCollection<CustomMapping> _activeMappings = new ObservableCollection<CustomMapping>();
         [ObservableProperty] private object _currentView = null!;
@@ -200,6 +202,7 @@ namespace DriftLock.ViewModels
         public CalibrateView CalibrateViewInstance { get; } = new();
         public MacrosView MacrosViewInstance { get; } = new();
         public SettingsView SettingsViewInstance { get; } = new();
+        // ##== Constructor & Initialization ==##
         public DashboardViewModel(InputLoop inputLoop, SettingsManager settingsManager)
         {
             _inputLoop = inputLoop;
@@ -774,6 +777,7 @@ namespace DriftLock.ViewModels
             VibrationTimeRemaining = 0;
             _activeProfile?.Physical.SetVibration(0, 0);
         }
+        // ##== Vibration Controls ==##
         [RelayCommand]
         private void SetVibrationMode(string mode)
         {
@@ -806,6 +810,7 @@ namespace DriftLock.ViewModels
             IsVibrating = true;
             _vibrationTimer.Start();
         }
+        // ##== Profile & Mapping Management ==##
         [RelayCommand]
         private void NewProfile()
         {
@@ -894,6 +899,7 @@ namespace DriftLock.ViewModels
         {
             CreateNewMacro();
         }
+        // ##== Macro Recorder Engine ==##
         [RelayCommand]
         private void CreateNewMacro()
         {
@@ -1007,6 +1013,7 @@ namespace DriftLock.ViewModels
         {
             DriftLock.Views.Windows.CustomMessageDialog.Show($"Switched to {tabName} configuration (Coming Soon)", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
+        // ##== Theme & Navigation Controls ==##
         [RelayCommand]
         private void ToggleTheme()
         {
@@ -1067,6 +1074,7 @@ namespace DriftLock.ViewModels
             IsSidebarExpanded = !IsSidebarExpanded;
             SidebarColumnWidth = IsSidebarExpanded ? 250 : 60;
         }
+        // ##== Calibration & Auto-Fix Engine ==##
         [RelayCommand]
         private void NextCalibrationStep()
         {

@@ -18,6 +18,7 @@ namespace DriftLock.Core.Input
     }
     public class InputLoop
     {
+        // ##== Fields & Setup ==##
         [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod", SetLastError = true)]
         private static extern uint TimeBeginPeriod(uint uMilliseconds);
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod", SetLastError = true)]
@@ -58,6 +59,7 @@ namespace DriftLock.Core.Input
             try { TimeEndPeriod(1); } catch { }
             _persistentVirtualPad.Dispose();
         }
+        // ##== High Precision Input Loop ==##
         private void Loop()
         {
             while (_running)
@@ -106,8 +108,10 @@ namespace DriftLock.Core.Input
                 Thread.Sleep(1);
             }
         }
+        // ##== Device Watcher Thread ==##
         private void DeviceWatcherLoop()
         {
+
             while (_running)
             {
                 RefreshDevices();
