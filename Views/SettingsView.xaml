@@ -33,9 +33,10 @@
         </Style>
     </UserControl.Resources>
     <Grid Margin="12">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
                 <TextBlock Text="APPLICATION SETTINGS &amp; SYSTEM PREFERENCES" FontWeight="Black" FontSize="16" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,16"/>
+                
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <Grid>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,220,0">
@@ -45,6 +46,7 @@
                         <Button Command="{Binding ToggleThemeCommand}" Content="TOGGLE LIGHT / DARK THEME" Style="{DynamicResource RedNeonBtn}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
+                
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
                         <Grid Margin="0,0,0,12">
@@ -57,6 +59,7 @@
                         <ListBox ItemsSource="{Binding SavedConfigFiles}" Background="Transparent" BorderThickness="0" Height="130"/>
                     </StackPanel>
                 </Border>
+                
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <Grid>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,180,0">
@@ -73,12 +76,13 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+                
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Text="Application Details &amp; Engine Status" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,10"/>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="SOFTWARE VERSION" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
-                            <TextBlock Text="Drift Lift v1.0.2 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Drift Lift v1.0.3 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                         </Grid>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="FRAMEWORK" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
@@ -90,6 +94,7 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+                
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20">
                     <StackPanel>
                         <TextBlock Text="CREDITS &amp; ACKNOWLEDGMENTS" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,8"/>

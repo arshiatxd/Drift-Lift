@@ -1,10 +1,10 @@
 #define MyAppName      "Drift Lift"
-#define MyAppVersion   "1.0.2"
+#define MyAppVersion   "1.0.3"
 #define MyAppPublisher "arshiatxd"
 #define MyAppURL       "https://github.com/arshiatxd/Drift-Lift"
 #define MyAppExeName   "DriftliftApp.exe"
 #define SourceDir      "C:\Users\Parsian\Desktop\prj\312321\net10. released"
-#define IconFile       "C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets\installer.ico"
+#define IconFile       "C:\Users\Parsian\Desktop\prj\312321\DriftLock\icon.ico"
 
 [Setup]
 AppId={{D37F20B6-7E1A-4D3B-98F1-4A5C10852F9E}

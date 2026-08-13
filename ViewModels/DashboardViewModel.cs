@@ -38,16 +38,16 @@ namespace DriftLock.ViewModels
         [ObservableProperty] private Brush _hidHideStatusColor = Brushes.Gray;
         [ObservableProperty] private string _hidHideButtonText = "Download HidHide";
         [ObservableProperty] private bool _isHidHideEnabled;
-        [ObservableProperty] private string _btnLabelCrossOrA = "CROSS";
-        [ObservableProperty] private string _btnLabelCircleOrB = "CIRCLE";
-        [ObservableProperty] private string _btnLabelSquareOrX = "SQUARE";
-        [ObservableProperty] private string _btnLabelTriangleOrY = "TRIANGLE";
-        [ObservableProperty] private string _btnLabelShareOrBack = "SHARE";
-        [ObservableProperty] private string _btnLabelOptionsOrStart = "OPTIONS";
-        [ObservableProperty] private string _btnLabelL1OrLB = "L1";
-        [ObservableProperty] private string _btnLabelR1OrRB = "R1";
-        [ObservableProperty] private string _btnLabelL2OrLT = "L2";
-        [ObservableProperty] private string _btnLabelR2OrRT = "R2";
+        [ObservableProperty] private string _btnLabelCrossOrA = "A";
+        [ObservableProperty] private string _btnLabelCircleOrB = "B";
+        [ObservableProperty] private string _btnLabelSquareOrX = "X";
+        [ObservableProperty] private string _btnLabelTriangleOrY = "Y";
+        [ObservableProperty] private string _btnLabelShareOrBack = "BACK";
+        [ObservableProperty] private string _btnLabelOptionsOrStart = "START";
+        [ObservableProperty] private string _btnLabelL1OrLB = "LB";
+        [ObservableProperty] private string _btnLabelR1OrRB = "RB";
+        [ObservableProperty] private string _btnLabelL2OrLT = "LT";
+        [ObservableProperty] private string _btnLabelR2OrRT = "RT";
         [ObservableProperty] private string _targetNameL2 = "LT";
         [ObservableProperty] private string _targetNameL1 = "LB";
         [ObservableProperty] private string _targetNameShare = "BACK";
@@ -74,6 +74,7 @@ namespace DriftLock.ViewModels
             }
         }
         [ObservableProperty] private bool _isDarkTheme = true;
+        [ObservableProperty] private string _appLogoSource = "pack://application:,,,/DriftliftApp;component/icon.ico";
         [ObservableProperty] private int _calibrationStep = 1;
         [ObservableProperty] private string _stepPromptText = "Push both sticks to the top-left corner, then release";
         [ObservableProperty] private string _stepSubPromptText = "Release the sticks completely, then press Next";
@@ -318,10 +319,10 @@ namespace DriftLock.ViewModels
         public ObservableCollection<RemapRowViewModel> SpecialSticksRemap { get; } = new();
         private void UpdateMappingsForControllerType(bool isPs)
         {
-            BtnLabelCrossOrA = isPs ? "CROSS" : "A";
-            BtnLabelCircleOrB = isPs ? "CIRCLE" : "B";
-            BtnLabelSquareOrX = isPs ? "SQUARE" : "X";
-            BtnLabelTriangleOrY = isPs ? "TRIANGLE" : "Y";
+            BtnLabelCrossOrA = isPs ? "✕" : "A";
+            BtnLabelCircleOrB = isPs ? "◯" : "B";
+            BtnLabelSquareOrX = isPs ? "▢" : "X";
+            BtnLabelTriangleOrY = isPs ? "△" : "Y";
             BtnLabelShareOrBack = isPs ? "SHARE" : "BACK";
             BtnLabelOptionsOrStart = isPs ? "OPTIONS" : "START";
             BtnLabelL1OrLB = isPs ? "L1" : "LB";
@@ -366,18 +367,22 @@ namespace DriftLock.ViewModels
                 isPs ? "Share" : "Back",
                 isPs ? "Options" : "Start"
             };
+
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x2000, isPs ? "Circle" : "B", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x4000, isPs ? "Square" : "X", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x8000, isPs ? "Triangle" : "Y", options));
+
             DPadRemap.Add(new RemapRowViewModel(this, 0x0001, "D-Pad Up", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0002, "D-Pad Down", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0004, "D-Pad Left", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0008, "D-Pad Right", options));
+
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0100, isPs ? "L1" : "LB", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0200, isPs ? "R1" : "RB", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0400, isPs ? "L2" : "LT", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0800, isPs ? "R2" : "RT", options));
+
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0040, "L3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
@@ -576,7 +581,7 @@ namespace DriftLock.ViewModels
                     DeviceModelText = "Xbox Wireless Controller";
                     ControllerConnectionIcon = "🎮 XBOX";
                 }
-                DeviceFirmwareText = "USB • 1.0.2";
+                DeviceFirmwareText = "USB • 1.0.3";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(isPs);
@@ -1034,6 +1039,7 @@ namespace DriftLock.ViewModels
                 }
                 string targetUri = isDark ? "Themes/RedNeonTheme.xaml" : "Themes/LightTheme.xaml";
                 appResources.Add(new ResourceDictionary { Source = new Uri(targetUri, UriKind.Relative) });
+                AppLogoSource = isDark ? "pack://application:,,,/DriftliftApp;component/icon.ico" : "pack://application:,,,/DriftliftApp;component/Assets/logo_light.png";
                 UpdateMappingsForControllerType(IsPlayStation);
             }
             catch { }
@@ -1113,8 +1119,8 @@ namespace DriftLock.ViewModels
                 "TRIANGLE" or "Y" => 0x8000,
                 "L1" or "LB" => 0x0100,
                 "R1" or "RB" => 0x0200,
-                "L2" or "LT" => 0x0100,
-                "R2" or "RT" => 0x0200,
+                "L2" or "LT" => 0x0400,
+                "R2" or "RT" => 0x0800,
                 "SHARE" or "BACK" => 0x0020,
                 "OPTIONS" or "START" => 0x0010,
                 "L3" => 0x0040,

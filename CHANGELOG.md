@@ -5,6 +5,18 @@ All notable changes to Drift Lift are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)  
 Versioning: [Semantic Versioning](https://semver.org/)
 
+## [1.0.3] — 2026-08-13
+
+### Added
+- **Dynamic PlayStation / Xbox Button Glyphs**: Remap section testing grid dynamically switches glyphs between PlayStation (`✕`, `◯`, `▢`, `△`) and Xbox (`A`, `B`, `X`, `Y`) based on connected controller type.
+- **Transparent Light Mode Header Logo**: Processed header logo to make background fully transparent, removing white boundary box when switching to Light theme.
+- **Theme-Adaptive Scrollbars**: Custom thin scrollbars dynamically styled per theme — Red (`#FF1744`) thumb for Dark Mode and Sky Blue (`#0284C7`) thumb for Light Mode.
+
+### Fixed & Enhanced
+- **Trigger Remap Hotspot Fix**: Corrected bitmask mapping bug in `RemapHotspot` for L2/LT and R2/RT triggers (fixed bit shift overlap with L1/LB and R1/RB).
+- **Theme-Specific Slider Colors**: Updated slider thumb and track accent fills to vibrant red in Dark Theme and sky-blue in Light Theme.
+- **Embedded Pack URI Asset Loading**: Refactored logo path bindings to WPF `pack://application:,,,/` URIs to guarantee embedded assembly resource loading in release builds.
+
 ---
 
 ## [1.0.2] — 2026-08-13

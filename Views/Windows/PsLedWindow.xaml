@@ -28,6 +28,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            
             <Grid Grid.Row="0" Margin="0,0,0,14">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="7,4" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
@@ -36,11 +37,10 @@
                     <TextBlock Text="PLAYSTATION CONTROLLER LED LIGHTS" Foreground="{DynamicResource RedNeon}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <Button Click="Cancel_Click" HorizontalAlignment="Right" VerticalAlignment="Center" Width="28" Height="28" Cursor="Hand" ToolTip="Close" Style="{DynamicResource DefaultButtonStyle}">
-                    <TextBlock Text="✕" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Button>
+                <Button Click="Cancel_Click" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{DynamicResource PopupCloseBtn}" ToolTip="Close"/>
             </Grid>
 
+            
             <Grid Grid.Row="1" Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -66,6 +66,7 @@
                 </StackPanel>
             </Grid>
 
+            
             <Border Grid.Row="2" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="12,10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Margin="0,0,0,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -82,6 +83,7 @@
                 </Grid>
             </Border>
 
+            
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="APPLY &amp; SAVE" Click="Apply_Click" Style="{DynamicResource RedNeonBtn}" Margin="0,0,10,0" Padding="18,8" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
                 <Button Content="CANCEL" Click="Cancel_Click" Style="{DynamicResource DefaultButtonStyle}" Padding="18,8" FontSize="11" FontWeight="Bold" Cursor="Hand"/>

@@ -68,6 +68,7 @@
             </Setter>
         </Style>
     </UserControl.Resources>
+    
     <Grid>
         <Border Panel.ZIndex="100" Background="#CC000000" Visibility="{Binding IsWaitingForInput, Converter={StaticResource BoolToVis}}" CornerRadius="0">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -83,6 +84,7 @@
                 <RowDefinition Height="*"/>    
                 <RowDefinition Height="250"/>  
             </Grid.RowDefinitions>
+            
             <Grid Grid.Row="0" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -105,14 +107,17 @@
                     <Button Content="⚙ AUTO MAP" Style="{DynamicResource DefaultButtonStyle}" Padding="15,6" Margin="5,0" Command="{Binding AutoMapCommand}"/>
                 </StackPanel>
             </Grid>
+            
             <Grid Grid.Row="2" Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1.4*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
+                
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,10,0">
                     <StackPanel>
+                        
                         <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12" Margin="0,0,0,12">
                             <StackPanel>
                                 <TextBlock Text="FACE BUTTONS" Foreground="{DynamicResource RedNeon}" FontWeight="Bold" FontSize="11" Margin="0,0,0,10"/>
@@ -142,6 +147,7 @@
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
+                        
                         <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12">
                             <StackPanel>
                                 <TextBlock Text="SHOULDERS &amp; TRIGGERS" Foreground="{DynamicResource RedNeon}" FontWeight="Bold" FontSize="11" Margin="0,0,0,10"/>
@@ -173,13 +179,16 @@
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
+                
                 <Grid Grid.Column="1" Margin="5,0">
                     <Viewbox HorizontalAlignment="Center" VerticalAlignment="Center">
                         <controls:ControllerVisualizerControl />
                     </Viewbox>
                 </Grid>
+                
                 <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" Margin="10,0,0,0">
                     <StackPanel>
+                        
                         <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12" Margin="0,0,0,12">
                             <StackPanel>
                                 <TextBlock Text="DIRECTIONAL D-PAD" Foreground="{DynamicResource RedNeon}" FontWeight="Bold" FontSize="11" Margin="0,0,0,10"/>
@@ -209,6 +218,7 @@
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
+                        
                         <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12">
                             <StackPanel>
                                 <TextBlock Text="STICKS &amp; SYSTEM" Foreground="{DynamicResource RedNeon}" FontWeight="Bold" FontSize="11" Margin="0,0,0,10"/>
@@ -241,11 +251,13 @@
                     </StackPanel>
                 </ScrollViewer>
             </Grid>
+            
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
+                
                 <Border Grid.Column="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,10,0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -253,6 +265,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+                        
                         <Grid Grid.Row="0" Margin="15,10,15,10">
                             <TextBlock Text="MAPPING LIST" Foreground="{DynamicResource RedNeon}" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -261,6 +274,7 @@
                                 <Button Content="🗑 CLEAR ALL" Command="{Binding ClearRemapsCommand}" Style="{DynamicResource DefaultButtonStyle}" Background="{DynamicResource BgDark}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="10,4"/>
                             </StackPanel>
                         </Grid>
+                        
                         <Border Grid.Row="1" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,1" Padding="15,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -317,6 +331,7 @@
                         </ScrollViewer>
                     </Grid>
                 </Border>
+                
                 <Border Grid.Column="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="10,0,0,0" Padding="15">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -340,49 +355,49 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" HorizontalAlignment="Center" ToolTip="L2 / LT">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="L2" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelL2OrLT}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsL2Pressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Center" ToolTip="R2 / RT">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="R2" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelR2OrRT}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsR2Pressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Center" ToolTip="L1 / LB">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="L1" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelL1OrLB}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsL1Pressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="3" HorizontalAlignment="Center" ToolTip="R1 / RB">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="R1" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelR1OrRB}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsR1Pressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="4" HorizontalAlignment="Center" ToolTip="Triangle / Y">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="△" FontSize="11" FontWeight="Bold" Foreground="#00E676" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelTriangleOrY}" FontSize="11" FontWeight="Bold" Foreground="#00E676" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsYPressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="5" HorizontalAlignment="Center" ToolTip="Circle / B">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="◯" FontSize="11" FontWeight="Bold" Foreground="#FF1744" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelCircleOrB}" FontSize="11" FontWeight="Bold" Foreground="#FF1744" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsBPressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="6" HorizontalAlignment="Center" ToolTip="Cross / A">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="✕" FontSize="11" FontWeight="Bold" Foreground="#29B6F6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelCrossOrA}" FontSize="11" FontWeight="Bold" Foreground="#29B6F6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsAPressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="7" HorizontalAlignment="Center" ToolTip="Square / X">
                                     <Border Width="20" Height="20" Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Margin="0,0,0,4">
-                                        <TextBlock Text="▢" FontSize="11" FontWeight="Bold" Foreground="#E040FB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding BtnLabelSquareOrX}" FontSize="11" FontWeight="Bold" Foreground="#E040FB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <Ellipse Width="10" Height="10" Fill="{Binding IsXPressed, Converter={StaticResource BoolToColorConverter}}" HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -421,6 +436,7 @@
                     </Grid>
                 </Border>
             </Grid>
+            
             <Grid Grid.Row="3" VerticalAlignment="Bottom" Margin="0,-30,0,0">
                 <TextBlock Text="INPUT METHOD: DirectInput" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Left" Margin="0,0,0,5"/>
                 <TextBlock Text="POLLING RATE: 1000Hz     LATENCY: 1ms     FIRMWARE: 2.15" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,5"/>

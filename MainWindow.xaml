@@ -23,6 +23,7 @@
         </Style>
         <Style x:Key="TitleBarBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Width" Value="32"/>
@@ -31,11 +32,12 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd" Background="Transparent" CornerRadius="0" Width="32" Height="32">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#22FFFFFF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -44,6 +46,7 @@
         </Style>
         <Style x:Key="TitleBarCloseBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Width" Value="32"/>
@@ -52,12 +55,12 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Bd" Background="Transparent" CornerRadius="0" Width="32" Height="32">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#AA330011"/>
-                                <Setter Property="Foreground" Value="#FF1744"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FF1744"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -106,10 +109,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="icon.ico" Width="28" Height="28" Margin="0,0,10,0"/>
+                        <Image Source="{Binding AppLogoSource}" Width="28" Height="28" Margin="0,0,10,0"/>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="DRIFT LIFT" FontWeight="Black" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
-                            <TextBlock Text="v1.0.2  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                            <TextBlock Text="v1.0.3  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
                         </StackPanel>
                     </StackPanel>
                     <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -132,21 +135,18 @@
                                 Margin="0,0,8,0" FontSize="10"/>
                         <Button Content="↺ RESET"
                                 Command="{Binding ResetCalibrationCommand}"
-                                Background="{DynamicResource SubCardBg}"
-                                Foreground="{DynamicResource TextMuted}"
-                                FontWeight="SemiBold" FontSize="10"
-                                Padding="10,5" BorderThickness="1"
-                                BorderBrush="{DynamicResource BorderBrush}"/>
+                                Style="{DynamicResource DefaultButtonStyle}"
+                                FontSize="10" Padding="10,5"/>
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Click="MinimizeBtn_Click" Style="{StaticResource TitleBarBtn}">
-                            <TextBlock Text="—" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                            <TextBlock Text="—" FontSize="12"/>
                         </Button>
                         <Button Click="MaximizeBtn_Click" Style="{StaticResource TitleBarBtn}">
-                            <TextBlock Text="□" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                            <TextBlock Text="□" FontSize="12"/>
                         </Button>
                         <Button Click="CloseBtn_Click" Style="{StaticResource TitleBarCloseBtn}">
-                            <TextBlock Text="✕" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                            <TextBlock Text="✕" FontSize="12"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -216,6 +216,7 @@
                             </RadioButton>
                         </StackPanel>
                         <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                            
                             <Border Margin="6,0,6,4" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="8,8" x:Name="DeviceInfoPanel">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Grid Margin="0,0,8,0" HorizontalAlignment="Center">
@@ -228,7 +229,9 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
+                            
                             <Grid Margin="6,0,6,0">
+                                
                                 <Border x:Name="BatteryInfoPanelExpanded" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,8">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="🔋" FontSize="15" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -240,6 +243,7 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
+                                
                                 <Border x:Name="BatteryInfoPanelCollapsed" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="4,8" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Center" Width="48">
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Grid Width="20" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">

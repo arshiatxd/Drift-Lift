@@ -24,16 +24,13 @@ Fix stick drift, remap buttons, calibrate inputs, and eliminate double-input con
 
 ---
 
-## 🚀 What's New in Version 1.0.2 (Pre-Release)
+## 🚀 What's New in Version 1.0.3
 
-- 📐 **Sharp 90° Corner UI Design System**: All buttons, cards, containers, input boxes, dropdowns, and popup frames feature 90-degree square corners across both Dark and Light themes.
-- 🔴 **Thin Red Custom Scrollbars**: Ultra-thin 4px red scrollbars without background tracks.
-- 💡 **Circular 360° RGB Color Wheel**: Interactive circular spectrum picker for PlayStation controller LED lights customization.
-- 💾 **Settings Persistence**: Theme selection (Light/Dark mode) and configuration memory saved automatically to `%APPDATA%\DriftLift\settings.json`.
-- 🖼️ **Themed Custom Popups**: All alerts and dialogs replace standard Win32 windows with clean, sharp WPF themed popups.
-- 🎮 **Dynamic Controller Badge**: Top bar header dynamically reflects connected controller models (PS4, DualSense PS5, Xbox 360, Xbox Wireless, PS3, Generic).
-- 🛑 **Macro Recording Safety**: Displays `"Connect your controller first."` notifier when attempting to record macros without a controller attached.
-- 🎯 **Button Visualizer Repositioning**: Calibrated button position overlays using exact coordinates from `corpos`.
+- 🎮 **Dynamic Xbox vs PlayStation Glyphs**: Remap input testing grid dynamically toggles between Xbox (`A`, `B`, `X`, `Y`) and PlayStation (`✕`, `◯`, `▢`, `△`) button badges based on connected hardware.
+- 🎨 **Theme-Adaptive Custom Scrollbars**: Integrated custom thin scrollbars with red thumb (`#FF1744`) in Dark Mode and sky-blue thumb (`#0284C7`) in Light Mode.
+- 🖼️ **Transparent Light Mode Header Logo**: Erased solid background box around header logo in Light Mode for seamless header blending.
+- 🎯 **Trigger Remap Hotspot Fix**: Corrected trigger bitmask mappings for L2/LT (`0x0400`) and R2/RT (`0x0800`) in interactive hotspot remapping.
+- 📦 **Embedded Pack URI Asset Resolution**: Updated asset path handling to WPF `pack://` URIs for flawless resource loading in published binaries.
 
 ---
 

@@ -7,6 +7,7 @@ using DriftLock.ViewModels;
 
 namespace DriftLock
 {
+
     public partial class App : Application
     {
         private InputLoop? _inputLoop;
@@ -27,6 +28,10 @@ namespace DriftLock
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            System.Windows.Media.Animation.Timeline.DesiredFrameRateProperty.OverrideMetadata(
+                typeof(System.Windows.Media.Animation.Timeline),
+                new FrameworkPropertyMetadata(60));
+
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             System.Threading.Tasks.TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
