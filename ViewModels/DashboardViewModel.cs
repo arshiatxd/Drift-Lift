@@ -1146,7 +1146,7 @@ namespace DriftLock.ViewModels
         {
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLock", "Configs");
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
                 Directory.CreateDirectory(folder);
                 string file = Path.Combine(folder, $"Calibration_{DateTime.Now:yyyyMMdd_HHmmss}.json");
                 var data = new { DeviceModelText, LeftInnerDeadzone, LeftOuterDeadzone, RightInnerDeadzone, RightOuterDeadzone, StickSensitivity };

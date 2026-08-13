@@ -18,7 +18,10 @@ namespace DriftLock
             if (ex == null) return;
             try
             {
-                string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash.log");
+                string localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string dir = System.IO.Path.Combine(localData, "DriftLift");
+                System.IO.Directory.CreateDirectory(dir);
+                string path = System.IO.Path.Combine(dir, "crash.log");
                 string content = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ({source})\n{ex}\n\n";
                 System.IO.File.AppendAllText(path, content);
             }

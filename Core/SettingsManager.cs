@@ -20,7 +20,7 @@ namespace DriftLock.Core
         public SettingsManager()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string folder = Path.Combine(appData, "DriftLock");
+            string folder = Path.Combine(appData, "DriftLift");
             Directory.CreateDirectory(folder);
             _settingsFilePath = Path.Combine(folder, "settings.json");
             Load();
