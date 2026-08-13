@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="Assets/logo_light.png" width="128" alt="Drift Lift Logo"/>
-
 # Drift Lift
 
 **Gamepad controller calibration, stick drift correction, and remapping tool for Windows.**
