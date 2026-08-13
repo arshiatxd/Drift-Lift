@@ -1,0 +1,267 @@
+<UserControl x:Class="DriftLock.Views.Controls.ControllerVisualizerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+    d:DesignHeight="300" d:DesignWidth="450">
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition Height="260"/>
+        </Grid.RowDefinitions>
+        <!-- ##== ── TRIGGER & BUMPER OVERLAY (ON MAIN CANVAS AT TOP SHOULDERS) ── ==## -->
+        <Canvas Grid.Row="1" Width="420" Height="260">
+            <Image Width="420" Height="260" Stretch="Uniform"
+                   Canvas.Left="0" Canvas.Top="0"
+                   RenderOptions.BitmapScalingMode="HighQuality">
+                <Image.Style>
+                    <Style TargetType="Image">
+                        <Setter Property="Source" Value="/Assets/Xbox/XB_Base.png"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPlayStation}" Value="True">
+                                <Setter Property="Source" Value="/Assets/PS4/PS4_Base.png"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+            <Canvas Visibility="{Binding IsPlayStation, Converter={StaticResource InverseBoolToVis}}">
+                <Image Source="/Assets/Xbox/XBSeries_A_Button.png" Width="44.4" Height="43.0" Canvas.Left="305.8" Canvas.Top="120.5" Tag="{Binding IsAPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="A" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_B_Button.png" Width="45.4" Height="43.5" Canvas.Left="337.3" Canvas.Top="90.3" Tag="{Binding IsBPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="B" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_X_Button.png" Width="46.3" Height="43.8" Canvas.Left="274.9" Canvas.Top="90.1" Tag="{Binding IsXPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="X" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_Y_Button.png" Width="47.9" Height="44.6" Canvas.Left="304.1" Canvas.Top="59.7" Tag="{Binding IsYPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Y" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Up.png" Width="30.1" Height="27.4" Canvas.Left="135.0" Canvas.Top="136.3" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadUp" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Down.png" Width="28.7" Height="28.7" Canvas.Left="135.7" Canvas.Top="180.7" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadDown" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Left.png" Width="34.5" Height="27.4" Canvas.Left="107.8" Canvas.Top="161.3" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadLeft" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Right.png" Width="33.7" Height="26.8" Canvas.Left="158.2" Canvas.Top="161.6" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadRight" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_LeftBumper_Active.png" Width="136.3" Height="47.1" Canvas.Left="21.9" Canvas.Top="6.5" Tag="{Binding IsLbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="LB" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_LeftTrigger_Active.png" Width="67.1" Height="52.0" Canvas.Left="56.5" Canvas.Top="-26.0" Tag="{Binding IsL2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="LT" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_RightBumper_Active.png" Width="137.2" Height="46.8" Canvas.Left="261.4" Canvas.Top="6.6" Tag="{Binding IsRbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="RB" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_RightTrigger_Active.png" Width="66.0" Height="46.0" Canvas.Left="297.0" Canvas.Top="-23.0" Tag="{Binding IsR2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="RT" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_ViewButton.png" Width="31.5" Height="29.0" Canvas.Left="154.3" Canvas.Top="100.5" Tag="{Binding IsSelectPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="View" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_MenuButton.png" Width="31.5" Height="29.0" Canvas.Left="229.3" Canvas.Top="100.5" Tag="{Binding IsStartPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Menu" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_ShareButton.png" Width="37.2" Height="21.1" Canvas.Left="191.4" Canvas.Top="134.5" Tag="{Binding IsSharePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Share" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/Xbox/XBSeries_HomeButton.png" Width="51.2" Height="48.5" Canvas.Left="184.4" Canvas.Top="50.8" Tag="{Binding IsGuidePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Guide" />
+    </Image.InputBindings>
+</Image>
+                <!-- ##== XBOX STICKS ==## -->
+                <Grid Canvas.Left="65.8" Canvas.Top="87.9" Width="48.5" Height="48.2">
+                    <Grid.RenderTransform>
+                        <TranslateTransform X="{Binding LeftGraphicTranslateX}" Y="{Binding LeftGraphicTranslateY}"/>
+                    </Grid.RenderTransform>
+                    <Image Source="/Assets/Xbox/XBSeries_LeftStick.png" Stretch="Fill" />
+                    <Image Source="/Assets/Xbox/XBSeries_LeftStick_Click.png" Stretch="Fill" Tag="{Binding IsL3Pressed}" Style="{DynamicResource ImageBtnPress}"  Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L3" />
+    </Image.InputBindings>
+</Image>
+                </Grid>
+                <Grid Canvas.Left="243.4" Canvas.Top="148.8" Width="49.3" Height="46.5">
+                    <Grid.RenderTransform>
+                        <TranslateTransform X="{Binding RightGraphicTranslateX}" Y="{Binding RightGraphicTranslateY}"/>
+                    </Grid.RenderTransform>
+                    <Image Source="/Assets/Xbox/XBSeries_RightStick.png" Stretch="Fill" />
+                    <Image Source="/Assets/Xbox/XBSeries_RightStick_Click.png" Stretch="Fill" Tag="{Binding IsR3Pressed}" Style="{DynamicResource ImageBtnPress}"  Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R3" />
+    </Image.InputBindings>
+</Image>
+                </Grid>
+            </Canvas>
+            <Canvas Visibility="{Binding IsPlayStation, Converter={StaticResource BoolToVis}}">
+                <Image Source="/Assets/PS4/DS4_Face_Button.png" Width="27.1" Height="24.6" Canvas.Left="314" Canvas.Top="96" Tag="{Binding IsYPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Triangle" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_Face_Button.png" Width="27.1" Height="24.6" Canvas.Left="344" Canvas.Top="126" Tag="{Binding IsBPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Circle" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_Face_Button.png" Width="27.1" Height="24.6" Canvas.Left="314" Canvas.Top="156" Tag="{Binding IsAPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Cross" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_Face_Button.png" Width="27.1" Height="24.6" Canvas.Left="284" Canvas.Top="126" Tag="{Binding IsXPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Square" />
+                    </Image.InputBindings>
+                </Image>
+                <!-- ##== D-PAD ==## -->
+                <Image Source="/Assets/PS4/DS4_D-PAD_Up.png" Width="24.4" Height="26.6" Canvas.Left="64" Canvas.Top="96" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadUp" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_D-PAD_Down.png" Width="24.4" Height="28.2" Canvas.Left="64" Canvas.Top="152" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadDown" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_D-PAD_Left.png" Width="29.8" Height="23.3" Canvas.Left="32" Canvas.Top="128" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadLeft" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_D-PAD_Right.png" Width="29.8" Height="23.0" Canvas.Left="92" Canvas.Top="128" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadRight" />
+                    </Image.InputBindings>
+                </Image>
+                <!-- ##== BUMPERS & TRIGGERS ==## -->
+                <Image Source="/Assets/PS4/DS4_L1-Active.png" Width="54.5" Height="27.1" Canvas.Left="64" Canvas.Top="44" Tag="{Binding IsL1Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L1" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_L2-Active.png" Width="36.7" Height="21.9" Canvas.Left="76" Canvas.Top="15" Tag="{Binding IsL2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L2" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_R1-Active.png" Width="54.5" Height="27.1" Canvas.Left="295" Canvas.Top="44" Tag="{Binding IsR1Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R1" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_R2-Active.png" Width="36.4" Height="21.6" Canvas.Left="306" Canvas.Top="15" Tag="{Binding IsR2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R2" />
+                    </Image.InputBindings>
+                </Image>
+                <Image Source="/Assets/PS4/DS4_OptionsShare_Button.png" Width="14.5" Height="23.3" Canvas.Left="297.7" Canvas.Top="83.3" Tag="{Binding IsOptionsPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Options" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/PS4/DS4_OptionsShare_Button.png" Width="14.5" Height="23.3" Canvas.Left="107.7" Canvas.Top="83.3" Tag="{Binding IsSharePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Share" />
+    </Image.InputBindings>
+</Image>
+                <Image Source="/Assets/PS4/DS4_Home_Button.png" Width="23.8" Height="16.4" Canvas.Left="198.1" Canvas.Top="176.8" Tag="{Binding IsGuidePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Guide" />
+    </Image.InputBindings>
+</Image>
+                <!-- ##== TOUCHPAD ==## -->
+                <Image Source="/Assets/PS4/DS4_Touchpad_Touch.png" Width="100" Height="65" Canvas.Left="158" Canvas.Top="75" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                    <Image.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
+                    </Image.InputBindings>
+                </Image>
+                <!-- ##== PS4 STICKS ==## -->
+                <Grid Canvas.Left="122.4" Canvas.Top="174.9" Width="45.2" Height="40.2">
+                    <Grid.RenderTransform>
+                        <TranslateTransform X="{Binding PsLeftGraphicTranslateX}" Y="{Binding PsLeftGraphicTranslateY}"/>
+                    </Grid.RenderTransform>
+                    <Image Source="/Assets/PS4/PS4_LeftStick.png" Stretch="Fill" />
+                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsL3Pressed}">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <Image Source="/Assets/PS4/DS4_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsL3Pressed}" Style="{DynamicResource ImageBtnPress}"  Cursor="Hand">
+                        <Image.InputBindings>
+                            <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L3" />
+                        </Image.InputBindings>
+                    </Image>
+                </Grid>
+                <Grid Canvas.Left="252.4" Canvas.Top="174.9" Width="45.2" Height="40.2">
+                    <Grid.RenderTransform>
+                        <TranslateTransform X="{Binding PsRightGraphicTranslateX}" Y="{Binding PsRightGraphicTranslateY}"/>
+                    </Grid.RenderTransform>
+                    <Image Source="/Assets/PS4/PS4_RightStick.png" Stretch="Fill" />
+                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsR3Pressed}">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <Image Source="/Assets/PS4/DS4_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsR3Pressed}" Style="{DynamicResource ImageBtnPress}"  Cursor="Hand">
+    <Image.InputBindings>
+        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R3" />
+    </Image.InputBindings>
+</Image>
+                </Grid>
+            </Canvas>
+        </Canvas>
+    </Grid><!-- ##== end controller grid ==## -->
+</UserControl>

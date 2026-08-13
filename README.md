@@ -24,14 +24,28 @@ Fix stick drift, remap buttons, calibrate inputs, and eliminate double-input con
 
 ---
 
+## 🚀 What's New in Version 1.0.2 (Pre-Release)
+
+- 📐 **Sharp 90° Corner UI Design System**: All buttons, cards, containers, input boxes, dropdowns, and popup frames feature 90-degree square corners across both Dark and Light themes.
+- 🔴 **Thin Red Custom Scrollbars**: Ultra-thin 4px red scrollbars without background tracks.
+- 💡 **Circular 360° RGB Color Wheel**: Interactive circular spectrum picker for PlayStation controller LED lights customization.
+- 💾 **Settings Persistence**: Theme selection (Light/Dark mode) and configuration memory saved automatically to `%APPDATA%\DriftLift\settings.json`.
+- 🖼️ **Themed Custom Popups**: All alerts and dialogs replace standard Win32 windows with clean, sharp WPF themed popups.
+- 🎮 **Dynamic Controller Badge**: Top bar header dynamically reflects connected controller models (PS4, DualSense PS5, Xbox 360, Xbox Wireless, PS3, Generic).
+- 🛑 **Macro Recording Safety**: Displays `"Connect your controller first."` notifier when attempting to record macros without a controller attached.
+- 🎯 **Button Visualizer Repositioning**: Calibrated button position overlays using exact coordinates from `corpos`.
+
+---
+
 ## ✨ Features
 
 | Feature | Description |
 |---|---|
 | 🧲 **Auto Stick Drift Fix** | Analyzes live analog resting noise and auto-corrects center offsets down to 0.001 precision |
+| 💡 **PS Controller LED Lights** | RGB color picker & brightness slider (0% = OFF, 100% = Brightest) for DualShock 4 & DualSense |
+| 🔋 **Live Battery Indicator** | Functional HID battery monitor reading real percentage numbers (🔴 0–45% · 🟡 45–65% · 🟢 65–100%) |
 | 🎯 **Button Remapping** | Full per-button remap support for PlayStation (DS4 / DualSense) and Xbox controllers |
 | 📊 **Live Input Visualizer** | Real-time button, trigger, and thumbstick state visualizer |
-| 🔋 **Battery Monitor** | Color-coded vertical battery indicator (🔴 0–45% · 🟡 45–65% · 🟢 65–100%) |
 | 🛡️ **HidHide Integration** | Automatic download, installation, and zero-touch configuration of the HidHide driver to eliminate double-input in games |
 | ⚡ **1000Hz Input Loop** | Sub-millisecond polling rate (1ms / 1000Hz) using Windows Multimedia Timer precision |
 | 🎛️ **Deadzone Tuning** | Per-stick inner/outer deadzone sliders with live preview |

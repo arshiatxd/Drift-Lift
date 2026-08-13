@@ -1,0 +1,22 @@
+<Application x:Class="DriftLock.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DriftLock">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/RedNeonTheme.xaml"/>
+                <ResourceDictionary Source="Themes/SvgIcons.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <local:BoolToVisibilityConverter x:Key="BoolToVis"/>
+            <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
+            <local:BoolToColorConverter x:Key="BoolToColorConverter"/>
+            <local:IntToVisibilityConverter x:Key="IntToVis"/>
+            <local:AxisToPixelXConverter x:Key="AxisToPixelX"/>
+            <local:AxisToPixelYConverter x:Key="AxisToPixelY"/>
+            <local:TriggerHeightConverter x:Key="TriggerHeight"/>
+            <local:BoolToOpacityConverter x:Key="BoolToOpacity"/>
+            <local:AxisToBarWidthConverter x:Key="AxisToBarWidth"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

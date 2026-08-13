@@ -7,10 +7,29 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [1.0.2] — 2026-08-13
+
+### Added
+- **PlayStation Controller LED Customization**: Added dedicated LED Light Settings popup dialog (`PsLedWindow.xaml`), accessible directly from the Remap section whenever a PS4 (DualShock 4) or PS5 (DualSense) controller is connected.
+- **RGB Color Selection & Brightness**: Interactive circular color wheel spectrum with 1:1 mouse tracking, preset color swatches (Red, Electric Blue, Neon Purple, Neon Green, Yellow, White, Off), individual RGB sliders (0–255), and a Brightness slider (0% OFF to 100% Brightest).
+- **Remap Section Input Testing Icons**: Replaced generic text badges with authentic Playstation/Xbox shape icons (`L2`, `R2`, `L1`, `R1`, `△`, `◯`, `✕`, `▢`) for real-time input testing.
+- **Header RESET Confirmation Dialog**: Added safety confirmation popup when clicking the RESET button in the header bar.
+- **High-Quality Custom Installer Logo**: Updated setup wizard branding with clean high-resolution logo.
+
+### Fixed & Enhanced
+- **Sharp 90-Degree UI Styling**: Enforced crisp 90° rectangular geometry across all buttons, cards, popups, fields, lists, and custom scrollbars for both Light and Dark themes.
+- **Thin Red Custom Scrollbars**: Integrated sleek, 4px red thumb scrollbars matching the app theme in both Light and Dark modes.
+- **1000Hz Thread Safety**: Resolved thread race condition in `DriftProcessor.cs` queue enumeration during high-frequency input processing.
+- **WPF Resource Cleanup**: Fixed XAML static/dynamic resource resolution issues for consistent light theme and dark theme runtime switching.
+- **Custom Macro Sequence Recording**: Enhanced macro recorder engine for recording and replaying custom key sequences.
+- **Cable-Connected Controller Support**: Restored battery & connection reading logic for controllers without internal batteries.
+- **Sidebar & Header Cleanup**: Updated Settings sidebar icon to a gear icon and made menu background transparent.
+
+---
+
 ## [1.0.1] — 2026-08-07
 
 ### Changed
-- Installer: user can now choose a custom installation directory via the Inno Setup wizard
 - Installer: custom branded icon applied to `DriftLift_Setup.exe`
 - Installer: added optional "Launch on startup" task during install
 - Installer: added proper uninstall support (kills running process, removes registry keys)

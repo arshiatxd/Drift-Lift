@@ -1,0 +1,51 @@
+<Window x:Class="DriftLock.Views.Windows.ClosePromptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Exit DriftLock?" Height="250" Width="440"
+        WindowStartupLocation="CenterOwner" WindowStyle="None"
+        AllowsTransparency="True" Background="Transparent"
+        Loaded="Window_Loaded">
+    <Border x:Name="MainContainer"
+            Background="{DynamicResource CardBg}"
+            BorderBrush="{DynamicResource RedNeon}"
+            BorderThickness="1"
+            CornerRadius="0"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform x:Name="ScaleTrans" ScaleX="0.95" ScaleY="0.95"/>
+                <TranslateTransform x:Name="TranslateTrans" Y="0"/>
+            </TransformGroup>
+        </Border.RenderTransform>
+        
+        <Grid Margin="22">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <!-- ##== Header ==## -->
+            <Grid Grid.Row="0" Margin="0,0,0,14">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="7,4" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                        <TextBlock Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="CLOSE DRIFTLOCK?" Foreground="{DynamicResource RedNeon}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Click="CancelPopup_Click" HorizontalAlignment="Right" VerticalAlignment="Center" Width="28" Height="28" Cursor="Hand" Style="{DynamicResource DefaultButtonStyle}">
+                    <TextBlock Text="✕" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </Grid>
+            <!-- ##== Description ==## -->
+            <TextBlock Grid.Row="1" Text="Do you want to minimize to the system tray so your controller calibration keeps working, or exit completely?" Foreground="{DynamicResource TextSecondary}" FontSize="12" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,16"/>
+            <!-- ##== CheckBox ==## -->
+            <CheckBox x:Name="RememberChoiceCb" Grid.Row="2" Content="Remember my choice" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Margin="0,2,0,0" Cursor="Hand"/>
+            <!-- ##== Action Buttons ==## -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                <Button Content="MINIMIZE TO TRAY" Click="MinimizeBtn_Click" Style="{DynamicResource RedNeonBtn}" Margin="0,0,10,0" Padding="18,8" FontSize="11" Cursor="Hand"/>
+                <Button Content="EXIT COMPLETELY" Click="ExitBtn_Click" Style="{DynamicResource DefaultButtonStyle}" Padding="18,8" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

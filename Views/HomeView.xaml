@@ -1,0 +1,649 @@
+<UserControl x:Class="DriftLock.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:DriftLock.Views.Controls"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1100">
+    <UserControl.Resources>
+        <Style x:Key="BtnPress" TargetType="Button">
+            <Setter Property="Opacity" Value="0.0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="1" ScaleY="1"/></Setter.Value></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.06"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.22" Duration="0:0:0.06"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.22" Duration="0:0:0.06"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.0" Duration="0:0:0.28"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.20"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.20"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="BtnFlat" TargetType="Button">
+            <Setter Property="Opacity" Value="0.0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="1" ScaleY="1"/></Setter.Value></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.80" Duration="0:0:0.06"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.12" Duration="0:0:0.06"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.12" Duration="0:0:0.06"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0.0" Duration="0:0:0.25"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.20"/>
+                                <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.20"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StickRing" TargetType="Ellipse">
+            <Setter Property="Opacity" Value="0.0"/>
+            <Setter Property="Fill" Value="#55FF1744"/>
+            <Setter Property="Stroke" Value="#FF1744"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+        </Style>
+        <Style x:Key="VibBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#22FF1744"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CardHoverStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="4" Background="Transparent">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.25*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource CardHoverStyle}" Padding="16,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="🎮  Controller Visualizer" FontWeight="Bold" FontSize="14"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                        <TextBlock Text="Press any button — all inputs detected in real time"
+                                   Foreground="{DynamicResource TextSecondary}" FontSize="10" Margin="0,1,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Command="{Binding SelectPlayerCommand}" CommandParameter="0" Margin="0,0,5,0" Cursor="Hand" Visibility="{Binding IsP1Connected, Converter={StaticResource BoolToVis}}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="0" Padding="9,3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsP1Active}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource RedNeon}"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#33FF1744"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding P1Label}" FontSize="10" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsP1Active}" Value="True">
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Command="{Binding SelectPlayerCommand}" CommandParameter="1" Margin="0,0,5,0" Cursor="Hand" Visibility="{Binding IsP2Connected, Converter={StaticResource BoolToVis}}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="0" Padding="9,3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsP2Active}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource RedNeon}"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#33FF1744"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding P2Label}" FontSize="10" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsP2Active}" Value="True">
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Command="{Binding SelectPlayerCommand}" CommandParameter="2" Margin="0,0,5,0" Cursor="Hand" Visibility="{Binding IsP3Connected, Converter={StaticResource BoolToVis}}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="0" Padding="9,3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsP3Active}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource RedNeon}"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#33FF1744"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding P3Label}" FontSize="10" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsP3Active}" Value="True">
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Command="{Binding SelectPlayerCommand}" CommandParameter="3" Cursor="Hand" Visibility="{Binding IsP4Connected, Converter={StaticResource BoolToVis}}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="0" Padding="9,3">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsP4Active}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource RedNeon}"/>
+                                                    </DataTrigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#33FF1744"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding P4Label}" FontSize="10" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsP4Active}" Value="True">
+                                                            <Setter Property="Foreground" Value="White"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+                <controls:ControllerVisualizerControl Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                    <Ellipse Width="8" Height="8" Fill="{DynamicResource RedNeon}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock Text="Pressed" Foreground="{DynamicResource TextSecondary}" FontSize="10" Margin="0,0,18,0" VerticalAlignment="Center"/>
+                    <Ellipse Width="8" Height="8" Fill="{DynamicResource TextMuted}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBlock Text="Not Pressed" Foreground="{DynamicResource TextSecondary}" FontSize="10" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Grid Grid.Column="1"/>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardHoverStyle}"
+                    >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="◎  Analog Sticks" Foreground="#2ECC71" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="Linearity, Drift &amp; Circularity" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderBrush}" Margin="0,5,0,8"/>
+                    <Grid Grid.Row="2" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <Grid Width="86" Height="86" HorizontalAlignment="Center">
+                                <Ellipse Fill="{DynamicResource SubCardBg}" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1.5"/>
+                                <Line X1="43" Y1="8" X2="43" Y2="78" Stroke="{DynamicResource BorderBrush}" StrokeThickness="0.7" Opacity="0.4"/>
+                                <Line X1="8" Y1="43" X2="78" Y2="43" Stroke="{DynamicResource BorderBrush}" StrokeThickness="0.7" Opacity="0.4"/>
+                                <Canvas Width="86" Height="86">
+                                    <Ellipse Width="11" Height="11" Canvas.Left="37.5" Canvas.Top="37.5" Fill="#2ECC71">
+                                        <Ellipse.Effect><DropShadowEffect Color="#2ECC71" BlurRadius="8" ShadowDepth="0"/></Ellipse.Effect>
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="{Binding CorrectedLeftX, Converter={StaticResource AxisToPixelX}}"
+                                                                Y="{Binding CorrectedLeftY, Converter={StaticResource AxisToPixelY}}"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Canvas>
+                            </Grid>
+                            <TextBlock Text="LEFT" Foreground="{DynamicResource TextMuted}" FontSize="9" HorizontalAlignment="Center" Margin="0,4,0,1"/>
+                            <TextBlock Foreground="{DynamicResource TextPrimary}" FontSize="9.5" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:+0.00;-0.00}, {1:+0.00;-0.00}">
+                                        <Binding Path="CorrectedLeftX"/>
+                                        <Binding Path="CorrectedLeftY"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <Grid Width="86" Height="86" HorizontalAlignment="Center">
+                                <Ellipse Fill="{DynamicResource SubCardBg}" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1.5"/>
+                                <Line X1="43" Y1="8" X2="43" Y2="78" Stroke="{DynamicResource BorderBrush}" StrokeThickness="0.7" Opacity="0.4"/>
+                                <Line X1="8" Y1="43" X2="78" Y2="43" Stroke="{DynamicResource BorderBrush}" StrokeThickness="0.7" Opacity="0.4"/>
+                                <Canvas Width="86" Height="86">
+                                    <Ellipse Width="11" Height="11" Canvas.Left="37.5" Canvas.Top="37.5" Fill="#2ECC71">
+                                        <Ellipse.Effect><DropShadowEffect Color="#2ECC71" BlurRadius="8" ShadowDepth="0"/></Ellipse.Effect>
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="{Binding CorrectedRightX, Converter={StaticResource AxisToPixelX}}"
+                                                                Y="{Binding CorrectedRightY, Converter={StaticResource AxisToPixelY}}"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Canvas>
+                            </Grid>
+                            <TextBlock Text="RIGHT" Foreground="{DynamicResource TextMuted}" FontSize="9" HorizontalAlignment="Center" Margin="0,4,0,1"/>
+                            <TextBlock Foreground="{DynamicResource TextPrimary}" FontSize="9.5" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:+0.00;-0.00}, {1:+0.00;-0.00}">
+                                        <Binding Path="CorrectedRightX"/>
+                                        <Binding Path="CorrectedRightY"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+            <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardHoverStyle}"
+                    >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="⚡  Triggers" Foreground="#9B59B6" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="Analog Pressure (0–1)" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderBrush}" Margin="0,5,0,8"/>
+                    <Grid Grid.Row="2" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <Grid Height="105" Width="46">
+                                <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        Background="{DynamicResource SubCardBg}" CornerRadius="0"/>
+                                <Border Background="#9B59B6" VerticalAlignment="Bottom"
+                                        Height="{Binding TriggerL, Converter={StaticResource TriggerHeight}}"
+                                        Width="40" Margin="3" CornerRadius="0">
+                                    <Border.Effect><DropShadowEffect Color="#9B59B6" BlurRadius="8" ShadowDepth="0" Opacity="0.6"/></Border.Effect>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="LT / L2" Foreground="{DynamicResource TextMuted}" FontSize="9" HorizontalAlignment="Center" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding TriggerL, StringFormat=F2}" Foreground="{DynamicResource TextPrimary}"
+                                       FontSize="11" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <Grid Height="105" Width="46">
+                                <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                        Background="{DynamicResource SubCardBg}" CornerRadius="0"/>
+                                <Border Background="#9B59B6" VerticalAlignment="Bottom"
+                                        Height="{Binding TriggerR, Converter={StaticResource TriggerHeight}}"
+                                        Width="40" Margin="3" CornerRadius="0">
+                                    <Border.Effect><DropShadowEffect Color="#9B59B6" BlurRadius="8" ShadowDepth="0" Opacity="0.6"/></Border.Effect>
+                                </Border>
+                            </Grid>
+                            <TextBlock Text="RT / R2" Foreground="{DynamicResource TextMuted}" FontSize="9" HorizontalAlignment="Center" Margin="0,4,0,2"/>
+                            <TextBlock Text="{Binding TriggerR, StringFormat=F2}" Foreground="{DynamicResource TextPrimary}"
+                                       FontSize="11" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CardHoverStyle}"
+                    >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="01  Raw Data" Foreground="#3498DB" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="Gamepad API Output" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderBrush}" Margin="0,5,0,8"/>
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Hidden">
+                        <StackPanel>
+                            <TextBlock Text="AXES" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontWeight="Bold" Margin="0,0,0,3" FontFamily="Consolas"/>
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="0" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontFamily="Consolas"/>
+                                <Border Grid.Column="1" Height="4" Background="{DynamicResource SubCardBg}" CornerRadius="0" VerticalAlignment="Center">
+                                    <Border Background="#FF1744" HorizontalAlignment="Left" Width="{Binding RawLeftX, Converter={StaticResource AxisToBarWidth}}" CornerRadius="0" Opacity="0.85"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding RawLeftX, StringFormat='{}{0:+0.00;-0.00}'}" Foreground="{DynamicResource TextPrimary}" FontSize="8.5" FontFamily="Consolas" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="1" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontFamily="Consolas"/>
+                                <Border Grid.Column="1" Height="4" Background="{DynamicResource SubCardBg}" CornerRadius="0" VerticalAlignment="Center">
+                                    <Border Background="#FF1744" HorizontalAlignment="Left" Width="{Binding RawLeftY, Converter={StaticResource AxisToBarWidth}}" CornerRadius="0" Opacity="0.85"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding RawLeftY, StringFormat='{}{0:+0.00;-0.00}'}" Foreground="{DynamicResource TextPrimary}" FontSize="8.5" FontFamily="Consolas" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="2" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontFamily="Consolas"/>
+                                <Border Grid.Column="1" Height="4" Background="{DynamicResource SubCardBg}" CornerRadius="0" VerticalAlignment="Center">
+                                    <Border Background="#3498DB" HorizontalAlignment="Left" Width="{Binding RawRightX, Converter={StaticResource AxisToBarWidth}}" CornerRadius="0" Opacity="0.85"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding RawRightX, StringFormat='{}{0:+0.00;-0.00}'}" Foreground="{DynamicResource TextPrimary}" FontSize="8.5" FontFamily="Consolas" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/><ColumnDefinition Width="44"/></Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="3" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontFamily="Consolas"/>
+                                <Border Grid.Column="1" Height="4" Background="{DynamicResource SubCardBg}" CornerRadius="0" VerticalAlignment="Center">
+                                    <Border Background="#3498DB" HorizontalAlignment="Left" Width="{Binding RawRightY, Converter={StaticResource AxisToBarWidth}}" CornerRadius="0" Opacity="0.85"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding RawRightY, StringFormat='{}{0:+0.00;-0.00}'}" Foreground="{DynamicResource TextPrimary}" FontSize="8.5" FontFamily="Consolas" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <TextBlock Text="BUTTONS" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontWeight="Bold" Margin="0,0,0,3" FontFamily="Consolas"/>
+                            <TextBlock Text="{Binding RawButtonsText}" Foreground="{DynamicResource TextSecondary}" FontSize="8.5" FontFamily="Consolas" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ConnectionStatusText}" Foreground="{DynamicResource TextMuted}" FontSize="8.5" FontFamily="Consolas" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+            <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource CardHoverStyle}"
+                    >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="⚡  Vibration Test" Foreground="#F39C12" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="Dual Motor" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                    </StackPanel>
+                    <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderBrush}" Margin="0,5,0,8"/>
+                    <StackPanel Grid.Row="2">
+                        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,8" FontSize="20">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="(( · ))"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource TextMuted}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsVibrating}" Value="True">
+                                            <Setter Property="Foreground" Value="#F39C12"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="6"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0" Grid.Column="0" Command="{Binding SetVibrationModeCommand}" CommandParameter="Heavy" BorderBrush="#F39C12" Style="{StaticResource VibBtn}">
+                                <StackPanel>
+                                    <TextBlock Text="HEAVY" Foreground="#F39C12" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <Border Height="2" Background="#F39C12" CornerRadius="0" Margin="4,2,4,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="0.2"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedVibrationMode}" Value="Heavy">
+                                                        <Setter Property="Opacity" Value="1.0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Row="0" Grid.Column="2" Command="{Binding SetVibrationModeCommand}" CommandParameter="Light" BorderBrush="#3498DB" Style="{StaticResource VibBtn}">
+                                <StackPanel>
+                                    <TextBlock Text="LIGHT" Foreground="#3498DB" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <Border Height="2" Background="#3498DB" CornerRadius="0" Margin="4,2,4,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="0.2"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedVibrationMode}" Value="Light">
+                                                        <Setter Property="Opacity" Value="1.0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Row="2" Grid.Column="0" Command="{Binding SetVibrationModeCommand}" CommandParameter="Burst" BorderBrush="#9B59B6" Style="{StaticResource VibBtn}">
+                                <StackPanel>
+                                    <TextBlock Text="BURST" Foreground="#9B59B6" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <Border Height="2" Background="#9B59B6" CornerRadius="0" Margin="4,2,4,0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="0.2"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedVibrationMode}" Value="Burst">
+                                                        <Setter Property="Opacity" Value="1.0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Row="2" Grid.Column="2" Command="{Binding SetVibrationModeCommand}" CommandParameter="Pulse" BorderBrush="#FF1744" Style="{StaticResource VibBtn}">
+                                <StackPanel>
+                                    <TextBlock Text="PULSE" Foreground="#FF1744" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    <Border Height="2" CornerRadius="0" Margin="4,2,4,0">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#FF1744" Offset="0"/>
+                                                <GradientStop Color="#9B59B6" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Opacity" Value="0.2"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedVibrationMode}" Value="Pulse">
+                                                        <Setter Property="Opacity" Value="1.0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" SelectedValue="{Binding SelectedVibrationDuration}" SelectedValuePath="Tag"
+                                      Background="{DynamicResource SubCardBg}" Foreground="{DynamicResource TextPrimary}"
+                                      BorderBrush="{DynamicResource BorderBrush}" FontSize="10">
+                                <ComboBoxItem Content="5s" Tag="5"/>
+                                <ComboBoxItem Content="10s" Tag="10"/>
+                                <ComboBoxItem Content="15s" Tag="15"/>
+                            </ComboBox>
+                            <Button Grid.Column="2" Command="{Binding ToggleVibrationCommand}" Padding="12,5" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" CornerRadius="0" Background="#FF1744" Padding="{TemplateBinding Padding}">
+                                            <Border.Effect><DropShadowEffect Color="#FF1744" BlurRadius="8" ShadowDepth="0" Opacity="0.5"/></Border.Effect>
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#FF3B5F"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold" FontSize="10" Foreground="White">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="▶ START"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsVibrating}" Value="True">
+                                                        <Setter Property="Text" Value="■ STOP"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding VibrationTimeRemaining, StringFormat=' ({0:F2}s)'}" Foreground="White" FontSize="10" FontWeight="Bold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsVibrating}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

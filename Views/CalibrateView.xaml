@@ -1,0 +1,199 @@
+<UserControl x:Class="DriftLock.Views.CalibrateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" d:DesignHeight="720" d:DesignWidth="1050"
+             Foreground="{DynamicResource TextPrimary}">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <!-- ##== Step Navigation Progress Bar ==## -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <!-- ##== TOP STEP NAVIGATION HEADER ==## -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20,12" Margin="0,0,0,14">
+            <Grid VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="#2ECC71" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
+                        <TextBlock Text="✓ 1. Connect Device" Foreground="#2ECC71" FontSize="11" FontWeight="Bold"/>
+                    </Border>
+                    <Border Background="{DynamicResource RedNeonDark}" BorderBrush="{DynamicResource RedNeon}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="6" Height="6" Fill="{DynamicResource RedNeon}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="⚙ 2. Center Sticks" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
+                        <TextBlock Text="◯ 3. Range Sweep" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    </Border>
+                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
+                        <TextBlock Text="✓ 4. Verification" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    </Border>
+                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4">
+                        <TextBlock Text="💾 5. Save NVS" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <!-- ##== MAIN CALIBRATION BODY ==## -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- ##== Interactive Canvas Column ==## -->
+                <ColumnDefinition Width="*"/>
+                <!-- ##== Sidebar Info Panel ==## -->
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+            <!-- ##== LEFT CANVAS PANEL ==## -->
+            <Border Grid.Column="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="24" Margin="0,0,14,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="270"/>
+                        <!-- ##== Step Controls & Prompts ==## -->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <!-- ##== STICK VISUALIZERS GRID ==## -->
+                    <Grid Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="220"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- ##== LEFT STICK CARD ==## -->
+                        <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                            <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="10,4" Margin="0,0,0,12">
+                                <TextBlock Text="LEFT ANALOG STICK" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Grid Width="170" Height="170">
+                                <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1"/>
+                                <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" Width="150" Height="150"/>
+                                <Line X1="85" Y1="10" X2="85" Y2="160" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" StrokeDashArray="2 2"/>
+                                <Line X1="10" Y1="85" X2="160" Y2="85" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" StrokeDashArray="2 2"/>
+                                <Canvas Width="170" Height="170">
+                                    <Ellipse Width="12" Height="12" Fill="{DynamicResource RedNeon}" Margin="79,79,0,0">
+                                        <Ellipse.Effect>
+                                            <DropShadowEffect Color="#FF1744" BlurRadius="16" ShadowDepth="0"/>
+                                        </Ellipse.Effect>
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="{Binding CorrectedLeftX, Converter={StaticResource AxisToPixelX}, ConverterParameter=62}" Y="{Binding CorrectedLeftY, Converter={StaticResource AxisToPixelY}, ConverterParameter=62}"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Canvas>
+                            </Grid>
+                            <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,4" Margin="0,12,0,0" HorizontalAlignment="Center">
+                                <TextBlock Foreground="{DynamicResource TextPrimary}" FontSize="11" FontFamily="Consolas" HorizontalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="X: {0:+0.00;-0.00}  Y: {1:+0.00;-0.00}">
+                                            <Binding Path="CorrectedLeftX"/>
+                                            <Binding Path="CorrectedLeftY"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+                        <!-- ##== RIGHT STICK CARD ==## -->
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                            <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="10,4" Margin="0,0,0,12">
+                                <TextBlock Text="RIGHT ANALOG STICK" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </Border>
+                            <Grid Width="170" Height="170">
+                                <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1"/>
+                                <Ellipse Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" Width="150" Height="150"/>
+                                <Line X1="85" Y1="10" X2="85" Y2="160" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" StrokeDashArray="2 2"/>
+                                <Line X1="10" Y1="85" X2="160" Y2="85" Stroke="{DynamicResource BorderBrush}" StrokeThickness="1" StrokeDashArray="2 2"/>
+                                <Canvas Width="170" Height="170">
+                                    <Ellipse Width="12" Height="12" Fill="{DynamicResource RedNeon}" Margin="79,79,0,0">
+                                        <Ellipse.Effect>
+                                            <DropShadowEffect Color="#FF1744" BlurRadius="16" ShadowDepth="0"/>
+                                        </Ellipse.Effect>
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform X="{Binding CorrectedRightX, Converter={StaticResource AxisToPixelX}, ConverterParameter=62}" Y="{Binding CorrectedRightY, Converter={StaticResource AxisToPixelY}, ConverterParameter=62}"/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Canvas>
+                            </Grid>
+                            <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,4" Margin="0,12,0,0" HorizontalAlignment="Center">
+                                <TextBlock Foreground="{DynamicResource TextPrimary}" FontSize="11" FontFamily="Consolas" HorizontalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="X: {0:+0.00;-0.00}  Y: {1:+0.00;-0.00}">
+                                            <Binding Path="CorrectedRightX"/>
+                                            <Binding Path="CorrectedRightY"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                    <!-- ##== STEP PROMPTS & ACTIONS ==## -->
+                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Background="{DynamicResource RedNeonGradient}" CornerRadius="0" Padding="16,5" HorizontalAlignment="Center" Margin="0,0,0,14">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#FF1744" BlurRadius="10" ShadowDepth="0" Opacity="0.5"/>
+                            </Border.Effect>
+                            <TextBlock Text="{Binding CalibrationStep, StringFormat='STEP {0} OF 4'}" Foreground="White" FontSize="11" FontWeight="Black"/>
+                        </Border>
+                        <TextBlock Text="{Binding StepPromptText}" Foreground="{DynamicResource TextPrimary}" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding StepSubPromptText}" Foreground="{DynamicResource TextSecondary}" FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,22"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button Command="{Binding NextCalibrationStepCommand}" Content="NEXT STEP  ➔" Style="{DynamicResource RedNeonBtn}" Width="150" Height="38" Margin="0,0,12,0"/>
+                            <Button Command="{Binding AutoFixStickDriftCommand}" Content="⚡ AUTO FIX DRIFT" Style="{DynamicResource DefaultButtonStyle}" Padding="16,8" Height="38"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <!-- ##== RIGHT SIDEBAR INFO PANEL ==## -->
+            <Border Grid.Column="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="18">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <!-- ##== DEVICE INFORMATION CARD ==## -->
+                        <TextBlock Text="ⓘ DEVICE INFORMATION" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="MODEL" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
+                            <TextBlock Text="{Binding DeviceModelText}" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="SERIAL" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
+                            <TextBlock Text="{Binding DeviceSerialText}" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="FIRMWARE" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
+                            <TextBlock Text="{Binding DeviceFirmwareText}" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="NVS STATUS" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
+                            <Border Background="{DynamicResource SubCardBg}" BorderBrush="#2ECC71" BorderThickness="1" CornerRadius="0" Padding="6,2" HorizontalAlignment="Right">
+                                <TextBlock Text="LOCKED / SAFE" Foreground="#2ECC71" FontSize="10" FontWeight="Bold"/>
+                            </Border>
+                        </Grid>
+                        <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
+                        <!-- ##== SAFETY STATUS CARD ==## -->
+                        <TextBlock Text="🛡 SYSTEM DIAGNOSTICS" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <StackPanel Margin="0,0,0,16">
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="{Binding BatteryPercentageText, StringFormat='🔋 {0}'}" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="OK" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="🔌 USB Connection" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="CONNECTED" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid>
+                                <TextBlock Text="✔ Controller Signature" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="VERIFIED" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                        <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
+                        <!-- ##== IMPORTANT WARNINGS CARD ==## -->
+                        <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="⚠ INSTRUCTIONS" Foreground="#F39C12" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Maintain USB connection throughout the entire calibration process." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Rotate thumbsticks in slow, complete 360° outer circles for range measurement." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Permanent NVS save writes calibration parameters to profile memory." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

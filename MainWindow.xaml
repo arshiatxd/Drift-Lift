@@ -1,0 +1,286 @@
+<Window x:Class="DriftLock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:local="clr-namespace:DriftLock"
+        xmlns:views="clr-namespace:DriftLock.Views"
+        mc:Ignorable="d"
+        Title="Drift Lift v1.0.2" Height="780" Width="1260"
+        WindowStartupLocation="CenterScreen" WindowStyle="None"
+        AllowsTransparency="True" Background="Transparent">
+    <Window.Resources>
+        <Duration x:Key="SidebarDuration">0:0:0.22</Duration>
+        <Style x:Key="FadeView" TargetType="UIElement">
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style x:Key="NavBtn" TargetType="RadioButton" BasedOn="{DynamicResource NavButtonStyle}">
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value><ScaleTransform/></Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TitleBarBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="0" Width="32" Height="32">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#22FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TitleBarCloseBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="0" Width="32" Height="32">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#AA330011"/>
+                                <Setter Property="Foreground" Value="#FF1744"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border Background="{DynamicResource BgDark}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="0"
+            x:Name="RootBorder">
+        <Border.Effect>
+            <DropShadowEffect Color="#FF1744" BlurRadius="30" ShadowDepth="0" Opacity="0.25"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <tb:TaskbarIcon x:Name="MyNotifyIcon"
+                            IconSource="icon.ico"
+                            ToolTipText="Drift Lift Controller Calibration"
+                            TrayMouseDoubleClick="TrayIcon_DoubleClick">
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu Background="{DynamicResource CardBg}"
+                                 BorderBrush="{DynamicResource RedNeon}"
+                                 BorderThickness="1">
+                        <MenuItem Header="Open Drift Lift" Click="TrayRestore_Click" Foreground="{DynamicResource TextPrimary}"/>
+                        <MenuItem Header="Run in Background" Click="TrayMinimize_Click" Foreground="{DynamicResource TextPrimary}"/>
+                        <Separator/>
+                        <MenuItem Header="Exit" Click="TrayExit_Click" Foreground="{DynamicResource RedNeon}"/>
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+            <Border Grid.Row="0"
+                    Background="{DynamicResource BgDark}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="14,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="icon.ico" Width="28" Height="28" Margin="0,0,10,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="DRIFT LIFT" FontWeight="Black" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
+                            <TextBlock Text="v1.0.2  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="12,5">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="7" Height="7" Fill="{Binding ConnectionStatusColor}" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="#FF1744" BlurRadius="6" ShadowDepth="0"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                            <TextBlock Text="{Binding ConnectionStatusText}"
+                                       Foreground="{Binding ConnectionStatusColor}"
+                                       FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Button Content="⚡ AUTO FIX DRIFT"
+                                Command="{Binding AutoFixStickDriftCommand}"
+                                Style="{DynamicResource RedNeonBtn}"
+                                Margin="0,0,8,0" FontSize="10"/>
+                        <Button Content="↺ RESET"
+                                Command="{Binding ResetCalibrationCommand}"
+                                Background="{DynamicResource SubCardBg}"
+                                Foreground="{DynamicResource TextMuted}"
+                                FontWeight="SemiBold" FontSize="10"
+                                Padding="10,5" BorderThickness="1"
+                                BorderBrush="{DynamicResource BorderBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Click="MinimizeBtn_Click" Style="{StaticResource TitleBarBtn}">
+                            <TextBlock Text="—" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                        </Button>
+                        <Button Click="MaximizeBtn_Click" Style="{StaticResource TitleBarBtn}">
+                            <TextBlock Text="□" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                        </Button>
+                        <Button Click="CloseBtn_Click" Style="{StaticResource TitleBarCloseBtn}">
+                            <TextBlock Text="✕" Foreground="{DynamicResource TextMuted}" FontSize="12"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="SidebarCol" Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0"
+                        Background="{DynamicResource BgDark}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,0,1,0"
+                        x:Name="SidebarBorder">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0"
+                                Command="{Binding ToggleSidebarCommand}"
+                                HorizontalAlignment="Left" Margin="14,12,0,8"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                Click="SidebarToggle_Click">
+                            <Border CornerRadius="0" Padding="6,4" Background="Transparent">
+                                <TextBlock x:Name="HamburgerIcon" Text="≡" Foreground="{DynamicResource RedNeon}" FontSize="18" FontWeight="Bold"/>
+                            </Border>
+                        </Button>
+                        <StackPanel Grid.Row="1" Margin="0,4,0,0">
+                            <RadioButton x:Name="NavHome" GroupName="NavMenu"
+                                         IsChecked="True"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="0"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <TextBlock Text="⌂" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock x:Name="NavHomeLbl" Text="HOME" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton x:Name="NavRemap" GroupName="NavMenu"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="1"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <Path Data="{StaticResource IconRemap4Buttons}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                                    <TextBlock x:Name="NavRemapLbl" Text="REMAP" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton x:Name="NavCalibrate" GroupName="NavMenu"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="2"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <TextBlock Text="◎" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock x:Name="NavCalibrateLbl" Text="CALIBRATE" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton x:Name="NavMacros" GroupName="NavMenu"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="3"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <TextBlock Text="⚙" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock x:Name="NavMacrosLbl" Text="MACROS" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="0,0,0,12">
+                            <!-- ##== DEVICE INFO CARD ==## -->
+                            <Border Margin="6,0,6,4" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="8,8" x:Name="DeviceInfoPanel">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Grid Margin="0,0,8,0" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding ControllerConnectionIcon}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource RedNeon}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <Ellipse Width="7" Height="7" Fill="{Binding ConnectionStatusColor}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,0"/>
+                                    </Grid>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DeviceModelText}" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding DeviceFirmwareText}" Foreground="{DynamicResource TextMuted}" FontSize="10"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <!-- ##== BATTERY INFO CONTAINER ==## -->
+                            <Grid Margin="6,0,6,0">
+                                <!-- ##== EXPANDED HORIZONTAL BATTERY CARD ==## -->
+                                <Border x:Name="BatteryInfoPanelExpanded" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,8">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🔋" FontSize="15" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding BatteryPercentageText}" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold"/>
+                                            <Border Width="110" Height="6" Background="{DynamicResource SubCardBg}" CornerRadius="0" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                                <Border HorizontalAlignment="Left" Width="{Binding BatteryLevelWidth}" Background="{Binding BatteryFillColor}" CornerRadius="0"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <!-- ##== COLLAPSED VERTICAL SMARTPHONE BATTERY CARD ==## -->
+                                <Border x:Name="BatteryInfoPanelCollapsed" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="4,8" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Center" Width="48">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="20" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Border Width="6" Height="3" Background="{DynamicResource TextMuted}" CornerRadius="0" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                                            <Border Width="18" Height="23" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1.5" CornerRadius="0" Background="{DynamicResource CardBg}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                                <Border VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Height="{Binding BatteryLevelHeight}" Background="{Binding BatteryFillColor}" CornerRadius="0"/>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Text="{Binding BatteryPercentageShortText}" Foreground="{DynamicResource TextPrimary}" FontSize="9" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <RadioButton x:Name="NavSettings" GroupName="NavMenu"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="4"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click" Margin="0,8,0,0">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <Path Data="{StaticResource IconSettings}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                                    <TextBlock x:Name="NavSettingsLbl" Text="SETTINGS" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Grid Grid.Column="1" Margin="14" x:Name="ContentGrid">
+                    <views:HomeView x:Name="ViewHome"
+                                    Opacity="0" IsHitTestVisible="False"/>
+                    <views:RemapView x:Name="ViewRemap"
+                                     Opacity="0" IsHitTestVisible="False"/>
+                    <views:CalibrateView x:Name="ViewCalibrate"
+                                         Opacity="0" IsHitTestVisible="False"/>
+                    <views:MacrosView x:Name="ViewMacros"
+                                      Opacity="0" IsHitTestVisible="False"/>
+                    <views:SettingsView x:Name="ViewSettings"
+                                        Opacity="0" IsHitTestVisible="False"/>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

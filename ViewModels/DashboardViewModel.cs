@@ -1,0 +1,1329 @@
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DriftLock.Core;
+using DriftLock.Core.Icons;
+using DriftLock.Core.Input;
+using DriftLock.Models;
+using DriftLock.Views;
+using Nefarius.Drivers.HidHide;
+namespace DriftLock.ViewModels
+{
+    public partial class DashboardViewModel : ObservableObject
+    {
+        private readonly InputLoop _inputLoop;
+        private readonly SettingsManager _settingsManager;
+        private readonly DispatcherTimer _uiTimer;
+        private readonly DispatcherTimer _vibrationTimer;
+        private ControllerProfilePair? _activeProfile;
+        private HidHideControlService? _hidHideService;
+        [ObservableProperty]
+        private ObservableCollection<CustomMapping> _activeMappings = new ObservableCollection<CustomMapping>();
+        [ObservableProperty] private object _currentView = null!;
+        [ObservableProperty] private bool _isWaitingForInput;
+        [ObservableProperty] private string _waitingTargetText = "";
+        private ushort _waitingTargetBit;
+        private ushort _lastRawButtons;
+        [ObservableProperty] private int _selectedTabIndex = 0;
+        [ObservableProperty] private bool _isSidebarExpanded = true;
+        [ObservableProperty] private int _sidebarColumnWidth = 250;
+        [ObservableProperty] private string _hidHideStatusText = "Unknown";
+        [ObservableProperty] private Brush _hidHideStatusColor = Brushes.Gray;
+        [ObservableProperty] private string _hidHideButtonText = "Download HidHide";
+        [ObservableProperty] private bool _isHidHideEnabled;
+        [ObservableProperty] private string _btnLabelCrossOrA = "CROSS";
+        [ObservableProperty] private string _btnLabelCircleOrB = "CIRCLE";
+        [ObservableProperty] private string _btnLabelSquareOrX = "SQUARE";
+        [ObservableProperty] private string _btnLabelTriangleOrY = "TRIANGLE";
+        [ObservableProperty] private string _btnLabelShareOrBack = "SHARE";
+        [ObservableProperty] private string _btnLabelOptionsOrStart = "OPTIONS";
+        [ObservableProperty] private string _btnLabelL1OrLB = "L1";
+        [ObservableProperty] private string _btnLabelR1OrRB = "R1";
+        [ObservableProperty] private string _btnLabelL2OrLT = "L2";
+        [ObservableProperty] private string _btnLabelR2OrRT = "R2";
+        [ObservableProperty] private string _targetNameL2 = "LT";
+        [ObservableProperty] private string _targetNameL1 = "LB";
+        [ObservableProperty] private string _targetNameShare = "BACK";
+        [ObservableProperty] private string _targetNameOptions = "START";
+        [ObservableProperty] private string _targetNameTriangle = "Y";
+        [ObservableProperty] private string _targetNameCircle = "B";
+        [ObservableProperty] private string _targetNameCross = "A";
+        [ObservableProperty] private string _targetNameSquare = "X";
+        [ObservableProperty] private string _targetNameR1 = "RB";
+        [ObservableProperty] private string _targetNameR2 = "RT";
+        [ObservableProperty] private string _leftStickTextX = "X: 0%";
+        [ObservableProperty] private string _leftStickTextY = "Y: 0%";
+        [ObservableProperty] private string _rightStickTextX = "X: 0%";
+        [ObservableProperty] private string _rightStickTextY = "Y: 0%";
+        [ObservableProperty] private double _leftStickValX = 50;
+        [ObservableProperty] private double _leftStickValY = 50;
+        [ObservableProperty] private double _rightStickValX = 50;
+        [ObservableProperty] private double _rightStickValY = 50;
+        partial void OnIsHidHideEnabledChanged(bool value)
+        {
+            if (_hidHideService != null)
+            {
+                try { _hidHideService.IsActive = value; } catch { }
+            }
+        }
+        [ObservableProperty] private bool _isDarkTheme = true;
+        [ObservableProperty] private int _calibrationStep = 1;
+        [ObservableProperty] private string _stepPromptText = "Push both sticks to the top-left corner, then release";
+        [ObservableProperty] private string _stepSubPromptText = "Release the sticks completely, then press Next";
+        [ObservableProperty] private double _stickSensitivity = 1.0;
+        [ObservableProperty] private double _leftStickDeadzone = 5.0;
+        [ObservableProperty] private double _rightStickDeadzone = 5.0;
+        
+        partial void OnStickSensitivityChanged(double value)
+        {
+            if (_activeProfile != null && _activeProfile.Drift != null && _activeProfile.Drift.Profile != null)
+            {
+                _activeProfile.Drift.Profile.LeftStick.Sensitivity = value;
+                _activeProfile.Drift.Profile.RightStick.Sensitivity = value;
+            }
+        }
+        partial void OnLeftStickDeadzoneChanged(double value)
+        {
+            if (_activeProfile != null && _activeProfile.Drift != null && _activeProfile.Drift.Profile != null)
+            {
+                _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = value / 100.0;
+            }
+        }
+        partial void OnRightStickDeadzoneChanged(double value)
+        {
+            if (_activeProfile != null && _activeProfile.Drift != null && _activeProfile.Drift.Profile != null)
+            {
+                _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = value / 100.0;
+            }
+        }
+
+        public ObservableCollection<MacroItem> ActiveMacros { get; } = new();
+        [ObservableProperty] private MacroItem? _activeMacro;
+        [ObservableProperty] private bool _isRecordingMacro;
+        [ObservableProperty] private bool _isMacroPlaying;
+        [ObservableProperty] private string _recordingStatusText = "▶ RECORD MACRO";
+        [ObservableProperty] private string _macroStatusText = "IDLE";
+        private int _lastRecordTick = 0;
+        [ObservableProperty] private double _macroDeadzone = 0.05;
+        [ObservableProperty] private double _leftGraphicTranslateX;
+        [ObservableProperty] private double _leftGraphicTranslateY;
+        [ObservableProperty] private double _rightGraphicTranslateX;
+        [ObservableProperty] private double _rightGraphicTranslateY;
+        [ObservableProperty] private double _psLeftGraphicTranslateX;
+        [ObservableProperty] private double _psLeftGraphicTranslateY;
+        [ObservableProperty] private double _psRightGraphicTranslateX;
+        [ObservableProperty] private double _psRightGraphicTranslateY;
+        [ObservableProperty] private double _rawLeftX;
+        [ObservableProperty] private double _rawLeftY;
+        [ObservableProperty] private double _rawRightX;
+        [ObservableProperty] private double _rawRightY;
+        [ObservableProperty] private double _correctedLeftX;
+        [ObservableProperty] private double _correctedLeftY;
+        [ObservableProperty] private double _correctedRightX;
+        [ObservableProperty] private double _correctedRightY;
+        [ObservableProperty] private double _triggerL;
+        [ObservableProperty] private double _triggerR;
+        [ObservableProperty] private double _leftInnerDeadzone = 0.05;
+        [ObservableProperty] private double _leftOuterDeadzone = 0.98;
+        [ObservableProperty] private double _leftAntiDeadzone = 0.0;
+        [ObservableProperty] private double _leftAxialDeadzone = 0.0;
+        [ObservableProperty] private double _rightInnerDeadzone = 0.05;
+        [ObservableProperty] private double _rightOuterDeadzone = 0.98;
+        [ObservableProperty] private double _rightAntiDeadzone = 0.0;
+        [ObservableProperty] private double _rightAxialDeadzone = 0.0;
+        [ObservableProperty] private double _leftLiveCircularity;
+        [ObservableProperty] private double _rightLiveCircularity;
+        [ObservableProperty] private string _controllerConnectionIcon = "❌ NONE";
+        [ObservableProperty] private string _macroErrorNotifier = "";
+        [ObservableProperty] private bool _isAPressed;
+        [ObservableProperty] private bool _isBPressed;
+        [ObservableProperty] private bool _isXPressed;
+        [ObservableProperty] private bool _isYPressed;
+        [ObservableProperty] private bool _isDpadUpPressed;
+        [ObservableProperty] private bool _isDpadDownPressed;
+        [ObservableProperty] private bool _isDpadLeftPressed;
+        [ObservableProperty] private bool _isDpadRightPressed;
+        [ObservableProperty] private bool _isLbPressed;
+        [ObservableProperty] private bool _isRbPressed;
+        [ObservableProperty] private bool _isL1Pressed;
+        [ObservableProperty] private bool _isR1Pressed;
+        [ObservableProperty] private bool _isL2Pressed;
+        [ObservableProperty] private bool _isR2Pressed;
+        [ObservableProperty] private bool _isL3Pressed;
+        [ObservableProperty] private bool _isR3Pressed;
+        [ObservableProperty] private bool _isStartPressed;
+        [ObservableProperty] private bool _isSelectPressed;
+        [ObservableProperty] private bool _isOptionsPressed;
+        [ObservableProperty] private bool _isSharePressed;
+        [ObservableProperty] private bool _isTouchpadPressed;
+        [ObservableProperty] private bool _isGuidePressed;
+        [ObservableProperty] private bool _isVibrating;
+        [ObservableProperty] private double _vibrationTimeRemaining;
+        [ObservableProperty] private string _selectedVibrationMode = "Heavy";
+        [ObservableProperty] private string _selectedVibrationDuration = "5";
+        [ObservableProperty] private string _connectionStatusText = "DISCONNECTED";
+        [ObservableProperty] private Brush _connectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+        [ObservableProperty] private string _activeControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
+        [ObservableProperty] private bool _isPlayStation = true;
+        [ObservableProperty] private string _deviceModelText = "No Controller Connected";
+        [ObservableProperty] private string _deviceSerialText = "-";
+        [ObservableProperty] private string _deviceFirmwareText = "Please connect a device via USB or Bluetooth.";
+        [ObservableProperty] private string _batteryPercentageText = "Battery: --%";
+        [ObservableProperty] private string _batteryPercentageShortText = "--%";
+        [ObservableProperty] private double _batteryLevelWidth = 0.0;
+        [ObservableProperty] private double _batteryLevelHeight = 0.0;
+        [ObservableProperty] private Brush _batteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+        [ObservableProperty] private int _activePlayerIndex = 0;
+        [ObservableProperty] private bool _isP1Active = true;
+        [ObservableProperty] private bool _isP2Active;
+        [ObservableProperty] private bool _isP3Active;
+        [ObservableProperty] private bool _isP4Active;
+        [ObservableProperty] private bool _isP1Connected;
+        [ObservableProperty] private bool _isP2Connected;
+        [ObservableProperty] private bool _isP3Connected;
+        [ObservableProperty] private bool _isP4Connected;
+        [ObservableProperty] private string _rawAxesText = "AXES 0: +0.00  1: +0.00  2: +0.00  3: +0.00";
+        [ObservableProperty] private string _rawButtonsText = "BUTTONS: 0:OFF 1:OFF 2:OFF 3:OFF 4:OFF 5:OFF 6:OFF 7:OFF";
+        public ObservableCollection<MappingItem> Mappings { get; } = new();
+        public ObservableCollection<string> SavedConfigFiles { get; } = new();
+        public ControllerProfilePair? ActiveProfile => _activeProfile;
+        public HomeView HomeViewInstance { get; } = new();
+        public RemapView RemapViewInstance { get; } = new();
+        public CalibrateView CalibrateViewInstance { get; } = new();
+        public MacrosView MacrosViewInstance { get; } = new();
+        public SettingsView SettingsViewInstance { get; } = new();
+        public DashboardViewModel(InputLoop inputLoop, SettingsManager settingsManager)
+        {
+            _inputLoop = inputLoop;
+            _settingsManager = settingsManager;
+            _inputLoop.DevicesChanged += OnDevicesChanged;
+            _uiTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
+            _uiTimer.Tick += UiTimer_Tick;
+            _uiTimer.Start();
+            _vibrationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _vibrationTimer.Tick += VibrationTimer_Tick;
+            CurrentView = HomeViewInstance;
+
+            if (_settingsManager != null)
+            {
+                IsDarkTheme = _settingsManager.Settings.IsDarkTheme;
+                ApplyTheme(IsDarkTheme);
+            }
+            else
+            {
+                UpdateMappingsForControllerType(true);
+            }
+            UpdateActiveProfile();
+            RefreshSavedConfigFiles();
+            CheckHidHide();
+            try
+            {
+                _hidHideService = new HidHideControlService();
+                if (_hidHideService.IsInstalled)
+                {
+                    _hidHideService.IsActive = true;
+                    IsHidHideEnabled = true;
+                    if (Environment.ProcessPath != null)
+                    {
+                        _hidHideService.AddApplicationPath(Environment.ProcessPath);
+                    }
+                    SyncHidHideBlockedDevices();
+                }
+            }
+            catch
+            {
+            }
+        }
+        public void TriggerDeviceRefresh()
+        {
+            try
+            {
+                _inputLoop.ForceRefreshDevices();
+                if (Application.Current != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        UpdateActiveProfile();
+                        SyncHidHideBlockedDevices();
+                    });
+                }
+            }
+            catch { }
+        }
+        private static string ExtractInstanceId(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "";
+            string p = path;
+            if (p.StartsWith(@"\\?\") || p.StartsWith(@"\\.\")) p = p[4..];
+            int lastHashIndex = p.LastIndexOf('#');
+            if (lastHashIndex > 0 && p.IndexOf('{', lastHashIndex) > 0)
+            {
+                p = p[..lastHashIndex];
+            }
+            return p.Replace('#', '\\').ToUpperInvariant();
+        }
+        public void SyncHidHideBlockedDevices()
+        {
+            if (_hidHideService == null || !_hidHideService.IsInstalled) return;
+            try
+            {
+                _hidHideService.IsActive = IsHidHideEnabled;
+                if (!IsHidHideEnabled) return;
+                if (Environment.ProcessPath != null)
+                {
+                    _hidHideService.AddApplicationPath(Environment.ProcessPath);
+                }
+                foreach (var pair in _inputLoop.Devices.Values)
+                {
+                    if (pair.Physical != null && !string.IsNullOrEmpty(pair.Physical.DeviceId))
+                    {
+                        try
+                        {
+                            string instanceId = ExtractInstanceId(pair.Physical.DeviceId);
+                            if (!string.IsNullOrEmpty(instanceId))
+                            {
+                                _hidHideService.AddBlockedInstanceId(instanceId);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
+        }
+        public void RefreshSavedConfigFiles()
+        {
+            SavedConfigFiles.Clear();
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLock", "Configs");
+                Directory.CreateDirectory(folder);
+                foreach (var f in Directory.GetFiles(folder, "*.json"))
+                {
+                    SavedConfigFiles.Add(Path.GetFileName(f));
+                }
+            }
+            catch { }
+        }
+        public ObservableCollection<RemapRowViewModel> FaceButtonsRemap { get; } = new();
+        public ObservableCollection<RemapRowViewModel> DPadRemap { get; } = new();
+        public ObservableCollection<RemapRowViewModel> ShouldersRemap { get; } = new();
+        public ObservableCollection<RemapRowViewModel> SpecialSticksRemap { get; } = new();
+        private void UpdateMappingsForControllerType(bool isPs)
+        {
+            BtnLabelCrossOrA = isPs ? "CROSS" : "A";
+            BtnLabelCircleOrB = isPs ? "CIRCLE" : "B";
+            BtnLabelSquareOrX = isPs ? "SQUARE" : "X";
+            BtnLabelTriangleOrY = isPs ? "TRIANGLE" : "Y";
+            BtnLabelShareOrBack = isPs ? "SHARE" : "BACK";
+            BtnLabelOptionsOrStart = isPs ? "OPTIONS" : "START";
+            BtnLabelL1OrLB = isPs ? "L1" : "LB";
+            BtnLabelR1OrRB = isPs ? "R1" : "RB";
+            BtnLabelL2OrLT = isPs ? "L2" : "LT";
+            BtnLabelR2OrRT = isPs ? "R2" : "RT";
+            TargetNameL2 = isPs ? "L2" : "LT";
+            TargetNameL1 = isPs ? "L1" : "LB";
+            TargetNameShare = isPs ? "SHARE" : "BACK";
+            TargetNameOptions = isPs ? "OPTIONS" : "START";
+            TargetNameTriangle = isPs ? "TRIANGLE" : "Y";
+            TargetNameCircle = isPs ? "CIRCLE" : "B";
+            TargetNameCross = isPs ? "CROSS" : "A";
+            TargetNameSquare = isPs ? "SQUARE" : "X";
+            TargetNameR1 = isPs ? "R1" : "RB";
+            TargetNameR2 = isPs ? "R2" : "RT";
+            BuildRemapRows(isPs);
+            UpdateActiveMappingsTable();
+        }
+        private void BuildRemapRows(bool isPs)
+        {
+            FaceButtonsRemap.Clear();
+            DPadRemap.Clear();
+            ShouldersRemap.Clear();
+            SpecialSticksRemap.Clear();
+            List<string> options = new()
+            {
+                isPs ? "Cross" : "A",
+                isPs ? "Circle" : "B",
+                isPs ? "Square" : "X",
+                isPs ? "Triangle" : "Y",
+                isPs ? "L1" : "LB",
+                isPs ? "R1" : "RB",
+                isPs ? "L2" : "LT",
+                isPs ? "R2" : "RT",
+                "D-Pad Up",
+                "D-Pad Down",
+                "D-Pad Left",
+                "D-Pad Right",
+                "L3",
+                "R3",
+                isPs ? "Share" : "Back",
+                isPs ? "Options" : "Start"
+            };
+            // ##== 1. Face Buttons ==##
+            FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
+            FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x2000, isPs ? "Circle" : "B", options));
+            FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x4000, isPs ? "Square" : "X", options));
+            FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x8000, isPs ? "Triangle" : "Y", options));
+            // ##== 2. D-Pad Buttons ==##
+            DPadRemap.Add(new RemapRowViewModel(this, 0x0001, "D-Pad Up", options));
+            DPadRemap.Add(new RemapRowViewModel(this, 0x0002, "D-Pad Down", options));
+            DPadRemap.Add(new RemapRowViewModel(this, 0x0004, "D-Pad Left", options));
+            DPadRemap.Add(new RemapRowViewModel(this, 0x0008, "D-Pad Right", options));
+            // ##== 3. Shoulders & Triggers ==##
+            ShouldersRemap.Add(new RemapRowViewModel(this, 0x0100, isPs ? "L1" : "LB", options));
+            ShouldersRemap.Add(new RemapRowViewModel(this, 0x0200, isPs ? "R1" : "RB", options));
+            ShouldersRemap.Add(new RemapRowViewModel(this, 0x0400, isPs ? "L2" : "LT", options));
+            ShouldersRemap.Add(new RemapRowViewModel(this, 0x0800, isPs ? "R2" : "RT", options));
+            // ##== 4. Special & Sticks ==##
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0040, "L3", options));
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
+        }
+        public void UpdateActiveMappingsTable()
+        {
+            ActiveMappings.Clear();
+            if (_activeProfile != null)
+            {
+                foreach (var kvp in _activeProfile.Remaps)
+                {
+                    ActiveMappings.Add(new CustomMapping
+                    {
+                        SourceButton = GetButtonName(kvp.Key),
+                        TargetButton = GetButtonName(kvp.Value)
+                    });
+                }
+            }
+            foreach (var r in FaceButtonsRemap) r.RefreshTarget();
+            foreach (var r in DPadRemap) r.RefreshTarget();
+            foreach (var r in ShouldersRemap) r.RefreshTarget();
+            foreach (var r in SpecialSticksRemap) r.RefreshTarget();
+        }
+        public ushort GetBitFromName(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return 0;
+            string n = name.Trim().ToUpperInvariant();
+            if (n == "CROSS" || n == "A" || n.Contains("CROSS") || n.EndsWith(" A")) return 0x1000;
+            if (n == "CIRCLE" || n == "B" || n.Contains("CIRCLE") || n.EndsWith(" B")) return 0x2000;
+            if (n == "SQUARE" || n == "X" || n.Contains("SQUARE") || n.EndsWith(" X")) return 0x4000;
+            if (n == "TRIANGLE" || n == "Y" || n.Contains("TRIANGLE") || n.EndsWith(" Y")) return 0x8000;
+            if (n == "L1" || n == "LB") return 0x0100;
+            if (n == "R1" || n == "RB") return 0x0200;
+            if (n == "L2" || n == "LT") return 0x0400;
+            if (n == "R2" || n == "RT") return 0x0800;
+            if (n.Contains("UP")) return 0x0001;
+            if (n.Contains("DOWN")) return 0x0002;
+            if (n.Contains("LEFT")) return 0x0004;
+            if (n.Contains("RIGHT")) return 0x0008;
+            if (n == "L3") return 0x0040;
+            if (n == "R3") return 0x0080;
+            if (n == "SHARE" || n == "BACK") return 0x0020;
+            if (n == "OPTIONS" || n == "START") return 0x0010;
+            return 0;
+        }
+        private void OnDevicesChanged()
+        {
+            if (Application.Current != null)
+            {
+                Application.Current.Dispatcher.Invoke(UpdateActiveProfile);
+            }
+        }
+        [ObservableProperty] private string _p1Label = "P1";
+        [ObservableProperty] private string _p2Label = "P2";
+        [ObservableProperty] private string _p3Label = "P3";
+        [ObservableProperty] private string _p4Label = "P4";
+        private static string GetShortName(ControllerProfilePair pair)
+        {
+            if (pair?.Physical == null) return "PAD";
+            return pair.Physical.Type switch
+            {
+                ControllerType.DualSense => "PS5",
+                ControllerType.DualShock4 => "PS4",
+                _ => "XBOX"
+            };
+        }
+        [ObservableProperty] private byte _psLedRed = 255;
+        [ObservableProperty] private byte _psLedGreen = 23;
+        [ObservableProperty] private byte _psLedBlue = 68;
+        [ObservableProperty] private double _psLedBrightness = 1.0;
+
+        [RelayCommand]
+        public void OpenPsLedSettings()
+        {
+            try
+            {
+                if (Application.Current != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        IPhysicalController? phys = _activeProfile?.Physical;
+                        var win = new DriftLock.Views.Windows.PsLedWindow(phys, PsLedRed, PsLedGreen, PsLedBlue, PsLedBrightness);
+                        if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
+                        {
+                            win.Owner = Application.Current.MainWindow;
+                        }
+                        if (win.ShowDialog() == true)
+                        {
+                            PsLedRed = win.SelectedR;
+                            PsLedGreen = win.SelectedG;
+                            PsLedBlue = win.SelectedB;
+                            PsLedBrightness = win.Brightness;
+
+                            byte finalR = (byte)(PsLedRed * PsLedBrightness);
+                            byte finalG = (byte)(PsLedGreen * PsLedBrightness);
+                            byte finalB = (byte)(PsLedBlue * PsLedBrightness);
+                            if (phys != null && phys.IsConnected)
+                            {
+                                phys.SetLedColor(finalR, finalG, finalB);
+                            }
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "OpenPsLedSettings");
+            }
+        }
+
+        private void UpdateBatteryMetrics()
+        {
+            if (_activeProfile != null && _activeProfile.Physical != null && _activeProfile.Physical.IsConnected)
+            {
+                var bat = _activeProfile.Physical.GetBatteryInfo();
+                double pct = bat.Percentage;
+                int pctInt = (int)Math.Round(pct * 100.0);
+
+                if (!bat.IsWireless)
+                {
+                    BatteryPercentageText = "USB Cable (Direct Power)";
+                    BatteryPercentageShortText = "CABLE";
+                    BatteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                    BatteryLevelWidth = 110.0;
+                    BatteryLevelHeight = 19.0;
+                }
+                else
+                {
+                    BatteryPercentageText = bat.Text;
+                    BatteryPercentageShortText = $"{pctInt}%";
+
+                    if (pct <= 0.20)
+                    {
+                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                    }
+                    else if (pct <= 0.50)
+                    {
+                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 193, 7));
+                    }
+                    else
+                    {
+                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                    }
+                    BatteryLevelWidth = Math.Max(5.0, pct * 110.0);
+                    BatteryLevelHeight = Math.Max(3.0, pct * 19.0);
+                }
+            }
+        }
+
+        private void UpdateActiveProfile()
+        {
+            var devs = _inputLoop.Devices.Values.ToList();
+            IsP1Connected = devs.Count > 0;
+            IsP2Connected = devs.Count > 1;
+            IsP3Connected = devs.Count > 2;
+            IsP4Connected = devs.Count > 3;
+            if (devs.Count > 0) P1Label = $"P1 ({GetShortName(devs[0])})";
+            if (devs.Count > 1) P2Label = $"P2 ({GetShortName(devs[1])})";
+            if (devs.Count > 2) P3Label = $"P3 ({GetShortName(devs[2])})";
+            if (devs.Count > 3) P4Label = $"P4 ({GetShortName(devs[3])})";
+
+            if (ActivePlayerIndex >= devs.Count && devs.Count > 0)
+                ActivePlayerIndex = 0;
+            else if (devs.Count == 0)
+                ActivePlayerIndex = 0;
+
+            IsP1Active = ActivePlayerIndex == 0;
+            IsP2Active = ActivePlayerIndex == 1;
+            IsP3Active = ActivePlayerIndex == 2;
+            IsP4Active = ActivePlayerIndex == 3;
+            _activeProfile = devs.Count > ActivePlayerIndex ? devs[ActivePlayerIndex] : null;
+            if (_activeProfile != null)
+            {
+                ConnectionStatusText = $"CONNECTED: {_activeProfile.Physical.DeviceName.ToUpper()}";
+                ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                bool isPs = _activeProfile.Physical.Type == ControllerType.DualSense || _activeProfile.Physical.Type == ControllerType.DualShock4;
+                IsPlayStation = isPs;
+                if (_activeProfile.Physical.Type == ControllerType.DualSense)
+                {
+                    DeviceModelText = "PS5 DualSense";
+                    ControllerConnectionIcon = "🎮 PS5";
+                }
+                else if (_activeProfile.Physical.Type == ControllerType.DualShock4)
+                {
+                    DeviceModelText = "PS4 DualShock 4";
+                    ControllerConnectionIcon = "🎮 PS4";
+                }
+                else if (_activeProfile.Physical.DeviceName.Contains("360"))
+                {
+                    DeviceModelText = "Xbox 360 Controller";
+                    ControllerConnectionIcon = "🎮 X360";
+                }
+                else
+                {
+                    DeviceModelText = "Xbox Wireless Controller";
+                    ControllerConnectionIcon = "🎮 XBOX";
+                }
+                DeviceFirmwareText = "USB • 1.0.2";
+                
+                UpdateBatteryMetrics();
+                UpdateMappingsForControllerType(isPs);
+                ActiveControllerImagePath = isPs ? "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png" : "pack://application:,,,/DriftliftApp;component/Assets/xbox_placeholder.png";
+
+                if (isPs)
+                {
+                    byte finalR = (byte)(PsLedRed * PsLedBrightness);
+                    byte finalG = (byte)(PsLedGreen * PsLedBrightness);
+                    byte finalB = (byte)(PsLedBlue * PsLedBrightness);
+                    _activeProfile.Physical.SetLedColor(finalR, finalG, finalB);
+                }
+            }
+            else
+            {
+                ConnectionStatusText = "DISCONNECTED";
+                ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                IsPlayStation = true;
+                DeviceModelText = "No Controller Connected";
+                ControllerConnectionIcon = "❌ NONE";
+                DeviceFirmwareText = "";
+                BatteryPercentageText = "Battery: --%";
+                BatteryPercentageShortText = "--%";
+                BatteryLevelWidth = 0.0;
+                BatteryLevelHeight = 0.0;
+                BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                ActiveControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
+                UpdateMappingsForControllerType(true);
+            }
+        }
+        [RelayCommand]
+        private void SelectPlayer(string indexStr)
+        {
+            if (int.TryParse(indexStr, out int index))
+            {
+                var devs = _inputLoop.Devices.Values.ToList();
+                if (index < devs.Count)
+                {
+                    ActivePlayerIndex = index;
+                    UpdateActiveProfile();
+                }
+            }
+        }
+        private void UiTimer_Tick(object? sender, EventArgs e)
+        {
+            try
+            {
+                var profile = _activeProfile;
+                if (profile != null && profile.Physical != null && profile.Physical.IsConnected)
+                {
+                    UpdateBatteryMetrics();
+                    var state = profile.Physical.GetCurrentState();
+                    TriggerL = state.LeftTrigger;
+                    TriggerR = state.RightTrigger;
+                    RawLeftX = state.LeftThumbX;
+                    RawLeftY = state.LeftThumbY;
+                    RawRightX = state.RightThumbX;
+                    RawRightY = state.RightThumbY;
+                    profile.Drift.Process(state, out double clx, out double cly, out double crx, out double cry);
+                    CorrectedLeftX = clx; CorrectedLeftY = cly;
+                    CorrectedRightX = crx; CorrectedRightY = cry;
+                    LeftStickTextX = $"X: {(int)(CorrectedLeftX * 100)}%";
+                    LeftStickTextY = $"Y: {(int)(CorrectedLeftY * 100)}%";
+                    RightStickTextX = $"X: {(int)(CorrectedRightX * 100)}%";
+                    RightStickTextY = $"Y: {(int)(CorrectedRightY * 100)}%";
+                    LeftStickValX = Math.Clamp((CorrectedLeftX + 1.0) / 2.0 * 100.0, 0, 100);
+                    LeftStickValY = Math.Clamp((CorrectedLeftY + 1.0) / 2.0 * 100.0, 0, 100);
+                    RightStickValX = Math.Clamp((CorrectedRightX + 1.0) / 2.0 * 100.0, 0, 100);
+                    RightStickValY = Math.Clamp((CorrectedRightY + 1.0) / 2.0 * 100.0, 0, 100);
+                    ushort rawButtons = state.Buttons;
+                    if (IsWaitingForInput)
+                    {
+                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        if (newPresses != 0)
+                        {
+                            ushort pressedBit = (ushort)(newPresses & -newPresses);
+                            profile.Remaps[_waitingTargetBit] = pressedBit;
+                            IsWaitingForInput = false;
+                            string sourceStr = GetButtonName(_waitingTargetBit);
+                            string targetStr = GetButtonName(pressedBit);
+                            var existing = ActiveMappings.FirstOrDefault(m => m.SourceButton == sourceStr);
+                            if (existing != null)
+                            {
+                                existing.TargetButton = targetStr;
+                            }
+                            else
+                            {
+                                ActiveMappings.Add(new CustomMapping { SourceButton = sourceStr, TargetButton = targetStr });
+                            }
+                            UpdateMappingsForControllerType(IsPlayStation);
+                        }
+                    }
+                    if (IsRecordingMacro && ActiveMacro != null)
+                    {
+                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        if (newPresses != 0)
+                        {
+                            ushort pressedBit = (ushort)(newPresses & -newPresses);
+                            string bName = GetButtonName(pressedBit);
+                            int elapsed = _lastRecordTick == 0 ? 50 : Math.Clamp(Environment.TickCount - _lastRecordTick, 10, 500);
+                            _lastRecordTick = Environment.TickCount;
+                            ActiveMacro.Steps.Add(new MacroStep
+                            {
+                                ButtonName = bName,
+                                ButtonMask = pressedBit,
+                                DelayMs = elapsed
+                            });
+                        }
+                    }
+                    _lastRawButtons = rawButtons;
+                    ushort mappedB = 0;
+                    foreach (var kvp in profile.Remaps)
+                    {
+                        if ((rawButtons & kvp.Key) != 0)
+                            mappedB |= kvp.Value;
+                    }
+                    ushort mappedSources = 0;
+                    foreach (var k in profile.Remaps.Keys) mappedSources |= k;
+                    mappedB |= (ushort)(rawButtons & ~mappedSources);
+                    LeftGraphicTranslateX = CorrectedLeftX * 12.0;
+                    LeftGraphicTranslateY = -CorrectedLeftY * 12.0;
+                    RightGraphicTranslateX = CorrectedRightX * 12.0;
+                    RightGraphicTranslateY = -CorrectedRightY * 12.0;
+                    PsLeftGraphicTranslateX = CorrectedLeftX * 12.0;
+                    PsLeftGraphicTranslateY = -CorrectedLeftY * 12.0;
+                    PsRightGraphicTranslateX = CorrectedRightX * 12.0;
+                    PsRightGraphicTranslateY = -CorrectedRightY * 12.0;
+                    ushort b = mappedB;
+                    IsDpadUpPressed = (b & 0x0001) != 0;
+                    IsDpadDownPressed = (b & 0x0002) != 0;
+                    IsDpadLeftPressed = (b & 0x0004) != 0;
+                    IsDpadRightPressed = (b & 0x0008) != 0;
+                    IsStartPressed = (b & 0x0010) != 0;
+                    IsOptionsPressed = IsStartPressed;
+                    IsSelectPressed = (b & 0x0020) != 0;
+                    IsSharePressed = IsSelectPressed;
+                    IsL3Pressed = (b & 0x0040) != 0;
+                    IsR3Pressed = (b & 0x0080) != 0;
+                    IsLbPressed = (b & 0x0100) != 0;
+                    IsL1Pressed = IsLbPressed;
+                    IsRbPressed = (b & 0x0200) != 0;
+                    IsR1Pressed = IsRbPressed;
+                    IsL2Pressed = TriggerL > 0.1;
+                    IsR2Pressed = TriggerR > 0.1;
+                    IsAPressed = (b & 0x1000) != 0;
+                    IsBPressed = (b & 0x2000) != 0;
+                    IsXPressed = (b & 0x4000) != 0;
+                    IsYPressed = (b & 0x8000) != 0;
+                    IsTouchpadPressed = state.Touchpad;
+                    RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
+                    RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
+                }
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "UiTimer_Tick");
+            }
+        }
+        private void VibrationTimer_Tick(object? sender, EventArgs e)
+        {
+            VibrationTimeRemaining = Math.Max(0.0, Math.Round(VibrationTimeRemaining - 0.1, 2));
+            if (VibrationTimeRemaining <= 0)
+            {
+                StopVibration();
+                return;
+            }
+            if (_activeProfile != null && _activeProfile.Physical.IsConnected)
+            {
+                int ticksRemaining = (int)Math.Round(VibrationTimeRemaining * 10);
+                if (SelectedVibrationMode == "Burst")
+                {
+                    if (ticksRemaining % 4 < 2)
+                        _activeProfile.Physical.SetVibration(1.0, 0.0);
+                    else
+                        _activeProfile.Physical.SetVibration(0.0, 0.0);
+                }
+                else if (SelectedVibrationMode == "Pulse")
+                {
+                    if (ticksRemaining % 6 < 3)
+                        _activeProfile.Physical.SetVibration(0.0, 1.0);
+                    else
+                        _activeProfile.Physical.SetVibration(0.0, 0.0);
+                }
+            }
+        }
+        private void StopVibration()
+        {
+            _vibrationTimer.Stop();
+            IsVibrating = false;
+            VibrationTimeRemaining = 0;
+            _activeProfile?.Physical.SetVibration(0, 0);
+        }
+        [RelayCommand]
+        private void SetVibrationMode(string mode)
+        {
+            if (IsVibrating) StopVibration();
+            SelectedVibrationMode = mode;
+        }
+        [RelayCommand]
+        private void ToggleVibration()
+        {
+            if (IsVibrating) StopVibration();
+            else StartVibration();
+        }
+        private void StartVibration()
+        {
+            if (_activeProfile == null || !_activeProfile.Physical.IsConnected) return;
+            double left = 0;
+            double right = 0;
+            switch (SelectedVibrationMode)
+            {
+                case "Heavy": left = 1.0; right = 1.0; break;
+                case "Light": left = 0.3; right = 0.3; break;
+                case "Burst": left = 1.0; right = 0.0; break;
+                case "Pulse": left = 0.0; right = 1.0; break;
+            }
+            _activeProfile.Physical.SetVibration(left, right);
+            if (int.TryParse(SelectedVibrationDuration, out int duration))
+                VibrationTimeRemaining = duration;
+            else
+                VibrationTimeRemaining = 5.0;
+            IsVibrating = true;
+            _vibrationTimer.Start();
+        }
+        [RelayCommand]
+        private void NewProfile()
+        {
+            ActiveMappings.Clear();
+            DriftLock.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void LoadProfile()
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "JSON Profiles (*.json)|*.json|All files (*.*)|*.*",
+                Title = "Load Controller Profile",
+                InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles")
+            };
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    string json = File.ReadAllText(openFileDialog.FileName);
+                    var loaded = JsonSerializer.Deserialize<ObservableCollection<CustomMapping>>(json);
+                    if (loaded != null)
+                    {
+                        ActiveMappings = loaded;
+                        DriftLock.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DriftLock.Views.Windows.CustomMessageDialog.Show("Failed to load profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        [RelayCommand]
+        private void SaveProfile()
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "JSON Profiles (*.json)|*.json",
+                Title = "Save Controller Profile",
+                FileName = "profile.json",
+                InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles")
+            };
+            Directory.CreateDirectory(saveFileDialog.InitialDirectory);
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    string json = JsonSerializer.Serialize(ActiveMappings, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(saveFileDialog.FileName, json);
+                    DriftLock.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(saveFileDialog.FileName)}' saved successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    DriftLock.Views.Windows.CustomMessageDialog.Show("Failed to save profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        [RelayCommand]
+        private void ImportProfile()
+        {
+            DriftLock.Views.Windows.CustomMessageDialog.Show("Import Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void ExportProfile()
+        {
+            DriftLock.Views.Windows.CustomMessageDialog.Show("Export Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void AutoMap()
+        {
+            ActiveMappings.Clear();
+            ActiveMappings.Add(new CustomMapping { SourceButton = "CROSS", TargetButton = "A" });
+            ActiveMappings.Add(new CustomMapping { SourceButton = "CIRCLE", TargetButton = "B" });
+            ActiveMappings.Add(new CustomMapping { SourceButton = "SQUARE", TargetButton = "X" });
+            ActiveMappings.Add(new CustomMapping { SourceButton = "TRIANGLE", TargetButton = "Y" });
+            DriftLock.Views.Windows.CustomMessageDialog.Show("Auto Mapping complete (Default XInput).", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void AddMapping()
+        {
+            ActiveMappings.Add(new CustomMapping { SourceButton = "NEW", TargetButton = "UNMAPPED" });
+        }
+        [RelayCommand]
+        private void AddMacro()
+        {
+            CreateNewMacro();
+        }
+        [RelayCommand]
+        private void CreateNewMacro()
+        {
+            var newM = new MacroItem
+            {
+                Name = $"Custom Macro #{ActiveMacros.Count + 1}",
+                TriggerButtonName = "L1 + R1",
+                TriggerMask = 0x0300
+            };
+            newM.Steps.Add(new MacroStep { ButtonName = "Cross", ButtonMask = 0x1000, DelayMs = 50 });
+            ActiveMacros.Add(newM);
+            ActiveMacro = newM;
+        }
+        [RelayCommand]
+        private void ToggleRecordMacro()
+        {
+            if (_activeProfile == null || _activeProfile.Physical == null || !_activeProfile.Physical.IsConnected)
+            {
+                MacroErrorNotifier = "Connect your controller first.";
+                IsRecordingMacro = false;
+                RecordingStatusText = "▶ RECORD MACRO";
+                return;
+            }
+
+            MacroErrorNotifier = "";
+            IsRecordingMacro = !IsRecordingMacro;
+            if (IsRecordingMacro)
+            {
+                _lastRecordTick = Environment.TickCount;
+                RecordingStatusText = "⏹ STOP RECORDING";
+                if (ActiveMacro == null)
+                {
+                    CreateNewMacro();
+                }
+            }
+            else
+            {
+                RecordingStatusText = "▶ RECORD MACRO";
+            }
+        }
+        [RelayCommand]
+        private async Task PlayMacro(MacroItem? macro)
+        {
+            var target = macro ?? ActiveMacro;
+            if (target == null || target.Steps.Count == 0) return;
+            IsMacroPlaying = true;
+            MacroStatusText = $"PLAYING '{target.Name.ToUpper()}'...";
+
+            try
+            {
+                var profile = _activeProfile;
+                foreach (var step in target.Steps)
+                {
+                    if (profile != null && profile.Physical != null)
+                    {
+                        var simState = new ControllerState
+                        {
+                            Buttons = step.ButtonMask,
+                            IsConnected = true
+                        };
+                        _inputLoop.SendSimulatedState(simState);
+                    }
+                    await Task.Delay(Math.Max(10, step.DelayMs));
+                    _inputLoop.SendSimulatedState(new ControllerState { Buttons = 0, IsConnected = true });
+                    await Task.Delay(25);
+                }
+            }
+            catch { }
+            finally
+            {
+                IsMacroPlaying = false;
+                MacroStatusText = "IDLE";
+            }
+        }
+        [RelayCommand]
+        private void DeleteMacro(MacroItem? macro)
+        {
+            var target = macro ?? ActiveMacro;
+            if (target != null && ActiveMacros.Contains(target))
+            {
+                ActiveMacros.Remove(target);
+                ActiveMacro = ActiveMacros.FirstOrDefault();
+            }
+        }
+        [RelayCommand]
+        private void AddStepToActiveMacro()
+        {
+            if (ActiveMacro != null)
+            {
+                ActiveMacro.Steps.Add(new MacroStep { ButtonName = "Cross", ButtonMask = 0x1000, DelayMs = 50 });
+            }
+        }
+        [RelayCommand]
+        private void RemoveStepFromActiveMacro(MacroStep step)
+        {
+            if (ActiveMacro != null && step != null && ActiveMacro.Steps.Contains(step))
+            {
+                ActiveMacro.Steps.Remove(step);
+            }
+        }
+        [RelayCommand]
+        private void RemoveMapping(CustomMapping mapping)
+        {
+            if (mapping != null && ActiveMappings.Contains(mapping))
+            {
+                ActiveMappings.Remove(mapping);
+            }
+        }
+        [RelayCommand]
+        private void SwitchRemapTab(string tabName)
+        {
+            DriftLock.Views.Windows.CustomMessageDialog.Show($"Switched to {tabName} configuration (Coming Soon)", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void ToggleTheme()
+        {
+            IsDarkTheme = !IsDarkTheme;
+            ApplyTheme(IsDarkTheme);
+            if (_settingsManager != null)
+            {
+                _settingsManager.Settings.IsDarkTheme = IsDarkTheme;
+                _settingsManager.Save();
+            }
+        }
+
+        public void ApplyTheme(bool isDark)
+        {
+            try
+            {
+                var appResources = Application.Current.Resources.MergedDictionaries;
+                ResourceDictionary? oldTheme = null;
+                foreach (var dict in appResources)
+                {
+                    if (dict.Source != null && (dict.Source.OriginalString.Contains("RedNeonTheme") || dict.Source.OriginalString.Contains("LightTheme")))
+                    {
+                        oldTheme = dict;
+                        break;
+                    }
+                }
+                if (oldTheme != null)
+                {
+                    appResources.Remove(oldTheme);
+                }
+                string targetUri = isDark ? "Themes/RedNeonTheme.xaml" : "Themes/LightTheme.xaml";
+                appResources.Add(new ResourceDictionary { Source = new Uri(targetUri, UriKind.Relative) });
+                UpdateMappingsForControllerType(IsPlayStation);
+            }
+            catch { }
+        }
+        [RelayCommand]
+        private void SelectTab(string index)
+        {
+            if (int.TryParse(index, out int idx))
+            {
+                SelectedTabIndex = idx;
+                CurrentView = idx switch
+                {
+                    0 => HomeViewInstance,
+                    1 => RemapViewInstance,
+                    2 => CalibrateViewInstance,
+                    3 => MacrosViewInstance,
+                    4 => SettingsViewInstance,
+                    _ => HomeViewInstance
+                };
+            }
+        }
+        [RelayCommand]
+        private void ToggleSidebar()
+        {
+            IsSidebarExpanded = !IsSidebarExpanded;
+            SidebarColumnWidth = IsSidebarExpanded ? 250 : 60;
+        }
+        [RelayCommand]
+        private void NextCalibrationStep()
+        {
+            if (CalibrationStep < 4)
+            {
+                CalibrationStep++;
+                switch (CalibrationStep)
+                {
+                    case 2:
+                        StepPromptText = "Rotate both sticks 6 to 7 times in full circles (clockwise & counter-clockwise)";
+                        StepSubPromptText = "Ensure maximum outer boundary reaches 1.0 range, then press Next";
+                        break;
+                    case 3:
+                        StepPromptText = "Verify zero resting center error and circularity range bounds";
+                        StepSubPromptText = "Check circularity error metrics, then press Next";
+                        break;
+                    case 4:
+                        StepPromptText = "Save permanent calibration data to controller profile";
+                        StepSubPromptText = "Calibration complete!";
+                        break;
+                }
+            }
+            else
+            {
+                CalibrationStep = 1;
+                StepPromptText = "Push both sticks to the top-left corner, then release";
+                StepSubPromptText = "Release the sticks completely, then press Next";
+                DriftLock.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        [RelayCommand]
+        private void AutoFixStickDrift()
+        {
+            if (_activeProfile != null)
+            {
+                _activeProfile.Drift.AutoFixStickDrift();
+                LeftInnerDeadzone = _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius;
+                RightInnerDeadzone = _activeProfile.Drift.Profile.RightStick.DeadzoneRadius;
+            }
+            DriftLock.Views.Windows.CustomMessageDialog.Show("Quick Auto Calibrate completed! Center offset & deadzones locked.", "DriftLock Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        [RelayCommand]
+        private void RemapHotspot(string buttonName)
+        {
+            ushort bit = buttonName.ToUpper() switch
+            {
+                "CROSS" or "A" => 0x1000,
+                "CIRCLE" or "B" => 0x2000,
+                "SQUARE" or "X" => 0x4000,
+                "TRIANGLE" or "Y" => 0x8000,
+                "L1" or "LB" => 0x0100,
+                "R1" or "RB" => 0x0200,
+                "L2" or "LT" => 0x0100,
+                "R2" or "RT" => 0x0200,
+                "SHARE" or "BACK" => 0x0020,
+                "OPTIONS" or "START" => 0x0010,
+                "L3" => 0x0040,
+                "R3" => 0x0080,
+                "DPAD UP" => 0x0001,
+                "DPAD DOWN" => 0x0002,
+                "DPAD LEFT" => 0x0004,
+                "DPAD RIGHT" => 0x0008,
+                _ => 0x1000
+            };
+            BeginRemap(bit.ToString());
+        }
+        [RelayCommand]
+        private void SaveConfigPreset()
+        {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLock", "Configs");
+                Directory.CreateDirectory(folder);
+                string file = Path.Combine(folder, $"Calibration_{DateTime.Now:yyyyMMdd_HHmmss}.json");
+                var data = new { DeviceModelText, LeftInnerDeadzone, LeftOuterDeadzone, RightInnerDeadzone, RightOuterDeadzone, StickSensitivity };
+                File.WriteAllText(file, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+                RefreshSavedConfigFiles();
+                DriftLock.Views.Windows.CustomMessageDialog.Show($"Configuration saved to {Path.GetFileName(file)}!", "DriftLock Config Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                DriftLock.Views.Windows.CustomMessageDialog.Show($"Failed to save config: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        [RelayCommand]
+        private void ResetCalibration()
+        {
+            bool confirm = DriftLock.Views.Windows.CustomMessageDialog.Show(
+                "Are you sure you want to reset all controller calibration deadzones and settings to factory defaults?",
+                "RESET CONFIGURATION", true);
+            if (confirm)
+            {
+                LeftInnerDeadzone = 0.05; LeftOuterDeadzone = 0.98;
+                RightInnerDeadzone = 0.05; RightOuterDeadzone = 0.98;
+                CalibrationStep = 1;
+                StepPromptText = "Push both sticks to the top-left corner, then release";
+                StepSubPromptText = "Release the sticks completely, then press Next";
+                DriftLock.Views.Windows.CustomMessageDialog.Show("Controller calibration and deadzones reset to defaults.", "RESET COMPLETE");
+            }
+        }
+        [RelayCommand]
+        public void BeginRemap(string parameter)
+        {
+            if (ushort.TryParse(parameter, out ushort targetBit))
+            {
+                _waitingTargetBit = targetBit;
+                WaitingTargetText = $"Press a physical button to map to {GetButtonName(targetBit)}...";
+                IsWaitingForInput = true;
+            }
+        }
+        [RelayCommand]
+        private void CancelRemap()
+        {
+            IsWaitingForInput = false;
+        }
+        [RelayCommand]
+        private void ClearRemaps()
+        {
+            if (_activeProfile != null)
+            {
+                _activeProfile.Remaps.Clear();
+                UpdateMappingsForControllerType(IsPlayStation);
+            }
+        }
+        public string GetButtonName(ushort bit)
+        {
+            return bit switch
+            {
+                0x0001 => "D-Pad Up",
+                0x0002 => "D-Pad Down",
+                0x0004 => "D-Pad Left",
+                0x0008 => "D-Pad Right",
+                0x0010 => IsPlayStation ? "Options" : "Start",
+                0x0020 => IsPlayStation ? "Share" : "Back",
+                0x0040 => "L3",
+                0x0080 => "R3",
+                0x0100 => IsPlayStation ? "L1" : "LB",
+                0x0200 => IsPlayStation ? "R1" : "RB",
+                0x1000 => IsPlayStation ? "Cross" : "A",
+                0x2000 => IsPlayStation ? "Circle" : "B",
+                0x4000 => IsPlayStation ? "Square" : "X",
+                0x8000 => IsPlayStation ? "Triangle" : "Y",
+                _ => "Unknown"
+            };
+        }
+        [RelayCommand]
+        public void CheckHidHide()
+        {
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
+            if (File.Exists(clientPath))
+            {
+                HidHideStatusText = "INSTALLED";
+                HidHideStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                HidHideButtonText = "Open Configurator";
+            }
+            else
+            {
+                HidHideStatusText = "NOT INSTALLED";
+                HidHideStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                HidHideButtonText = "Download HidHide";
+            }
+        }
+        [RelayCommand]
+        private void InstallHidHide()
+        {
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
+            if (File.Exists(clientPath))
+            {
+                DriftLock.Views.Windows.CustomMessageDialog.Show(
+                    "HidHide Configurator will now open.\n\nTo fix the 'double input' issue in games (like Steam):\n1. Go to the 'Applications' tab and add Drift Lift to the list (so it can see your controller).\n2. Go to the 'Devices' tab, check the box next to your PlayStation controller.\n3. Make sure 'Enable device hiding' is checked at the bottom.",
+                    "Fix Double Input", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                try
+                {
+                    System.Diagnostics.Process.Start(clientPath);
+                }
+                catch { }
+            }
+            else
+            {
+                var result = DriftLock.Views.Windows.CustomMessageDialog.Show(
+                    "HidHide is required to hide your physical controller from games and prevent the 'Double Input' bug.\n\nWould you like to download it now?",
+                    "HidHide Required", true);
+                if (result)
+                {
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "https://github.com/nefarius/HidHide/releases/latest",
+                            UseShellExecute = true
+                        });
+                    }
+                    catch { }
+                }
+            }
+        }
+    }
+    public partial class RemapRowViewModel : ObservableObject
+    {
+        private readonly DashboardViewModel _parent;
+        public ushort SourceBit { get; }
+        public string SourceButtonName { get; }
+        public ObservableCollection<string> TargetOptions { get; }
+        public RemapRowViewModel(DashboardViewModel parent, ushort sourceBit, string sourceButtonName, List<string> options)
+        {
+            _parent = parent;
+            SourceBit = sourceBit;
+            SourceButtonName = sourceButtonName;
+            TargetOptions = new ObservableCollection<string>(options);
+        }
+        public string SelectedTarget
+        {
+            get
+            {
+                if (_parent.ActiveProfile != null && _parent.ActiveProfile.Remaps.TryGetValue(SourceBit, out ushort targetBit))
+                {
+                    return _parent.GetButtonName(targetBit);
+                }
+                return SourceButtonName;
+            }
+            set
+            {
+                if (string.IsNullOrEmpty(value)) return;
+                ushort bit = _parent.GetBitFromName(value);
+                if (_parent.ActiveProfile != null)
+                {
+                    if (bit == SourceBit || bit == 0)
+                    {
+                        _parent.ActiveProfile.Remaps.TryRemove(SourceBit, out _);
+                    }
+                    else
+                    {
+                        _parent.ActiveProfile.Remaps[SourceBit] = bit;
+                    }
+                    _parent.UpdateActiveMappingsTable();
+                    OnPropertyChanged(nameof(SelectedTarget));
+                }
+            }
+        }
+        public void RefreshTarget()
+        {
+            OnPropertyChanged(nameof(SelectedTarget));
+        }
+        [RelayCommand]
+        private void Listen()
+        {
+            _parent.BeginRemap(SourceBit.ToString());
+        }
+        [RelayCommand]
+        private void Reset()
+        {
+            if (_parent.ActiveProfile != null)
+            {
+                _parent.ActiveProfile.Remaps.TryRemove(SourceBit, out _);
+                _parent.UpdateActiveMappingsTable();
+                OnPropertyChanged(nameof(SelectedTarget));
+            }
+        }
+    }
+}

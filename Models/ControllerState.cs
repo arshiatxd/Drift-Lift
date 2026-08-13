@@ -1,0 +1,25 @@
+using System;
+namespace DriftLock.Models
+{
+    public enum ControllerType
+    {
+        Generic,
+        Xbox,
+        DualShock4,
+        DualSense
+    }
+    public class ControllerState
+    {
+        public double LeftThumbX { get; set; }
+        public double LeftThumbY { get; set; }
+        public double RightThumbX { get; set; }
+        public double RightThumbY { get; set; }
+        public double LeftTrigger { get; set; }
+        public double RightTrigger { get; set; }
+        public ushort Buttons { get; set; }
+        public bool Touchpad { get; set; }
+        public bool IsConnected { get; set; }
+        public string DeviceName { get; set; } = "Generic Controller";
+        public ControllerType Type { get; set; } = ControllerType.Generic;
+    }
+}
