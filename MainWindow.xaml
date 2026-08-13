@@ -216,7 +216,6 @@
                             </RadioButton>
                         </StackPanel>
                         <StackPanel Grid.Row="2" Margin="0,0,0,12">
-                            <!-- ##== DEVICE INFO CARD ==## -->
                             <Border Margin="6,0,6,4" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="8,8" x:Name="DeviceInfoPanel">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Grid Margin="0,0,8,0" HorizontalAlignment="Center">
@@ -229,9 +228,7 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
-                            <!-- ##== BATTERY INFO CONTAINER ==## -->
                             <Grid Margin="6,0,6,0">
-                                <!-- ##== EXPANDED HORIZONTAL BATTERY CARD ==## -->
                                 <Border x:Name="BatteryInfoPanelExpanded" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,8">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="🔋" FontSize="15" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -243,7 +240,6 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
-                                <!-- ##== COLLAPSED VERTICAL SMARTPHONE BATTERY CARD ==## -->
                                 <Border x:Name="BatteryInfoPanelCollapsed" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="4,8" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Center" Width="48">
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Grid Width="20" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">

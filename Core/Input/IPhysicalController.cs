@@ -3,7 +3,6 @@ using DriftLock.Models;
 
 namespace DriftLock.Core.Input
 {
-    // ##== Physical Controller Interface ==##
     public interface IPhysicalController : IDisposable
     {
         string DeviceId { get; }

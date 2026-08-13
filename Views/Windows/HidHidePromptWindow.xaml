@@ -19,7 +19,6 @@
         </Border.RenderTransform>
         
         <Grid Margin="22">
-            <!-- ##== VIEW STATE 1: SELECTION PROMPT ==## -->
             <Grid x:Name="PromptGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -27,7 +26,6 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <!-- ##== HEADER ==## -->
                 <Grid Grid.Row="0" Margin="0,0,0,14">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="7,4" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
@@ -39,36 +37,30 @@
                         <TextBlock Text="✕" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                 </Grid>
-                <!-- ##== DESCRIPTION ==## -->
                 <TextBlock Grid.Row="1" Text="HidHide driver is recommended to prevent double-input conflicts in games by hiding physical controllers while routing through Drift Lift's virtual Xbox controller." Foreground="{DynamicResource TextSecondary}" FontSize="12" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,16"/>
-                <!-- ##== INFO NOTE ==## -->
                 <Border Grid.Row="2" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="12,8" VerticalAlignment="Top" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="💡" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Automatic download, installation, and zero-touch configuration." Foreground="{DynamicResource TextMuted}" FontSize="11" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Border>
-                <!-- ##== ACTION BUTTONS ==## -->
                 <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
                     <Button Content="DOWNLOAD &amp; INSTALL" Click="Download_Click" Style="{DynamicResource RedNeonBtn}" Margin="0,0,10,0" Padding="18,8" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
                     <Button Content="CONTINUE WITHOUT IT" Click="Continue_Click" Style="{DynamicResource DefaultButtonStyle}" Padding="18,8" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
                 </StackPanel>
             </Grid>
-            <!-- ##== VIEW STATE 2: DOWNLOAD & INSTALL PROGRESS ==## -->
             <Grid x:Name="ProgressGrid" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <!-- ##== HEADER ==## -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,16">
                     <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="7,4" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                         <TextBlock Text="⚡" FontSize="13" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Text="SETTING UP HIDHIDE DRIVER" Foreground="{DynamicResource RedNeon}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
                 </StackPanel>
-                <!-- ##== STATUS & PROGRESS BAR ==## -->
                 <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,10,0,10">
                     <TextBlock x:Name="StatusLbl" Text="Downloading HidHide Driver..." Foreground="{DynamicResource TextPrimary}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,10"/>
                     <Border Height="10" Background="{DynamicResource SubCardBg}" CornerRadius="0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" HorizontalAlignment="Stretch">
@@ -77,7 +69,6 @@
                     <TextBlock x:Name="ProgressDetailsLbl" Text="Connecting..." Foreground="{DynamicResource TextMuted}" FontSize="11" HorizontalAlignment="Right" Margin="0,8,0,0"/>
                     <TextBlock x:Name="ErrorLbl" Text="" Foreground="{DynamicResource RedNeon}" FontSize="11" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,10,0,0"/>
                 </StackPanel>
-                <!-- ##== ERROR / CANCEL BUTTON ==## -->
                 <Button x:Name="ErrorContinueBtn" Grid.Row="2" Content="CONTINUE TO APP" Click="Continue_Click" Style="{DynamicResource RedNeonBtn}" HorizontalAlignment="Right" Padding="18,8" FontSize="11" FontWeight="Bold" Visibility="Collapsed" Cursor="Hand"/>
             </Grid>
         </Grid>

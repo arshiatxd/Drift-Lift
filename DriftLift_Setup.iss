@@ -1,4 +1,3 @@
-; ##== Drift Lift Installer Script ==##
 #define MyAppName      "Drift Lift"
 #define MyAppVersion   "1.0.2"
 #define MyAppPublisher "arshiatxd"
@@ -17,31 +16,26 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases
 
-; ##== Installation Directory ==##
 DefaultDirName={autopf}\DriftLift
 DisableDirPage=no
 DirExistsWarning=no
 DisableProgramGroupPage=yes
 UsePreviousAppDir=no
 
-; ##== Output ==##
 OutputBaseFilename=DriftLift_Setup
 OutputDir=C:\Users\Parsian\Desktop
 Compression=lzma2/ultra64
 SolidCompression=yes
 
-; ##== Visual ==##
 WizardStyle=modern
 SetupIconFile={#IconFile}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 WizardImageFile=C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets\WizImage.bmp
 WizardSmallImageFile=C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets\WizSmallImage.bmp
 
-; ##== Privileges ==##
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64compatible
 
-; ##== Uninstall ==##
 UninstallDisplayName={#MyAppName}
 CreateUninstallRegKey=yes
 

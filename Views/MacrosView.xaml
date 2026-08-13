@@ -53,10 +53,8 @@
     <Grid Margin="12">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel>
-                <!-- ##== WORKSTATION TITLE ==## -->
                 <TextBlock Text="MACRO SEQUENCER &amp; SENSITIVITY WORKSTATION" FontWeight="Black" FontSize="16" Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,16"/>
 
-                <!-- ##== STICK SENSITIVITY SCALING CARD ==## -->
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Text="Stick Sensitivity Scaling" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,4"/>
@@ -76,7 +74,6 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ##== DEADZONES CONTROL CARD ==## -->
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <StackPanel>
                         <TextBlock Text="Analog Stick Deadzone Limits" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,4"/>
@@ -108,10 +105,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ##== CUSTOM KEY SEQUENCE & MACRO EDITOR CARD ==## -->
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20">
                     <StackPanel>
-                        <!-- ##== MACRO WORKSTATION HEADER ==## -->
                         <Grid Margin="0,0,0,16">
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Custom Key Sequence &amp; Macro Editor" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,2"/>
@@ -127,7 +122,6 @@
                             </StackPanel>
                         </Grid>
 
-                        <!-- ##== MACRO DETAILS EDITOR ==## -->
                         <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="14" Margin="0,0,0,16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -150,7 +144,6 @@
                             </Grid>
                         </Border>
 
-                        <!-- ##== RECORDING STATUS BANNER ==## -->
                         <Border Visibility="{Binding IsRecordingMacro, Converter={StaticResource BoolToVis}}" Background="#33FF1744" BorderBrush="{DynamicResource RedNeon}" BorderThickness="1" CornerRadius="0" Padding="12,8" Margin="0,0,0,16">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Ellipse Width="10" Height="10" Fill="{DynamicResource RedNeon}" Margin="0,0,8,0" VerticalAlignment="Center">
@@ -162,7 +155,6 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- ##== MACRO SEQUENCE TIMELINE BOARD ==## -->
                         <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="16">
                             <StackPanel>
                                 <Grid Margin="0,0,0,12">
@@ -170,7 +162,6 @@
                                     <Button Command="{Binding AddStepToActiveMacroCommand}" Content="+ ADD STEP" Style="{DynamicResource DefaultButtonStyle}" Padding="10,4" HorizontalAlignment="Right" FontSize="10"/>
                                 </Grid>
 
-                                <!-- ##== Steps ItemsControl ==## -->
                                 <ItemsControl ItemsSource="{Binding ActiveMacro.Steps}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>

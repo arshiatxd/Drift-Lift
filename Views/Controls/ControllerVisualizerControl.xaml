@@ -11,7 +11,6 @@
             <RowDefinition Height="24"/>
             <RowDefinition Height="260"/>
         </Grid.RowDefinitions>
-        <!-- ##== ── TRIGGER & BUMPER OVERLAY (ON MAIN CANVAS AT TOP SHOULDERS) ── ==## -->
         <Canvas Grid.Row="1" Width="420" Height="260">
             <Image Width="420" Height="260" Stretch="Uniform"
                    Canvas.Left="0" Canvas.Top="0"
@@ -108,7 +107,6 @@
         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Guide" />
     </Image.InputBindings>
 </Image>
-                <!-- ##== XBOX STICKS ==## -->
                 <Grid Canvas.Left="65.8" Canvas.Top="87.9" Width="48.5" Height="48.2">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding LeftGraphicTranslateX}" Y="{Binding LeftGraphicTranslateY}"/>
@@ -153,7 +151,6 @@
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Square" />
                     </Image.InputBindings>
                 </Image>
-                <!-- ##== D-PAD ==## -->
                 <Image Source="/Assets/PS4/DS4_D-PAD_Up.png" Width="24.4" Height="26.6" Canvas.Left="64" Canvas.Top="96" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadUp" />
@@ -174,7 +171,6 @@
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadRight" />
                     </Image.InputBindings>
                 </Image>
-                <!-- ##== BUMPERS & TRIGGERS ==## -->
                 <Image Source="/Assets/PS4/DS4_L1-Active.png" Width="54.5" Height="27.1" Canvas.Left="64" Canvas.Top="44" Tag="{Binding IsL1Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L1" />
@@ -210,13 +206,11 @@
         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Guide" />
     </Image.InputBindings>
 </Image>
-                <!-- ##== TOUCHPAD ==## -->
                 <Image Source="/Assets/PS4/DS4_Touchpad_Touch.png" Width="100" Height="65" Canvas.Left="158" Canvas.Top="75" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
                     </Image.InputBindings>
                 </Image>
-                <!-- ##== PS4 STICKS ==## -->
                 <Grid Canvas.Left="122.4" Canvas.Top="174.9" Width="45.2" Height="40.2">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding PsLeftGraphicTranslateX}" Y="{Binding PsLeftGraphicTranslateY}"/>
@@ -263,5 +257,5 @@
                 </Grid>
             </Canvas>
         </Canvas>
-    </Grid><!-- ##== end controller grid ==## -->
+    </Grid>
 </UserControl>

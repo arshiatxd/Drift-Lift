@@ -25,7 +25,6 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- ##== Dialog Header ==## -->
             <Grid Grid.Row="0" Margin="0,0,0,12">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="6,3" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
@@ -51,12 +50,10 @@
                 </Button>
             </Grid>
 
-            <!-- ##== Dialog Message Content ==## -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,14">
                 <TextBlock x:Name="MessageTxt" Text="Message details go here." Foreground="{DynamicResource TextPrimary}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
             </ScrollViewer>
 
-            <!-- ##== Action Buttons ==## -->
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="OkBtn" Content="OK" Click="Ok_Click" Style="{DynamicResource RedNeonBtn}" Padding="20,6" FontSize="11" FontWeight="Bold" Cursor="Hand"/>
                 <Button x:Name="CancelBtn" Content="CANCEL" Click="Cancel_Click" Style="{DynamicResource DefaultButtonStyle}" Margin="10,0,0,0" Padding="16,6" FontSize="11" FontWeight="Bold" Visibility="Collapsed" Cursor="Hand"/>

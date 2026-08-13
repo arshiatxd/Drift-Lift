@@ -12,7 +12,6 @@ namespace DriftLock.Core.Input
         public static List<IPhysicalController> GetConnectedControllers()
         {
             var result = new List<IPhysicalController>();
-            // ##== PS HID DEVICES (USB & BLUETOOTH) ==##
             var psDevices = new List<PlayStationController>();
             try
             {
@@ -36,7 +35,6 @@ namespace DriftLock.Core.Input
             }
             catch { }
             result.AddRange(psDevices);
-            // ##== REAL XBOX CONTROLLER DETECTION ==##
             try
             {
                 var realXboxVendorIds = new HashSet<int> { 0x045E, 0x0738, 0x0F0D, 0x1532, 0x24C6, 0x1BAD, 0x046D, 0x0079, 0x0E6F };
@@ -54,7 +52,6 @@ namespace DriftLock.Core.Input
                 {
                     if (XInput.GetState(i, out _))
                     {
-                        // ##== If PlayStation controllers are connected and NO physical Xbox HID device is present, ==##
                         if (psDevices.Count > 0 && realXboxHidCount == 0)
                         {
                             continue;

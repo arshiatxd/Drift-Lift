@@ -7,7 +7,6 @@ using DriftLock.ViewModels;
 
 namespace DriftLock
 {
-    // ##== Application Startup & Global Exception Handler ==##
     public partial class App : Application
     {
         private InputLoop? _inputLoop;

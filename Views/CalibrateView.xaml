@@ -7,11 +7,9 @@
              Foreground="{DynamicResource TextPrimary}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <!-- ##== Step Navigation Progress Bar ==## -->
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <!-- ##== TOP STEP NAVIGATION HEADER ==## -->
         <Border Grid.Row="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20,12" Margin="0,0,0,14">
             <Grid VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -36,29 +34,22 @@
                 </StackPanel>
             </Grid>
         </Border>
-        <!-- ##== MAIN CALIBRATION BODY ==## -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <!-- ##== Interactive Canvas Column ==## -->
                 <ColumnDefinition Width="*"/>
-                <!-- ##== Sidebar Info Panel ==## -->
                 <ColumnDefinition Width="300"/>
             </Grid.ColumnDefinitions>
-            <!-- ##== LEFT CANVAS PANEL ==## -->
             <Border Grid.Column="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="24" Margin="0,0,14,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="270"/>
-                        <!-- ##== Step Controls & Prompts ==## -->
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <!-- ##== STICK VISUALIZERS GRID ==## -->
                     <Grid Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="220"/>
                             <ColumnDefinition Width="220"/>
                         </Grid.ColumnDefinitions>
-                        <!-- ##== LEFT STICK CARD ==## -->
                         <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                             <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="10,4" Margin="0,0,0,12">
                                 <TextBlock Text="LEFT ANALOG STICK" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -90,7 +81,6 @@
                                 </TextBlock>
                             </Border>
                         </StackPanel>
-                        <!-- ##== RIGHT STICK CARD ==## -->
                         <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                             <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="10,4" Margin="0,0,0,12">
                                 <TextBlock Text="RIGHT ANALOG STICK" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
@@ -123,7 +113,6 @@
                             </Border>
                         </StackPanel>
                     </Grid>
-                    <!-- ##== STEP PROMPTS & ACTIONS ==## -->
                     <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border Background="{DynamicResource RedNeonGradient}" CornerRadius="0" Padding="16,5" HorizontalAlignment="Center" Margin="0,0,0,14">
                             <Border.Effect>
@@ -140,11 +129,9 @@
                     </StackPanel>
                 </Grid>
             </Border>
-            <!-- ##== RIGHT SIDEBAR INFO PANEL ==## -->
             <Border Grid.Column="1" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="18">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
-                        <!-- ##== DEVICE INFORMATION CARD ==## -->
                         <TextBlock Text="ⓘ DEVICE INFORMATION" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
                         <Grid Margin="0,0,0,8">
                             <TextBlock Text="MODEL" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
@@ -165,7 +152,6 @@
                             </Border>
                         </Grid>
                         <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
-                        <!-- ##== SAFETY STATUS CARD ==## -->
                         <TextBlock Text="🛡 SYSTEM DIAGNOSTICS" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
                         <StackPanel Margin="0,0,0,16">
                             <Grid Margin="0,0,0,6">
@@ -182,7 +168,6 @@
                             </Grid>
                         </StackPanel>
                         <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
-                        <!-- ##== IMPORTANT WARNINGS CARD ==## -->
                         <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12">
                             <StackPanel>
                                 <TextBlock Text="⚠ INSTRUCTIONS" Foreground="#F39C12" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>

@@ -108,7 +108,6 @@ namespace DriftLock.Core.Input
         }
         private void DeviceWatcherLoop()
         {
-            // ##== Decoupled background device enumeration - zero impact on input thread ==##
             while (_running)
             {
                 RefreshDevices();

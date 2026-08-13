@@ -4,7 +4,6 @@ using DriftLock.Models;
 
 namespace DriftLock.Core.Input
 {
-    // ##== Xbox Controller Implementation ==##
     public class XboxController : IPhysicalController
     {
         private readonly uint _userIndex;

@@ -7,7 +7,6 @@ using DriftLock.Core.Input;
 
 namespace DriftLock.Views.Windows
 {
-    // ##== PlayStation LED Window Logic ==##
     public partial class PsLedWindow : Window
     {
         private readonly IPhysicalController? _controller;

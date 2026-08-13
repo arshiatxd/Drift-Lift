@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DriftLock.Models
 {
-    // ##== Macro Step Model ==##
     public partial class MacroStep : ObservableObject
     {
         [ObservableProperty] private string _buttonName = "Cross";
@@ -12,7 +11,6 @@ namespace DriftLock.Models
         [ObservableProperty] private int _delayMs = 50;
     }
 
-    // ##== Macro Item Model ==##
     public partial class MacroItem : ObservableObject
     {
         [ObservableProperty] private string _name = "Rapid Fire Combo";

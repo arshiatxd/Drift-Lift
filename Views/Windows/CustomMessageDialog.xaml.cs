@@ -5,7 +5,6 @@ using System.Windows.Media.Animation;
 
 namespace DriftLock.Views.Windows
 {
-    // ##== Custom WPF Themed MessageBox Logic ==##
     public partial class CustomMessageDialog : Window
     {
         public CustomMessageDialog(string message, string title = "DRIFT-LIFT NOTIFICATION", bool isConfirm = false)

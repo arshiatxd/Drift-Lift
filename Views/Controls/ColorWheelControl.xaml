@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="180" Height="180">
     <Grid x:Name="WheelGrid" MouseLeftButtonDown="Wheel_MouseDown" MouseMove="Wheel_MouseMove" MouseLeftButtonUp="Wheel_MouseUp" Cursor="Hand">
-        <!-- ##== CIRCULAR COLOR SPECTRUM WHEEL ==## -->
         <Ellipse x:Name="WheelEllipse">
             <Ellipse.Fill>
                 <RadialGradientBrush>
@@ -12,10 +11,10 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
-        <!-- Hue Ring Canvas -->
+        
         <Canvas x:Name="SpectrumCanvas" Width="180" Height="180"/>
         
-        <!-- Selection Thumb Ring -->
+        
         <Canvas Width="180" Height="180" IsHitTestVisible="False">
             <Ellipse x:Name="ThumbRing" Width="14" Height="14" Stroke="White" StrokeThickness="2" Fill="Transparent" Margin="83,83,0,0">
                 <Ellipse.Effect>

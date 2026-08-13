@@ -366,22 +366,18 @@ namespace DriftLock.ViewModels
                 isPs ? "Share" : "Back",
                 isPs ? "Options" : "Start"
             };
-            // ##== 1. Face Buttons ==##
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x2000, isPs ? "Circle" : "B", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x4000, isPs ? "Square" : "X", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x8000, isPs ? "Triangle" : "Y", options));
-            // ##== 2. D-Pad Buttons ==##
             DPadRemap.Add(new RemapRowViewModel(this, 0x0001, "D-Pad Up", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0002, "D-Pad Down", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0004, "D-Pad Left", options));
             DPadRemap.Add(new RemapRowViewModel(this, 0x0008, "D-Pad Right", options));
-            // ##== 3. Shoulders & Triggers ==##
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0100, isPs ? "L1" : "LB", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0200, isPs ? "R1" : "RB", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0400, isPs ? "L2" : "LT", options));
             ShouldersRemap.Add(new RemapRowViewModel(this, 0x0800, isPs ? "R2" : "RT", options));
-            // ##== 4. Special & Sticks ==##
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0040, "L3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));

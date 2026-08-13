@@ -4,7 +4,6 @@ using DriftLock.Models;
 
 namespace DriftLock.Core.Input
 {
-    // ##== PlayStation Controller Implementation ==##
     public class PlayStationController : IPhysicalController
     {
         private readonly HidDevice _device;

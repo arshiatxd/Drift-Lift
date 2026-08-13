@@ -7,7 +7,6 @@ using System.Windows.Media.Imaging;
 
 namespace DriftLock.Views.Controls
 {
-    // ##== Interactive Circular RGB Color Wheel Logic ==##
     public partial class ColorWheelControl : UserControl
     {
         private bool _isDragging = false;
