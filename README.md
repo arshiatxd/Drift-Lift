@@ -1,6 +1,20 @@
+<div align="center">
+
+<img src="Assets/logo_light.png" width="128" alt="Drift Lift Logo"/>
+
 # Drift Lift
 
-Drift Lift is a Windows application for gamepad controller calibration, stick drift correction, button remapping, and double-input prevention.
+**Gamepad controller calibration, stick drift correction, and remapping tool for Windows.**
+
+<br/>
+
+![Drift Lift Banner](Assets/banner.jpg)
+
+<br/>
+
+[Features](#key-features) · [Installation](#installation) · [System Requirements](#system-requirements) · [License](#license)
+
+</div>
 
 ---
 
