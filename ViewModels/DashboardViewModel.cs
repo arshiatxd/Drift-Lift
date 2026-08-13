@@ -584,7 +584,9 @@ namespace DriftLift.ViewModels
                     DeviceModelText = "Xbox Wireless Controller";
                     ControllerConnectionIcon = "🎮 XBOX";
                 }
-                DeviceFirmwareText = "USB • 1.0.3";
+                var batInfo = _activeProfile.Physical.GetBatteryInfo();
+                string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
+                DeviceFirmwareText = $"{connType} • v1.0.3";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(isPs);
@@ -635,7 +637,6 @@ namespace DriftLift.ViewModels
                 var profile = _activeProfile;
                 if (profile != null && profile.Physical != null && profile.Physical.IsConnected)
                 {
-                    UpdateBatteryMetrics();
                     var state = profile.Physical.GetCurrentState();
                     TriggerL = state.LeftTrigger;
                     TriggerR = state.RightTrigger;
@@ -751,7 +752,7 @@ namespace DriftLift.ViewModels
                 StopVibration();
                 return;
             }
-            if (_activeProfile != null && _activeProfile.Physical.IsConnected)
+            if (_activeProfile != null && _activeProfile.Physical != null && _activeProfile.Physical.IsConnected)
             {
                 int ticksRemaining = (int)Math.Round(VibrationTimeRemaining * 10);
                 if (SelectedVibrationMode == "Burst")

@@ -4,12 +4,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace DriftLift.Models
 {
+
     public partial class MacroStep : ObservableObject
     {
         [ObservableProperty] private string _buttonName = "Cross";
         [ObservableProperty] private ushort _buttonMask = 0x1000;
         [ObservableProperty] private int _delayMs = 50;
     }
+
 
     public partial class MacroItem : ObservableObject
     {

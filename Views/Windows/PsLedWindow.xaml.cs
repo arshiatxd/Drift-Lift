@@ -7,6 +7,7 @@ using DriftLift.Core.Input;
 
 namespace DriftLift.Views.Windows
 {
+
     public partial class PsLedWindow : Window
     {
         private readonly IPhysicalController? _controller;

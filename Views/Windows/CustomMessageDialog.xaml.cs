@@ -5,6 +5,7 @@ using System.Windows.Media.Animation;
 
 namespace DriftLift.Views.Windows
 {
+
     public partial class CustomMessageDialog : Window
     {
         public CustomMessageDialog(string message, string title = "DRIFT-LIFT NOTIFICATION", bool isConfirm = false)

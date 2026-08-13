@@ -12,6 +12,7 @@ namespace DriftLift.Core.Input
         public static List<IPhysicalController> GetConnectedControllers()
         {
             var result = new List<IPhysicalController>();
+
             var psDevices = new List<PlayStationController>();
             try
             {
@@ -35,6 +36,7 @@ namespace DriftLift.Core.Input
             }
             catch { }
             result.AddRange(psDevices);
+
             try
             {
                 var realXboxVendorIds = new HashSet<int> { 0x045E, 0x0738, 0x0F0D, 0x1532, 0x24C6, 0x1BAD, 0x046D, 0x0079, 0x0E6F };
@@ -52,6 +54,7 @@ namespace DriftLift.Core.Input
                 {
                     if (XInput.GetState(i, out _))
                     {
+
                         if (psDevices.Count > 0 && realXboxHidCount == 0)
                         {
                             continue;

@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 
 namespace DriftLift.Views.Controls
 {
+
     public partial class ColorWheelControl : UserControl
     {
         private bool _isDragging = false;

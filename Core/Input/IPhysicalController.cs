@@ -3,6 +3,7 @@ using DriftLift.Models;
 
 namespace DriftLift.Core.Input
 {
+
     public interface IPhysicalController : IDisposable
     {
         string DeviceId { get; }

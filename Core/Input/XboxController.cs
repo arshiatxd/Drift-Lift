@@ -4,6 +4,7 @@ using DriftLift.Models;
 
 namespace DriftLift.Core.Input
 {
+
     public class XboxController : IPhysicalController
     {
         private readonly uint _userIndex;

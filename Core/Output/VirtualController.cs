@@ -3,41 +3,57 @@ using DriftLift.Models;
 using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
+
 namespace DriftLift.Core.Output
 {
     public class VirtualController : IDisposable
     {
+        // ##== Fields & State ==##
         private ViGEmClient? _client;
         private IXbox360Controller? _target;
+        private readonly object _lock = new();
         private bool _isCreated;
+        private bool _disposed;
+
         public bool IsActive => _isCreated && _target != null;
+
+        // ##== Lifecycle ==##
         public void EnsureCreated()
         {
             if (_isCreated) return;
-            try
+
+            lock (_lock)
             {
-                _client = new ViGEmClient();
-                _target = _client.CreateXbox360Controller();
-                _target.Connect();
-                _isCreated = true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ViGEm Client not available: {ex.Message}");
-                _isCreated = false;
+                if (_isCreated) return;
+                try
+                {
+                    _client = new ViGEmClient();
+                    _target = _client.CreateXbox360Controller();
+                    _target.Connect();
+                    _isCreated = true;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ViGEm Client not available: {ex.Message}");
+                    _isCreated = false;
+                }
             }
         }
+
+        // ##== State Submission ==##
         public void SendState(ControllerState state)
         {
             if (!_isCreated || _target == null) return;
+
             try
             {
                 _target.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(state.LeftThumbX * 32767));
                 _target.SetAxisValue(Xbox360Axis.LeftThumbY, (short)(state.LeftThumbY * 32767));
                 _target.SetAxisValue(Xbox360Axis.RightThumbX, (short)(state.RightThumbX * 32767));
                 _target.SetAxisValue(Xbox360Axis.RightThumbY, (short)(state.RightThumbY * 32767));
-                _target.SetSliderValue(Xbox360Slider.LeftTrigger, (byte)(state.LeftTrigger * 255));
-                _target.SetSliderValue(Xbox360Slider.RightTrigger, (byte)(state.RightTrigger * 255));
+                _target.SetSliderValue(Xbox360Slider.LeftTrigger, (byte)(Math.Clamp(state.LeftTrigger, 0.0, 1.0) * 255));
+                _target.SetSliderValue(Xbox360Slider.RightTrigger, (byte)(Math.Clamp(state.RightTrigger, 0.0, 1.0) * 255));
+
                 ushort b = state.Buttons;
                 _target.SetButtonState(Xbox360Button.A, (b & 0x1000) != 0);
                 _target.SetButtonState(Xbox360Button.B, (b & 0x2000) != 0);
@@ -53,31 +69,34 @@ namespace DriftLift.Core.Output
                 _target.SetButtonState(Xbox360Button.RightThumb, (b & 0x0080) != 0);
                 _target.SetButtonState(Xbox360Button.Start, (b & 0x0010) != 0);
                 _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0);
+
                 _target.SubmitReport();
             }
             catch { }
         }
+
+        // ##== Cleanup ==##
         public void Dispose()
         {
-            if (_target != null)
+            lock (_lock)
             {
-                try
+                if (_disposed) return;
+                _disposed = true;
+
+                if (_target != null)
                 {
-                    _target.Disconnect();
+                    try { _target.Disconnect(); } catch { }
+                    _target = null;
                 }
-                catch { }
-                _target = null;
-            }
-            if (_client != null)
-            {
-                try
+
+                if (_client != null)
                 {
-                    _client.Dispose();
+                    try { _client.Dispose(); } catch { }
+                    _client = null;
                 }
-                catch { }
-                _client = null;
+
+                _isCreated = false;
             }
-            _isCreated = false;
         }
     }
 }
