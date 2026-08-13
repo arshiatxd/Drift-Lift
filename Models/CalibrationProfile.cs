@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-namespace DriftLock.Models
+namespace DriftLift.Models
 {
     public enum ResponseCurveType
     {

@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
-namespace DriftLock.Views.Windows
+namespace DriftLift.Views.Windows
 {
     public partial class CustomMessageDialog : Window
     {

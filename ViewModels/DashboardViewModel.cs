@@ -8,13 +8,13 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DriftLock.Core;
-using DriftLock.Core.Icons;
-using DriftLock.Core.Input;
-using DriftLock.Models;
-using DriftLock.Views;
+using DriftLift.Core;
+using DriftLift.Core.Icons;
+using DriftLift.Core.Input;
+using DriftLift.Models;
+using DriftLift.Views;
 using Nefarius.Drivers.HidHide;
-namespace DriftLock.ViewModels
+namespace DriftLift.ViewModels
 {
     public partial class DashboardViewModel : ObservableObject
     {
@@ -307,7 +307,7 @@ namespace DriftLock.ViewModels
             SavedConfigFiles.Clear();
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLock", "Configs");
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
                 Directory.CreateDirectory(folder);
                 foreach (var f in Directory.GetFiles(folder, "*.json"))
                 {
@@ -468,7 +468,7 @@ namespace DriftLock.ViewModels
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         IPhysicalController? phys = _activeProfile?.Physical;
-                        var win = new DriftLock.Views.Windows.PsLedWindow(phys, PsLedRed, PsLedGreen, PsLedBlue, PsLedBrightness);
+                        var win = new DriftLift.Views.Windows.PsLedWindow(phys, PsLedRed, PsLedGreen, PsLedBlue, PsLedBrightness);
                         if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
                         {
                             win.Owner = Application.Current.MainWindow;
@@ -815,7 +815,7 @@ namespace DriftLock.ViewModels
         private void NewProfile()
         {
             ActiveMappings.Clear();
-            DriftLock.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void LoadProfile()
@@ -835,12 +835,12 @@ namespace DriftLock.ViewModels
                     if (loaded != null)
                     {
                         ActiveMappings = loaded;
-                        DriftLock.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                        DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
                 catch (Exception ex)
                 {
-                    DriftLock.Views.Windows.CustomMessageDialog.Show("Failed to load profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    DriftLift.Views.Windows.CustomMessageDialog.Show("Failed to load profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -861,23 +861,23 @@ namespace DriftLock.ViewModels
                 {
                     string json = JsonSerializer.Serialize(ActiveMappings, new JsonSerializerOptions { WriteIndented = true });
                     File.WriteAllText(saveFileDialog.FileName, json);
-                    DriftLock.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(saveFileDialog.FileName)}' saved successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(saveFileDialog.FileName)}' saved successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    DriftLock.Views.Windows.CustomMessageDialog.Show("Failed to save profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    DriftLift.Views.Windows.CustomMessageDialog.Show("Failed to save profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
         [RelayCommand]
         private void ImportProfile()
         {
-            DriftLock.Views.Windows.CustomMessageDialog.Show("Import Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show("Import Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void ExportProfile()
         {
-            DriftLock.Views.Windows.CustomMessageDialog.Show("Export Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show("Export Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void AutoMap()
@@ -887,7 +887,7 @@ namespace DriftLock.ViewModels
             ActiveMappings.Add(new CustomMapping { SourceButton = "CIRCLE", TargetButton = "B" });
             ActiveMappings.Add(new CustomMapping { SourceButton = "SQUARE", TargetButton = "X" });
             ActiveMappings.Add(new CustomMapping { SourceButton = "TRIANGLE", TargetButton = "Y" });
-            DriftLock.Views.Windows.CustomMessageDialog.Show("Auto Mapping complete (Default XInput).", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show("Auto Mapping complete (Default XInput).", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void AddMapping()
@@ -1011,7 +1011,7 @@ namespace DriftLock.ViewModels
         [RelayCommand]
         private void SwitchRemapTab(string tabName)
         {
-            DriftLock.Views.Windows.CustomMessageDialog.Show($"Switched to {tabName} configuration (Coming Soon)", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show($"Switched to {tabName} configuration (Coming Soon)", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         // ##== Theme & Navigation Controls ==##
         [RelayCommand]
@@ -1102,7 +1102,7 @@ namespace DriftLock.ViewModels
                 CalibrationStep = 1;
                 StepPromptText = "Push both sticks to the top-left corner, then release";
                 StepSubPromptText = "Release the sticks completely, then press Next";
-                DriftLock.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                DriftLift.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         [RelayCommand]
@@ -1114,7 +1114,7 @@ namespace DriftLock.ViewModels
                 LeftInnerDeadzone = _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius;
                 RightInnerDeadzone = _activeProfile.Drift.Profile.RightStick.DeadzoneRadius;
             }
-            DriftLock.Views.Windows.CustomMessageDialog.Show("Quick Auto Calibrate completed! Center offset & deadzones locked.", "DriftLock Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
+            DriftLift.Views.Windows.CustomMessageDialog.Show("Quick Auto Calibrate completed! Center offset & deadzones locked.", "DriftLift Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void RemapHotspot(string buttonName)
@@ -1152,17 +1152,17 @@ namespace DriftLock.ViewModels
                 var data = new { DeviceModelText, LeftInnerDeadzone, LeftOuterDeadzone, RightInnerDeadzone, RightOuterDeadzone, StickSensitivity };
                 File.WriteAllText(file, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
                 RefreshSavedConfigFiles();
-                DriftLock.Views.Windows.CustomMessageDialog.Show($"Configuration saved to {Path.GetFileName(file)}!", "DriftLock Config Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+                DriftLift.Views.Windows.CustomMessageDialog.Show($"Configuration saved to {Path.GetFileName(file)}!", "DriftLift Config Manager", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                DriftLock.Views.Windows.CustomMessageDialog.Show($"Failed to save config: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                DriftLift.Views.Windows.CustomMessageDialog.Show($"Failed to save config: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         [RelayCommand]
         private void ResetCalibration()
         {
-            bool confirm = DriftLock.Views.Windows.CustomMessageDialog.Show(
+            bool confirm = DriftLift.Views.Windows.CustomMessageDialog.Show(
                 "Are you sure you want to reset all controller calibration deadzones and settings to factory defaults?",
                 "RESET CONFIGURATION", true);
             if (confirm)
@@ -1172,7 +1172,7 @@ namespace DriftLock.ViewModels
                 CalibrationStep = 1;
                 StepPromptText = "Push both sticks to the top-left corner, then release";
                 StepSubPromptText = "Release the sticks completely, then press Next";
-                DriftLock.Views.Windows.CustomMessageDialog.Show("Controller calibration and deadzones reset to defaults.", "RESET COMPLETE");
+                DriftLift.Views.Windows.CustomMessageDialog.Show("Controller calibration and deadzones reset to defaults.", "RESET COMPLETE");
             }
         }
         [RelayCommand]
@@ -1245,7 +1245,7 @@ namespace DriftLock.ViewModels
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
             if (File.Exists(clientPath))
             {
-                DriftLock.Views.Windows.CustomMessageDialog.Show(
+                DriftLift.Views.Windows.CustomMessageDialog.Show(
                     "HidHide Configurator will now open.\n\nTo fix the 'double input' issue in games (like Steam):\n1. Go to the 'Applications' tab and add Drift Lift to the list (so it can see your controller).\n2. Go to the 'Devices' tab, check the box next to your PlayStation controller.\n3. Make sure 'Enable device hiding' is checked at the bottom.",
                     "Fix Double Input", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 try
@@ -1256,7 +1256,7 @@ namespace DriftLock.ViewModels
             }
             else
             {
-                var result = DriftLock.Views.Windows.CustomMessageDialog.Show(
+                var result = DriftLift.Views.Windows.CustomMessageDialog.Show(
                     "HidHide is required to hide your physical controller from games and prevent the 'Double Input' bug.\n\nWould you like to download it now?",
                     "HidHide Required", true);
                 if (result)

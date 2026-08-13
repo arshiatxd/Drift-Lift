@@ -1,8 +1,8 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Animation;
-using DriftLock.Services;
-namespace DriftLock.Views.Windows
+using DriftLift.Services;
+namespace DriftLift.Views.Windows
 {
     public partial class HidHidePromptWindow : Window
     {

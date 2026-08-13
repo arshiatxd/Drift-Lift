@@ -1,7 +1,7 @@
-<Window x:Class="DriftLock.Views.Windows.ClosePromptWindow"
+<Window x:Class="DriftLift.Views.Windows.ClosePromptWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Exit DriftLock?" Height="250" Width="440"
+        Title="Exit DriftLift?" Height="250" Width="440"
         WindowStartupLocation="CenterOwner" WindowStyle="None"
         AllowsTransparency="True" Background="Transparent"
         Loaded="Window_Loaded">
@@ -31,7 +31,7 @@
                     <Border Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="7,4" Margin="0,0,10,0" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                         <TextBlock Text="⚠️" FontSize="13" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="CLOSE DRIFTLOCK?" Foreground="{DynamicResource RedNeon}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="CLOSE DRIFTLIFT?" Foreground="{DynamicResource RedNeon}" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button Click="CancelPopup_Click" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{DynamicResource PopupCloseBtn}"/>
             </Grid>

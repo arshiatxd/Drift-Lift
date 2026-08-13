@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace DriftLock.Views.Controls
+namespace DriftLift.Views.Controls
 {
     public partial class ColorWheelControl : UserControl
     {

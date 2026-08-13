@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Media;
-namespace DriftLock.Models
+namespace DriftLift.Models
 {
     public class MappingItem
     {

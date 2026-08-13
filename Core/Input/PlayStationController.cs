@@ -1,8 +1,8 @@
 using System;
 using HidLibrary;
-using DriftLock.Models;
+using DriftLift.Models;
 
-namespace DriftLock.Core.Input
+namespace DriftLift.Core.Input
 {
     public class PlayStationController : IPhysicalController
     {

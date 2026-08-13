@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using DriftLock.Models;
-namespace DriftLock.Core.Calibration
+using DriftLift.Models;
+namespace DriftLift.Core.Calibration
 {
     public class DriftProcessor
     {

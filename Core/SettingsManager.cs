@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using DriftLock.Models;
-namespace DriftLock.Core
+using DriftLift.Models;
+namespace DriftLift.Core
 {
     public class AppSettings
     {

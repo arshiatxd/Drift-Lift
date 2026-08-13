@@ -5,8 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using DriftLock.ViewModels;
-namespace DriftLock
+using DriftLift.ViewModels;
+namespace DriftLift
 {
     public partial class MainWindow : Window
     {
@@ -29,9 +29,9 @@ namespace DriftLock
         {
             try
             {
-                if (!DriftLock.Services.HidHideInstallerService.IsHidHideInstalled())
+                if (!DriftLift.Services.HidHideInstallerService.IsHidHideInstalled())
                 {
-                    var prompt = new DriftLock.Views.Windows.HidHidePromptWindow { Owner = this };
+                    var prompt = new DriftLift.Views.Windows.HidHidePromptWindow { Owner = this };
                     prompt.ShowDialog();
                     if (DataContext is DashboardViewModel vm)
                     {
@@ -81,7 +81,7 @@ namespace DriftLock
                     Application.Current.Shutdown();
                 return;
             }
-            var prompt = new DriftLock.Views.Windows.ClosePromptWindow { Owner = this };
+            var prompt = new DriftLift.Views.Windows.ClosePromptWindow { Owner = this };
             if (prompt.ShowDialog() == true)
             {
                 if (prompt.RememberChoice)

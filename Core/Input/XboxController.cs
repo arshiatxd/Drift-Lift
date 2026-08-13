@@ -1,8 +1,8 @@
 using System;
 using Vortice.XInput;
-using DriftLock.Models;
+using DriftLift.Models;
 
-namespace DriftLock.Core.Input
+namespace DriftLift.Core.Input
 {
     public class XboxController : IPhysicalController
     {

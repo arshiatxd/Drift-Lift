@@ -1,5 +1,5 @@
 using System.Windows.Controls;
-namespace DriftLock.Views
+namespace DriftLift.Views
 {
     public partial class MacrosView : UserControl
     {

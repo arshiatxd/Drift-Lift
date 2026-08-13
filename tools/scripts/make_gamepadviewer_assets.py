@@ -8,7 +8,7 @@ from PIL import Image
 import io
 
 BRAIN_DIR = r"C:\Users\Parsian\.gemini\antigravity\brain\a6e6704a-7701-4d92-ab0b-0a99857a741f"
-ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets"
+ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLift\Assets"
 
 SOURCES = {
     "ps4_placeholder.png": os.path.join(BRAIN_DIR, "gamepadviewer_ps4_transparent_1785985923915.jpg"),

@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using DriftLock.Core.Calibration;
-using DriftLock.Core.Output;
-using DriftLock.Models;
-namespace DriftLock.Core.Input
+using DriftLift.Core.Calibration;
+using DriftLift.Core.Output;
+using DriftLift.Models;
+namespace DriftLift.Core.Input
 {
     public class ControllerProfilePair
     {
@@ -36,13 +36,13 @@ namespace DriftLock.Core.Input
             { 
                 IsBackground = true, 
                 Priority = ThreadPriority.Highest,
-                Name = "DriftLock.HighPrecisionInputLoop"
+                Name = "DriftLift.HighPrecisionInputLoop"
             };
             _watcherThread = new Thread(DeviceWatcherLoop) 
             { 
                 IsBackground = true, 
                 Priority = ThreadPriority.BelowNormal,
-                Name = "DriftLock.DeviceWatcherThread"
+                Name = "DriftLift.DeviceWatcherThread"
             };
         }
         public void Start()

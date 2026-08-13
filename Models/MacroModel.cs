@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace DriftLock.Models
+namespace DriftLift.Models
 {
     public partial class MacroStep : ObservableObject
     {

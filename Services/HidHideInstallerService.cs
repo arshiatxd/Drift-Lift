@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using Nefarius.Drivers.HidHide;
-namespace DriftLock.Services
+namespace DriftLift.Services
 {
     public class HidHideInstallerService
     {

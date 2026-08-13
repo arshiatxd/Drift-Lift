@@ -1,5 +1,5 @@
 using System.Windows.Controls;
-namespace DriftLock.Views.Controls
+namespace DriftLift.Views.Controls
 {
     public partial class ControllerVisualizerControl : UserControl
     {

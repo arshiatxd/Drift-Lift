@@ -1,5 +1,5 @@
 using System.Windows;
-namespace DriftLock.Dialogs
+namespace DriftLift.Dialogs
 {
     public partial class CloseBehaviorDialog : Window
     {

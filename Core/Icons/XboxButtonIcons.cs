@@ -1,5 +1,5 @@
 using System.Windows.Media;
-namespace DriftLock.Core.Icons
+namespace DriftLift.Core.Icons
 {
     public static class XboxButtonIcons
     {

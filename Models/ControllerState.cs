@@ -1,5 +1,5 @@
 using System;
-namespace DriftLock.Models
+namespace DriftLift.Models
 {
     public enum ControllerType
     {

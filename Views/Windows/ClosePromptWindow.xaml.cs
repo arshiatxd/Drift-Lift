@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Animation;
-namespace DriftLock.Views.Windows
+namespace DriftLift.Views.Windows
 {
     public partial class ClosePromptWindow : Window
     {

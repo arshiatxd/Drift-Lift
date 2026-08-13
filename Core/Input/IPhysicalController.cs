@@ -1,7 +1,7 @@
 using System;
-using DriftLock.Models;
+using DriftLift.Models;
 
-namespace DriftLock.Core.Input
+namespace DriftLift.Core.Input
 {
     public interface IPhysicalController : IDisposable
     {

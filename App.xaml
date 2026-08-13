@@ -1,7 +1,7 @@
-<Application x:Class="DriftLock.App"
+<Application x:Class="DriftLift.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:DriftLock">
+             xmlns:local="clr-namespace:DriftLift">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

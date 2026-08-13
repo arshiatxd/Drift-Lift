@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-namespace DriftLock.Models
+namespace DriftLift.Models
 {
     public partial class CustomMapping : ObservableObject
     {

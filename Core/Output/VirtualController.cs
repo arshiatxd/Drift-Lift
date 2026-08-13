@@ -1,9 +1,9 @@
 using System;
-using DriftLock.Models;
+using DriftLift.Models;
 using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
-namespace DriftLock.Core.Output
+namespace DriftLift.Core.Output
 {
     public class VirtualController : IDisposable
     {

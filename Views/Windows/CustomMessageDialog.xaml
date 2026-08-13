@@ -1,4 +1,4 @@
-<Window x:Class="DriftLock.Views.Windows.CustomMessageDialog"
+<Window x:Class="DriftLift.Views.Windows.CustomMessageDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Drift-Lift Notification" Height="220" Width="440"

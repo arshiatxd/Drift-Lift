@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HidLibrary;
 using Vortice.XInput;
-using DriftLock.Models;
-namespace DriftLock.Core.Input
+using DriftLift.Models;
+namespace DriftLift.Core.Input
 {
     public class DeviceEnumerator
     {

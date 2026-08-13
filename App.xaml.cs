@@ -1,11 +1,11 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using DriftLock.Core;
-using DriftLock.Core.Input;
-using DriftLock.ViewModels;
+using DriftLift.Core;
+using DriftLift.Core.Input;
+using DriftLift.ViewModels;
 
-namespace DriftLock
+namespace DriftLift
 {
 
     public partial class App : Application

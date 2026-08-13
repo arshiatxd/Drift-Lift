@@ -1,74 +1,33 @@
-<div align="center">
+# Drift Lift
 
-<img src="https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white"/>
-<img src="https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white"/>
-<img src="https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge"/>
-<img src="https://img.shields.io/badge/Status-Active-FF1744?style=for-the-badge"/>
-
-<br/><br/>
-
-# 🎮 Drift Lift
-
-**The professional controller manager for Windows.**  
-Fix stick drift, remap buttons, calibrate inputs, and eliminate double-input conflicts — all in one sleek app.
-
-<br/>
-
-![Drift Lift Banner](Assets/banner.jpg)
-
-<br/>
-
-[Download](#-installation) · [Features](#-features) · [Contributing](#-contributing) · [License](#-license)
-
-</div>
+Drift Lift is a Windows application for gamepad controller calibration, stick drift correction, button remapping, and double-input prevention.
 
 ---
 
-## 🚀 What's New in Version 1.0.3
+## Key Features
 
-- 🎮 **Dynamic Controller Glyphs**: Testing grid badges auto-switch between PlayStation (`✕`, `◯`, `▢`, `△`) and Xbox (`A`, `B`, `X`, `Y`).
-- 🎨 **Theme-Adaptive Scrollbars**: Custom thin scrollbars styled Red (`#FF1744`) in Dark Mode and Sky Blue (`#0284C7`) in Light Mode.
-- 🖼️ **Transparent Header Logo**: Erased solid background box around header logo for seamless Light Theme blending.
-- 🎯 **Trigger Remap Fix**: Fixed L2/LT (`0x0400`) and R2/RT (`0x0800`) bitmask trigger mapping overlap.
-- 📦 **Pack URI Resource Loading**: Standardized asset path resolution to WPF `pack://` URIs for published builds.
-
----
-
-## ✨ Features
-
-| Feature | Description |
-|---|---|
-| 🧲 **Auto Stick Drift Fix** | Analyzes live analog resting noise and auto-corrects center offsets down to 0.001 precision |
-| 💡 **PS Controller LED Lights** | RGB color picker & brightness slider (0% = OFF, 100% = Brightest) for DualShock 4 & DualSense |
-| 🔋 **Live Battery Indicator** | Functional HID battery monitor reading real percentage numbers (🔴 0–45% · 🟡 45–65% · 🟢 65–100%) |
-| 🎯 **Button Remapping** | Full per-button remap support for PlayStation (DS4 / DualSense) and Xbox controllers |
-| 📊 **Live Input Visualizer** | Real-time button, trigger, and thumbstick state visualizer |
-| 🛡️ **HidHide Integration** | Automatic download, installation, and zero-touch configuration of the HidHide driver to eliminate double-input in games |
-| ⚡ **1000Hz Input Loop** | Sub-millisecond polling rate (1ms / 1000Hz) using Windows Multimedia Timer precision |
-| 🎛️ **Deadzone Tuning** | Per-stick inner/outer deadzone sliders with live preview |
-| 🔁 **Macro Sequences** | Record and replay button macro sequences with configurable timing |
-| 🌓 **Dark / Light Themes** | Red Neon dark mode and clean light mode, switchable at runtime |
-| 🗂️ **Profile Manager** | Save, load, and switch named calibration profiles |
-| 🔕 **System Tray Support** | Minimize to tray with optional close-to-tray behavior |
+- **Stick Drift Calibration**: Measures analog resting noise and calculates center offsets to eliminate drift without increasing in-game deadzones.
+- **Button Remapping**: Custom button mapping for Xbox and PlayStation (DualShock 4 and DualSense) controllers.
+- **Input Visualizer**: Real-time display of analog stick positions, trigger values, and button presses.
+- **PS Controller LED Control**: Custom RGB color wheel and brightness controls for PlayStation controllers.
+- **HidHide Integration**: Automatic detection and setup for HidHide to prevent double-input in games.
+- **Macro Recorder**: Record and play back button sequences with timing delays.
+- **Profile Management**: Save and load custom calibration configurations.
+- **Theme Support**: Dark mode (Red Neon) and Light mode options.
 
 ---
 
-## 📦 Installation
+## Installation
 
-### Option 1 — Installer (Recommended)
+### Method 1 — Setup Installer
+1. Download **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
+2. Run the installer and follow the setup prompt.
 
-1. Download the latest **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
-2. Run the installer and follow the setup wizard.
-3. Launch **Drift Lift** from the Start Menu or Desktop shortcut.
-
-> **Note:** On first launch, Drift Lift will detect if the [HidHide](https://github.com/nefarius/HidHide) driver is missing and offer to download and install it automatically.
-
-### Option 2 — Build from Source
-
-**Prerequisites:**
+### Method 2 — Build from Source
+**Requirements:**
+- Windows 10 or 11 (x64)
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases) (required for virtual controller output)
-- Windows 10 / 11 (x64)
+- [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases)
 
 ```bash
 git clone https://github.com/arshiatxd/Drift-Lift.git
@@ -78,86 +37,41 @@ dotnet publish -c Release -o ./publish
 
 ---
 
-## 🖥️ Requirements
+## System Requirements
 
-| Requirement | Minimum |
-|---|---|
-| OS | Windows 10 (1903+) / Windows 11 |
-| Architecture | x64 |
-| .NET Runtime | .NET 10.0 (bundled with installer) |
-| Drivers | ViGEmBus (required) · HidHide (optional, auto-installed) |
-| Controllers | PlayStation DualShock 4, DualSense · Xbox 360, Xbox One, Series X/S |
+- **OS**: Windows 10 (x64) or Windows 11
+- **Runtime**: .NET 10.0
+- **Drivers**: ViGEmBus (required for virtual output) · HidHide (optional, for hiding physical controller)
+- **Supported Gamepads**: DualShock 4, DualSense, Xbox 360, Xbox One, Xbox Series X/S
 
 ---
 
-## 🏗️ Architecture
+## Project Structure
 
 ```
-Drift-Lift/
+DriftLift/
 ├── Core/
-│   ├── Input/                  # HID device enumeration & 1000Hz input loop
-│   │   ├── InputLoop.cs        # High-precision polling engine
-│   │   ├── PlayStationController.cs
-│   │   ├── XboxController.cs
-│   │   └── DeviceEnumerator.cs
-│   ├── Calibration/
-│   │   └── DriftProcessor.cs   # Auto drift correction engine
-│   └── Output/
-│       └── VirtualController.cs # ViGEmBus Xbox 360 output
-├── ViewModels/
-│   └── DashboardViewModel.cs   # MVVM core logic
-├── Views/                      # WPF UI pages & windows
-├── Themes/                     # Red Neon & Light theme dictionaries
-├── Services/
-│   └── HidHideInstallerService.cs
-└── Models/                     # Data contracts & profiles
+│   ├── Input/                  # HID enumeration & 1000Hz polling loop
+│   ├── Calibration/            # Stick drift auto-correction logic
+│   └── Output/                 # ViGEmBus virtual controller handler
+├── ViewModels/                 # MVVM view models
+├── Views/                      # UI pages & custom windows
+├── Themes/                     # Dark and light XAML resource dictionaries
+├── Services/                   # Driver installer helper service
+└── Models/                     # Data contracts & calibration profiles
 ```
 
-**Tech Stack:** WPF · .NET 10 · CommunityToolkit.Mvvm · HidLibrary · ViGEmBus (Nefarius) · HidHide
+---
+
+## Troubleshooting & Crash Logs
+
+If you encounter an issue or crash, log files are stored locally at:
+`%LOCALAPPDATA%\DriftLift\crash.log`
+
+You can open a bug report on the [Issues](https://github.com/arshiatxd/Drift-Lift/issues) page.
 
 ---
 
-## 🤝 Contributing
+## License
 
-Contributions, bug reports, and feature requests are welcome!
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a PR.
-
----
-
-## 🐛 Bug Reports
-
-Found a bug? Open an [issue](https://github.com/arshiatxd/Drift-Lift/issues) with:
-- Your Windows version
-- Controller model
-- Steps to reproduce
-- Crash logs from `crash.log` (in the app installation folder)
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgements
-
-- [Nefarius / ViGEmBus](https://github.com/nefarius/ViGEmBus) — Virtual controller driver
-- [Nefarius / HidHide](https://github.com/nefarius/HidHide) — HID device hiding driver
-- [HidLibrary](https://github.com/mikeobrien/HidLibrary) — HID device communication
-- [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) — MVVM source generators
-
----
-
-<div align="center">
-
-Made with ❤️ by [arshiatxd](https://github.com/arshiatxd)
-
-</div>
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more details.

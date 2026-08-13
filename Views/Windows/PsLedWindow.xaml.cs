@@ -3,9 +3,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using DriftLock.Core.Input;
+using DriftLift.Core.Input;
 
-namespace DriftLock.Views.Windows
+namespace DriftLift.Views.Windows
 {
     public partial class PsLedWindow : Window
     {

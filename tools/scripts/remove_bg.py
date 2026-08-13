@@ -1,5 +1,5 @@
 """
-DriftLock Asset Pipeline
+DriftLift Asset Pipeline
 - Removes backgrounds from controller images using rembg
 - Converts to PNG with transparency
 - Copies final PNGs to the WPF Assets folder
@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 BRAIN_DIR = r"C:\Users\Parsian\.gemini\antigravity\brain\a6e6704a-7701-4d92-ab0b-0a99857a741f"
-ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets"
+ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLift\Assets"
 
 SOURCES = {
     "xbox_placeholder.png": os.path.join(BRAIN_DIR, "xbox_controller_flat_1785984930817.jpg"),

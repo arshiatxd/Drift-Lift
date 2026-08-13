@@ -5,7 +5,7 @@ Scale factor: 0.5x in both X and Y.
 from PIL import Image
 import os
 
-ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLock\Assets"
+ASSETS_DIR = r"C:\Users\Parsian\Desktop\prj\312321\DriftLift\Assets"
 
 # Open images to verify dimensions
 ps4_img = Image.open(os.path.join(ASSETS_DIR, "ps4_placeholder.png"))
