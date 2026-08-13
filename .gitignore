@@ -36,4 +36,4 @@ desktop.ini
 *~
 
 # Inno Setup output
-DriftLift_Setup.exe
+!DriftLift_Setup.exe
