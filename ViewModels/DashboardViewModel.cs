@@ -175,6 +175,8 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private Brush _connectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
         [ObservableProperty] private string _activeControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
         [ObservableProperty] private bool _isPlayStation = true;
+        [ObservableProperty] private bool _isXbox360;
+        [ObservableProperty] private bool _isXboxOne;
         [ObservableProperty] private string _deviceModelText = "No Controller Connected";
         [ObservableProperty] private string _deviceSerialText = "-";
         [ObservableProperty] private string _deviceFirmwareText = "Please connect a device via USB or Bluetooth.";
@@ -563,7 +565,13 @@ namespace DriftLift.ViewModels
                 ConnectionStatusText = $"CONNECTED: {_activeProfile.Physical.DeviceName.ToUpper()}";
                 ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
                 bool isPs = _activeProfile.Physical.Type == ControllerType.DualSense || _activeProfile.Physical.Type == ControllerType.DualShock4;
+                bool is360 = _activeProfile.Physical.Type == ControllerType.Xbox360;
+                bool isXbOne = _activeProfile.Physical.Type == ControllerType.Xbox;
+
                 IsPlayStation = isPs;
+                IsXbox360 = is360;
+                IsXboxOne = isXbOne;
+
                 if (_activeProfile.Physical.Type == ControllerType.DualSense)
                 {
                     DeviceModelText = "PS5 DualSense";
@@ -574,8 +582,10 @@ namespace DriftLift.ViewModels
                     DeviceModelText = "PS4 DualShock 4";
                     ControllerConnectionIcon = "🎮 PS4";
                 }
-                else if (_activeProfile.Physical.DeviceName.Contains("360"))
+                else if (is360 || _activeProfile.Physical.DeviceName.Contains("360"))
                 {
+                    IsXbox360 = true;
+                    IsXboxOne = false;
                     DeviceModelText = "Xbox 360 Controller";
                     ControllerConnectionIcon = "🎮 X360";
                 }
@@ -586,7 +596,7 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.3";
+                DeviceFirmwareText = $"{connType} • v1.0.4";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(isPs);
@@ -604,7 +614,9 @@ namespace DriftLift.ViewModels
             {
                 ConnectionStatusText = "DISCONNECTED";
                 ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
-                IsPlayStation = true;
+                IsPlayStation = false;
+                IsXbox360 = false;
+                IsXboxOne = true;
                 DeviceModelText = "No Controller Connected";
                 ControllerConnectionIcon = "❌ NONE";
                 DeviceFirmwareText = "";

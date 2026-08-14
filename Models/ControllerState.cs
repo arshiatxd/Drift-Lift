@@ -1,13 +1,16 @@
 using System;
+
 namespace DriftLift.Models
 {
     public enum ControllerType
     {
         Generic,
+        Xbox360,
         Xbox,
         DualShock4,
         DualSense
     }
+
     public class ControllerState
     {
         public double LeftThumbX { get; set; }

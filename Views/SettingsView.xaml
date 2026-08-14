@@ -82,7 +82,7 @@
                         <TextBlock Text="Application Details &amp; Engine Status" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,10"/>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="SOFTWARE VERSION" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
-                            <TextBlock Text="Drift Lift v1.0.3 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Drift Lift v1.0.4 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                         </Grid>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="FRAMEWORK" Foreground="{DynamicResource TextMuted}" FontSize="11"/>

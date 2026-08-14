@@ -4,20 +4,32 @@ using DriftLift.Models;
 
 namespace DriftLift.Core.Input
 {
-
     public class XboxController : IPhysicalController
     {
+        // ##== Fields & Identity ==##
         private readonly uint _userIndex;
         public string DeviceId => $"XINPUT_{_userIndex}";
-        public string DeviceName => $"Xbox Controller ({_userIndex + 1})";
-        public ControllerType Type => ControllerType.Xbox;
+        public string DeviceName { get; }
+        public ControllerType Type { get; }
         public bool IsConnected => XInput.GetState(_userIndex, out _);
 
-        public XboxController(uint userIndex)
+        public XboxController(uint userIndex, ControllerType type = ControllerType.Xbox, string? customName = null)
         {
             _userIndex = userIndex;
+            Type = type;
+            if (!string.IsNullOrEmpty(customName))
+            {
+                DeviceName = customName;
+            }
+            else
+            {
+                DeviceName = type == ControllerType.Xbox360 
+                    ? $"Xbox 360 Controller ({userIndex + 1})" 
+                    : $"Xbox Wireless Controller ({userIndex + 1})";
+            }
         }
 
+        // ##== Input Reading ==##
         public ControllerState GetCurrentState()
         {
             var state = new ControllerState
@@ -36,6 +48,7 @@ namespace DriftLift.Core.Input
                 state.RightThumbY = NormalizeAxis(gamepad.RightThumbY);
                 state.LeftTrigger = gamepad.LeftTrigger / 255.0;
                 state.RightTrigger = gamepad.RightTrigger / 255.0;
+
                 ushort mask = 0;
                 var btns = gamepad.Buttons;
                 if ((btns & GamepadButtons.DPadUp) != 0) mask |= 0x0001;
@@ -67,6 +80,7 @@ namespace DriftLift.Core.Input
             return val / 32767.0;
         }
 
+        // ##== Vibration & Output ==##
         public void SetVibration(double leftMotor, double rightMotor)
         {
             ushort left = (ushort)(Math.Clamp(leftMotor, 0.0, 1.0) * 65535);
@@ -78,6 +92,7 @@ namespace DriftLift.Core.Input
         {
         }
 
+        // ##== Battery Info ==##
         public (string Text, double Percentage, bool IsWireless) GetBatteryInfo()
         {
             if (XInput.GetBatteryInformation(_userIndex, BatteryDeviceType.Gamepad, out var batteryInfo))

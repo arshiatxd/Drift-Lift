@@ -10,34 +10,49 @@
 
 <br/>
 
-[Features](#key-features) · [Installation](#installation) · [System Requirements](#system-requirements) · [License](#license)
+[Features](#key-features) · [Installation](#installation) · [Supported Controllers](#supported-controllers) · [Microsoft Store](#microsoft-store-support) · [Changelog](CHANGELOG.md) · [License](#license)
 
 </div>
 
 ---
 
+## Overview
+
+**Drift Lift** is an open-source Windows application designed to diagnose, calibrate, and eliminate analog stick drift on gamepads without forcing players to expand in-game deadzones. By combining 1000Hz low-latency polling, real-time center offset subtraction, and direct driver integration (ViGEmBus & HidHide), Drift Lift provides an esports-grade controller management experience.
+
+---
+
 ## Key Features
 
-- **Stick Drift Calibration**: Measures analog resting noise and calculates center offsets to eliminate drift without increasing in-game deadzones.
-- **Button Remapping**: Custom button mapping for Xbox and PlayStation (DualShock 4 and DualSense) controllers.
-- **Input Visualizer**: Real-time display of analog stick positions, trigger values, and button presses.
-- **PS Controller LED Control**: Custom RGB color wheel and brightness controls for PlayStation controllers.
-- **HidHide Integration**: Automatic detection and setup for HidHide to prevent double-input in games.
-- **Macro Recorder**: Record and play back button sequences with timing delays.
-- **Profile Management**: Save and load custom calibration configurations.
-- **Theme Support**: Dark mode (Red Neon) and Light mode options.
+- **Anti-Drift Calibration**: Measures resting analog jitter and dynamically shifts the center point to eliminate phantom movement.
+- **Hardware-Accurate Visualizer**: Real-time visual feedback for stick deflection, trigger pulls, and button presses across Xbox 360, Xbox One/Series, DualShock 4, and DualSense controllers.
+- **Full Button Remapping**: Rebind any digital button, D-Pad direction, bumper, or trigger with customizable click actions.
+- **Dual-Controller Architecture**: Simultaneously connect multiple controllers with independent calibration profiles.
+- **HidHide Integration**: Automatically hides the physical controller to prevent double-input conflicts in modern games and emulators.
+- **PlayStation RGB Lightbar & Battery Telemetry**: Full control over LED brightness, color wheels, and real-time battery status reporting.
+- **Vibration Motor Testing**: Test rumble motors with pulse, burst, heavy, and light vibration routines.
+- **Modern AMOLED Theme**: Clean, responsive WPF interface designed for high legibility and minimal resource footprint.
+
+---
+
+## Supported Controllers
+
+- **Xbox**: Xbox 360, Xbox One, Xbox One S/X, Xbox Series X/S, Xbox Elite Series 1 & 2
+- **PlayStation**: DualShock 4 (PS4 V1 & V2), DualSense (PS5)
+- **Generic XInput / DirectInput**: Compatible third-party USB and Bluetooth gamepads
 
 ---
 
 ## Installation
 
-### Method 1 — Setup Installer
-1. Download **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
-2. Run the installer and follow the setup prompt.
+### Option 1 — Setup Installer (Recommended)
+1. Download the latest **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
+2. Run the installer and follow the guided wizard.
+3. Launch Drift Lift from the Start Menu or Desktop shortcut.
 
-### Method 2 — Build from Source
-**Requirements:**
-- Windows 10 or 11 (x64)
+### Option 2 — Build from Source
+**Prerequisites:**
+- Windows 10 (x64) or Windows 11
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases)
 
@@ -51,39 +66,34 @@ dotnet publish -c Release -o ./publish
 
 ## System Requirements
 
-- **OS**: Windows 10 (x64) or Windows 11
-- **Runtime**: .NET 10.0
-- **Drivers**: ViGEmBus (required for virtual output) · HidHide (optional, for hiding physical controller)
-- **Supported Gamepads**: DualShock 4, DualSense, Xbox 360, Xbox One, Xbox Series X/S
+| Component | Minimum Specification |
+| :--- | :--- |
+| **Operating System** | Windows 10 64-bit (Version 1809 or higher) / Windows 11 |
+| **Framework** | .NET 10.0 Desktop Runtime |
+| **Drivers** | ViGEmBus (required for virtual gamepad passthrough) |
+| **Optional Driver** | HidHide (recommended for double-input prevention) |
 
 ---
 
-## Project Structure
+## Microsoft Store Support
 
-```
-DriftLift/
-├── Core/
-│   ├── Input/                  # HID enumeration & 1000Hz polling loop
-│   ├── Calibration/            # Stick drift auto-correction logic
-│   └── Output/                 # ViGEmBus virtual controller handler
-├── ViewModels/                 # MVVM view models
-├── Views/                      # UI pages & custom windows
-├── Themes/                     # Dark and light XAML resource dictionaries
-├── Services/                   # Driver installer helper service
-└── Models/                     # Data contracts & calibration profiles
+Drift Lift is built for seamless packaging and deployment to the Microsoft Store as a high-performance Win32 application. See [`STORE_RELEASE_GUIDE.md`](STORE_RELEASE_GUIDE.md) for full Partner Center submission instructions, privacy policy compliance, and automated silent arguments:
+
+```bash
+# Silent unattended installation
+DriftLift_Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
 ```
 
 ---
 
-## Troubleshooting & Crash Logs
+## Troubleshooting
 
-If you encounter an issue or crash, log files are stored locally at:
-`%LOCALAPPDATA%\DriftLift\crash.log`
-
-You can open a bug report on the [Issues](https://github.com/arshiatxd/Drift-Lift/issues) page.
+- **Double Input in Games**: Enable HidHide from the settings tab to hide the physical controller while allowing the virtual controller through.
+- **Logs & Crash Reports**: If an issue occurs, diagnostic logs are generated at:  
+  `%LOCALAPPDATA%\DriftLift\crash.log`
 
 ---
 
 ## License
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more details.
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for full details.
