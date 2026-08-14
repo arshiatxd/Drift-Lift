@@ -68,7 +68,7 @@ Name: "desktopicon";  Description: "Create a &desktop shortcut";        GroupDes
 Name: "startupicon";  Description: "Launch Drift Lift on &Windows startup"; GroupDescription: "Startup Options:";     Flags: unchecked
 
 [Files]
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb"
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; Comment: "Open Drift Lift controller calibration tool"
