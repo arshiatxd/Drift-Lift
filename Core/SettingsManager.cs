@@ -11,6 +11,11 @@ namespace DriftLift.Core
         public bool RememberCloseChoice { get; set; } = false;
         public bool StartWithWindows { get; set; } = false;
         public bool StartMinimized { get; set; } = false;
+        public bool IsVirtualOutputEnabled { get; set; } = true;
+        public byte PsLedRed { get; set; } = 255;
+        public byte PsLedGreen { get; set; } = 0;
+        public byte PsLedBlue { get; set; } = 0;
+        public double PsLedBrightness { get; set; } = 1.0;
         public string ActiveProfileId { get; set; } = string.Empty;
     }
     public class SettingsManager

@@ -40,6 +40,11 @@ namespace DriftLift.Core.Output
             }
         }
 
+        private short _lastLx, _lastLy, _lastRx, _lastRy;
+        private byte _lastLt, _lastRt;
+        private ushort _lastButtons;
+        private long _lastSubmitTicks;
+
         // ##== State Submission ==##
         public void SendState(ControllerState state)
         {
@@ -47,30 +52,50 @@ namespace DriftLift.Core.Output
 
             try
             {
-                _target.SetAxisValue(Xbox360Axis.LeftThumbX, (short)(state.LeftThumbX * 32767));
-                _target.SetAxisValue(Xbox360Axis.LeftThumbY, (short)(state.LeftThumbY * 32767));
-                _target.SetAxisValue(Xbox360Axis.RightThumbX, (short)(state.RightThumbX * 32767));
-                _target.SetAxisValue(Xbox360Axis.RightThumbY, (short)(state.RightThumbY * 32767));
-                _target.SetSliderValue(Xbox360Slider.LeftTrigger, (byte)(Math.Clamp(state.LeftTrigger, 0.0, 1.0) * 255));
-                _target.SetSliderValue(Xbox360Slider.RightTrigger, (byte)(Math.Clamp(state.RightTrigger, 0.0, 1.0) * 255));
-
+                short lx = (short)(state.LeftThumbX * 32767);
+                short ly = (short)(state.LeftThumbY * 32767);
+                short rx = (short)(state.RightThumbX * 32767);
+                short ry = (short)(state.RightThumbY * 32767);
+                byte lt = (byte)(Math.Clamp(state.LeftTrigger, 0.0, 1.0) * 255);
+                byte rt = (byte)(Math.Clamp(state.RightTrigger, 0.0, 1.0) * 255);
                 ushort b = state.Buttons;
-                _target.SetButtonState(Xbox360Button.A, (b & 0x1000) != 0);
-                _target.SetButtonState(Xbox360Button.B, (b & 0x2000) != 0);
-                _target.SetButtonState(Xbox360Button.X, (b & 0x4000) != 0);
-                _target.SetButtonState(Xbox360Button.Y, (b & 0x8000) != 0);
-                _target.SetButtonState(Xbox360Button.Up, (b & 0x0001) != 0);
-                _target.SetButtonState(Xbox360Button.Down, (b & 0x0002) != 0);
-                _target.SetButtonState(Xbox360Button.Left, (b & 0x0004) != 0);
-                _target.SetButtonState(Xbox360Button.Right, (b & 0x0008) != 0);
-                _target.SetButtonState(Xbox360Button.LeftShoulder, (b & 0x0100) != 0);
-                _target.SetButtonState(Xbox360Button.RightShoulder, (b & 0x0200) != 0);
-                _target.SetButtonState(Xbox360Button.LeftThumb, (b & 0x0040) != 0);
-                _target.SetButtonState(Xbox360Button.RightThumb, (b & 0x0080) != 0);
-                _target.SetButtonState(Xbox360Button.Start, (b & 0x0010) != 0);
-                _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0);
 
-                _target.SubmitReport();
+                long now = Environment.TickCount64;
+                bool changed = lx != _lastLx || ly != _lastLy || rx != _lastRx || ry != _lastRy ||
+                               lt != _lastLt || rt != _lastRt || b != _lastButtons;
+
+                if (changed || (now - _lastSubmitTicks >= 16))
+                {
+                    _lastLx = lx; _lastLy = ly;
+                    _lastRx = rx; _lastRy = ry;
+                    _lastLt = lt; _lastRt = rt;
+                    _lastButtons = b;
+                    _lastSubmitTicks = now;
+
+                    _target.SetAxisValue(Xbox360Axis.LeftThumbX, lx);
+                    _target.SetAxisValue(Xbox360Axis.LeftThumbY, ly);
+                    _target.SetAxisValue(Xbox360Axis.RightThumbX, rx);
+                    _target.SetAxisValue(Xbox360Axis.RightThumbY, ry);
+                    _target.SetSliderValue(Xbox360Slider.LeftTrigger, lt);
+                    _target.SetSliderValue(Xbox360Slider.RightTrigger, rt);
+
+                    _target.SetButtonState(Xbox360Button.A, (b & 0x1000) != 0);
+                    _target.SetButtonState(Xbox360Button.B, (b & 0x2000) != 0);
+                    _target.SetButtonState(Xbox360Button.X, (b & 0x4000) != 0);
+                    _target.SetButtonState(Xbox360Button.Y, (b & 0x8000) != 0);
+                    _target.SetButtonState(Xbox360Button.Up, (b & 0x0001) != 0);
+                    _target.SetButtonState(Xbox360Button.Down, (b & 0x0002) != 0);
+                    _target.SetButtonState(Xbox360Button.Left, (b & 0x0004) != 0);
+                    _target.SetButtonState(Xbox360Button.Right, (b & 0x0008) != 0);
+                    _target.SetButtonState(Xbox360Button.LeftShoulder, (b & 0x0100) != 0);
+                    _target.SetButtonState(Xbox360Button.RightShoulder, (b & 0x0200) != 0);
+                    _target.SetButtonState(Xbox360Button.LeftThumb, (b & 0x0040) != 0);
+                    _target.SetButtonState(Xbox360Button.RightThumb, (b & 0x0080) != 0);
+                    _target.SetButtonState(Xbox360Button.Start, (b & 0x0010) != 0);
+                    _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0);
+
+                    _target.SubmitReport();
+                }
             }
             catch { }
         }

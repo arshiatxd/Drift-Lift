@@ -71,8 +71,19 @@
                             <CheckBox Content="Enable Hardware Controller Hiding" IsChecked="{Binding IsHidHideEnabled}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" FontSize="11"/>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Vertical">
-                            <Button Command="{Binding CheckHidHideCommand}" Content="REFRESH STATUS" Style="{DynamicResource DefaultButtonStyle}" Margin="0,0,0,8" Width="160" Height="34"/>
-                            <Button Command="{Binding InstallHidHideCommand}" Content="{Binding HidHideButtonText}" Style="{DynamicResource RedNeonBtn}" Width="160" Height="34"/>
+                            <Button Command="{Binding AutoShieldPlayStationControllersCommand}" Content="⚡ AUTO-SHIELD PS PADS" Style="{DynamicResource RedNeonBtn}" Margin="0,0,0,6" Width="180" Height="32"/>
+                            <Button Command="{Binding InstallHidHideCommand}" Content="OPEN CONFIGURATOR" Style="{DynamicResource DefaultButtonStyle}" Margin="0,0,0,6" Width="180" Height="30"/>
+                            <Button Command="{Binding CheckHidHideCommand}" Content="REFRESH STATUS" Style="{DynamicResource DefaultButtonStyle}" Width="180" Height="30"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
+                    <Grid>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,60,0">
+                            <TextBlock Text="Virtual Xbox Controller Emulation (ViGEmBus Output)" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,4,0"/>
+                            <TextBlock Text="Emits calibrated and remapped inputs to a virtual Xbox 360 controller. When using a PlayStation controller, ensure HidHide is enabled above so games do not receive double inputs. Disable this toggle if you want direct native controller passthrough." Foreground="{DynamicResource TextSecondary}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <CheckBox Content="Enable Virtual Xbox 360 Output (ViGEm)" IsChecked="{Binding IsVirtualOutputEnabled}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" FontSize="11"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -82,7 +93,7 @@
                         <TextBlock Text="Application Details &amp; Engine Status" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,0,10"/>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="SOFTWARE VERSION" Foreground="{DynamicResource TextMuted}" FontSize="11"/>
-                            <TextBlock Text="Drift Lift v1.0.4 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Drift Lift v1.0.5 (.NET 10.0 Win-x64)" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                         </Grid>
                         <Grid Margin="0,0,0,6">
                             <TextBlock Text="FRAMEWORK" Foreground="{DynamicResource TextMuted}" FontSize="11"/>

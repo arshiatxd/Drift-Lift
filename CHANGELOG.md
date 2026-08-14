@@ -4,6 +4,17 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ---
 
+## [1.0.5] — 2026-08-14
+
+### Highlights & Major Improvements
+- **Sub-Millisecond Low Latency Architecture**: Completely eliminated thread contention on physical HID handles by isolating the 1000Hz `InputLoop` thread from UI polling. Replaced heap allocations with fixed-size circular ring buffers for zero GC pause in the hot loop.
+- **PlayStation RGB Lightbar Memory**: Added persistent storage for custom DualShock 4 and DualSense lightbar colors and brightness. Controller lightbar color restores automatically upon reconnection. Updated default color to pure red (`#FF0000`).
+- **Color Wheel & Indicator Calibration**: Fixed the indicator thumb ring coordinate math and clamping in the LED customization popup so it tracks the mouse with zero offset and never crosses the wheel border.
+- **Full Digital Trigger & Special Button Remapping**: Added digital L2/R2 bitmasks, PlayStation Guide, and DualSense Mute button mappings.
+- **ViGEm Driver IOCTL Optimization**: Immediate dispatch upon any axis/button change with resting heartbeat throttling, cutting kernel driver overhead by ~90%.
+
+---
+
 ## [1.0.4] — 2026-08-14
 
 ### Highlights & Major Improvements

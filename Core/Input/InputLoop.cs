@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace DriftLift.Core.Input
         public DriftProcessor Drift { get; set; } = null!;
         public VirtualController Virtual { get; set; } = null!;
         public ConcurrentDictionary<ushort, ushort> Remaps { get; } = new();
+        public ControllerState LatestRawState { get; set; } = new();
+        public ControllerState LatestCorrectedState { get; set; } = new();
     }
 
     public class InputLoop
@@ -28,13 +31,28 @@ namespace DriftLift.Core.Input
         private static extern uint TimeEndPeriod(uint uMilliseconds);
 
         private readonly ConcurrentDictionary<string, ControllerProfilePair> _devices = new();
+        private volatile ControllerProfilePair[] _activePairsCache = Array.Empty<ControllerProfilePair>();
         private readonly Thread _loopThread;
         private readonly Thread _watcherThread;
         private volatile bool _running;
+        private volatile bool _isVirtualOutputEnabled = true;
         private readonly VirtualController _persistentVirtualPad = new();
 
         public event Action? DevicesChanged;
         public IReadOnlyDictionary<string, ControllerProfilePair> Devices => _devices;
+
+        public bool IsVirtualOutputEnabled
+        {
+            get => _isVirtualOutputEnabled;
+            set
+            {
+                _isVirtualOutputEnabled = value;
+                if (!value)
+                {
+                    try { _persistentVirtualPad.Dispose(); } catch { }
+                }
+            }
+        }
 
         public InputLoop()
         {
@@ -73,10 +91,10 @@ namespace DriftLift.Core.Input
         {
             while (_running)
             {
-                var pairs = _devices.Values;
-                if (pairs.Count == 0)
+                var pairs = _activePairsCache;
+                if (pairs.Length == 0)
                 {
-                    Thread.Sleep(1);
+                    Thread.Sleep(2);
                     continue;
                 }
 
@@ -84,12 +102,14 @@ namespace DriftLift.Core.Input
                 {
                     ControllerState? outState = null;
 
-                    foreach (var pair in pairs)
+                    for (int i = 0; i < pairs.Length; i++)
                     {
+                        var pair = pairs[i];
                         if (pair == null || pair.Physical == null || !pair.Physical.IsConnected)
                             continue;
 
                         var rawState = pair.Physical.GetCurrentState();
+                        pair.LatestRawState = rawState;
 
                         pair.Drift.Process(rawState, out double clx, out double cly, out double crx, out double cry);
 
@@ -106,8 +126,10 @@ namespace DriftLift.Core.Input
 
                         finalButtons |= (ushort)(rb & ~mappedSources);
 
-                        outState = new ControllerState
+                        var correctedState = new ControllerState
                         {
+                            DeviceName = rawState.DeviceName,
+                            Type = rawState.Type,
                             LeftThumbX = clx,
                             LeftThumbY = cly,
                             RightThumbX = crx,
@@ -119,10 +141,15 @@ namespace DriftLift.Core.Input
                             IsConnected = true
                         };
 
-                        break;
+                        pair.LatestCorrectedState = correctedState;
+
+                        if (outState == null)
+                        {
+                            outState = correctedState;
+                        }
                     }
 
-                    if (outState != null)
+                    if (outState != null && _isVirtualOutputEnabled)
                     {
                         _persistentVirtualPad.EnsureCreated();
                         _persistentVirtualPad.SendState(outState);
@@ -200,7 +227,10 @@ namespace DriftLift.Core.Input
                 }
 
                 if (changed)
+                {
+                    _activePairsCache = _devices.Values.ToArray();
                     DevicesChanged?.Invoke();
+                }
             }
             catch { }
         }

@@ -14,11 +14,11 @@ namespace DriftLift.Views.Windows
         private bool _isInitialized = false;
 
         public byte SelectedR { get; private set; } = 255;
-        public byte SelectedG { get; private set; } = 23;
-        public byte SelectedB { get; private set; } = 68;
+        public byte SelectedG { get; private set; } = 0;
+        public byte SelectedB { get; private set; } = 0;
         public double Brightness { get; private set; } = 1.0;
 
-        public PsLedWindow(IPhysicalController? controller, byte r = 255, byte g = 23, byte b = 68, double brightness = 1.0)
+        public PsLedWindow(IPhysicalController? controller, byte r = 255, byte g = 0, byte b = 0, double brightness = 1.0)
         {
             InitializeComponent();
             _controller = controller;

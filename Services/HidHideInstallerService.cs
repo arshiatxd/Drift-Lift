@@ -5,11 +5,14 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using Nefarius.Drivers.HidHide;
+using DriftLift.Core.Input;
+
 namespace DriftLift.Services
 {
     public class HidHideInstallerService
     {
         private const string HidHideDownloadUrl = "https://github.com/nefarius/HidHide/releases/download/v1.5.230.0/HidHide_1.5.230.0_x64.exe";
+
         public static bool IsHidHideInstalled()
         {
             try
@@ -18,20 +21,76 @@ namespace DriftLift.Services
                 if (svc.IsInstalled) return true;
             }
             catch { }
+
             try
             {
                 using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Nefarius Software Solutions e.U.\HidHide");
                 if (key != null) return true;
             }
             catch { }
+
             try
             {
                 using var serviceKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\HidHide");
                 if (serviceKey != null) return true;
             }
             catch { }
+
             return false;
         }
+
+        public static void WhitelistCurrentProcess(HidHideControlService svc)
+        {
+            try
+            {
+                if (Environment.ProcessPath != null)
+                {
+                    svc.AddApplicationPath(Environment.ProcessPath);
+                }
+
+                try
+                {
+                    string? mainModule = Process.GetCurrentProcess().MainModule?.FileName;
+                    if (!string.IsNullOrEmpty(mainModule) && !string.Equals(mainModule, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        svc.AddApplicationPath(mainModule);
+                    }
+                }
+                catch { }
+            }
+            catch { }
+        }
+
+        public static bool AutoShieldPlayStationControllers()
+        {
+            try
+            {
+                var svc = new HidHideControlService();
+                if (!svc.IsInstalled) return false;
+
+                svc.IsActive = true;
+                WhitelistCurrentProcess(svc);
+
+                var psInstanceIds = DeviceEnumerator.GetAllPlayStationDeviceInstanceIds();
+                foreach (var id in psInstanceIds)
+                {
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        try
+                        {
+                            svc.AddBlockedInstanceId(id);
+                        }
+                        catch { }
+                    }
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static async Task DownloadAndInstallAsync(IProgress<(double ProgressPercentage, string DownloadStats)> progress, Action<string> statusCallback)
         {
             string tempInstallerPath = Path.Combine(Path.GetTempPath(), "HidHide_1.5.230.0_x64.exe");
@@ -76,7 +135,7 @@ namespace DriftLift.Services
             {
                 await process.WaitForExitAsync();
             }
-            statusCallback("Configuring HidHide Driver...");
+            statusCallback("Configuring HidHide Driver & Shielding Controllers...");
             ConfigureHidHide();
             try
             {
@@ -87,6 +146,7 @@ namespace DriftLift.Services
             }
             catch { }
         }
+
         public static bool ConfigureHidHide()
         {
             try
@@ -95,10 +155,8 @@ namespace DriftLift.Services
                 if (svc.IsInstalled)
                 {
                     svc.IsActive = true;
-                    if (Environment.ProcessPath != null)
-                    {
-                        svc.AddApplicationPath(Environment.ProcessPath);
-                    }
+                    WhitelistCurrentProcess(svc);
+                    AutoShieldPlayStationControllers();
                     return true;
                 }
             }
@@ -107,3 +165,4 @@ namespace DriftLift.Services
         }
     }
 }
+

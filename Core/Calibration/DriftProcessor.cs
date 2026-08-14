@@ -1,21 +1,29 @@
 using System;
-using System.Collections.Generic;
 using DriftLift.Models;
 
 namespace DriftLift.Core.Calibration
 {
     public class DriftProcessor
     {
-        // ##== Fields & Properties ==##
+        // ##== Fields & Zero-Allocation Ring Buffers ==##
         private readonly int _windowSize;
-        private readonly Queue<(double x, double y)> _leftHistory = new();
-        private readonly Queue<(double x, double y)> _rightHistory = new();
+        private readonly (double x, double y)[] _leftRing;
+        private readonly (double x, double y)[] _rightRing;
+        private int _leftHead;
+        private int _rightHead;
+        private int _leftCount;
+        private int _rightCount;
+        private double _leftSumX, _leftSumY;
+        private double _rightSumX, _rightSumY;
         private readonly object _leftLock = new();
         private readonly object _rightLock = new();
+
         private readonly double[] _leftMaxRadiusBuckets = new double[360];
         private readonly double[] _rightMaxRadiusBuckets = new double[360];
         private int _leftBucketCount = 0;
         private int _rightBucketCount = 0;
+        private double _leftBucketSumErr = 0;
+        private double _rightBucketSumErr = 0;
 
         public CalibrationProfile Profile { get; set; } = new CalibrationProfile();
         public StickDriftMetrics LeftMetrics { get; } = new StickDriftMetrics();
@@ -28,7 +36,9 @@ namespace DriftLift.Core.Calibration
 
         public DriftProcessor(int historyWindowSamples = 120)
         {
-            _windowSize = historyWindowSamples;
+            _windowSize = Math.Max(10, historyWindowSamples);
+            _leftRing = new (double x, double y)[_windowSize];
+            _rightRing = new (double x, double y)[_windowSize];
             ResetMetrics();
         }
 
@@ -38,6 +48,9 @@ namespace DriftLift.Core.Calibration
             Array.Clear(_rightMaxRadiusBuckets, 0, 360);
             _leftBucketCount = 0;
             _rightBucketCount = 0;
+            _leftBucketSumErr = 0;
+            _rightBucketSumErr = 0;
+
             LeftMetrics.LiveCircularityError = 0;
             LeftMetrics.AverageCircularityError = 0;
             LeftMetrics.MinCircularityError = 999;
@@ -61,7 +74,10 @@ namespace DriftLift.Core.Calibration
 
             lock (_leftLock)
             {
-                _leftHistory.Clear();
+                _leftCount = 0;
+                _leftHead = 0;
+                _leftSumX = 0;
+                _leftSumY = 0;
                 leftX = currentLx;
                 leftY = currentLy;
                 leftMax = Math.Sqrt(currentLx * currentLx + currentLy * currentLy);
@@ -69,7 +85,10 @@ namespace DriftLift.Core.Calibration
 
             lock (_rightLock)
             {
-                _rightHistory.Clear();
+                _rightCount = 0;
+                _rightHead = 0;
+                _rightSumX = 0;
+                _rightSumY = 0;
                 rightX = currentRx;
                 rightY = currentRy;
                 rightMax = Math.Sqrt(currentRx * currentRx + currentRy * currentRy);
@@ -94,14 +113,14 @@ namespace DriftLift.Core.Calibration
             double rxRightX = Math.Clamp(state.RightThumbX + SimulatedRightOffsetX, -1.0, 1.0);
             double rxRightY = Math.Clamp(state.RightThumbY + SimulatedRightOffsetY, -1.0, 1.0);
 
-            UpdateHistory(_leftHistory, _leftLock, rxLeftX, rxLeftY);
-            UpdateHistory(_rightHistory, _rightLock, rxRightX, rxRightY);
+            UpdateHistoryRing(_leftRing, ref _leftHead, ref _leftCount, ref _leftSumX, ref _leftSumY, _leftLock, rxLeftX, rxLeftY);
+            UpdateHistoryRing(_rightRing, ref _rightHead, ref _rightCount, ref _rightSumX, ref _rightSumY, _rightLock, rxRightX, rxRightY);
 
             bool noInput = state.Buttons == 0 && state.LeftTrigger < 0.1 && state.RightTrigger < 0.1;
 
             if (Profile.LeftStick.AutoCalibrate && noInput)
             {
-                if (IsStationary(_leftHistory, _leftLock, Profile.LeftStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
+                if (IsStationaryRing(_leftRing, _leftCount, _leftSumX, _leftSumY, _leftLock, Profile.LeftStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
                     Profile.LeftStick.CenterOffsetX = cx;
                     Profile.LeftStick.CenterOffsetY = cy;
@@ -113,7 +132,7 @@ namespace DriftLift.Core.Calibration
 
             if (Profile.RightStick.AutoCalibrate && noInput)
             {
-                if (IsStationary(_rightHistory, _rightLock, Profile.RightStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
+                if (IsStationaryRing(_rightRing, _rightCount, _rightSumX, _rightSumY, _rightLock, Profile.RightStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
                     Profile.RightStick.CenterOffsetX = cx;
                     Profile.RightStick.CenterOffsetY = cy;
@@ -123,51 +142,61 @@ namespace DriftLift.Core.Calibration
                 }
             }
 
-            UpdateCircularityMetrics(rxLeftX, rxLeftY, _leftMaxRadiusBuckets, ref _leftBucketCount, LeftMetrics);
-            UpdateCircularityMetrics(rxRightX, rxRightY, _rightMaxRadiusBuckets, ref _rightBucketCount, RightMetrics);
+            UpdateCircularityMetrics(rxLeftX, rxLeftY, _leftMaxRadiusBuckets, ref _leftBucketCount, ref _leftBucketSumErr, LeftMetrics);
+            UpdateCircularityMetrics(rxRightX, rxRightY, _rightMaxRadiusBuckets, ref _rightBucketCount, ref _rightBucketSumErr, RightMetrics);
 
             ApplyCorrection(rxLeftX, rxLeftY, Profile.LeftStick, out outLeftX, out outLeftY);
             ApplyCorrection(rxRightX, rxRightY, Profile.RightStick, out outRightX, out outRightY);
         }
 
-        private void UpdateHistory(Queue<(double x, double y)> history, object lockObj, double x, double y)
+        private void UpdateHistoryRing((double x, double y)[] ring, ref int head, ref int count, ref double sumX, ref double sumY, object lockObj, double x, double y)
         {
             lock (lockObj)
             {
-                history.Enqueue((x, y));
-                if (history.Count > _windowSize)
-                    history.Dequeue();
+                if (count >= _windowSize)
+                {
+                    sumX -= ring[head].x;
+                    sumY -= ring[head].y;
+                }
+                else
+                {
+                    count++;
+                }
+
+                ring[head] = (x, y);
+                sumX += x;
+                sumY += y;
+
+                head = (head + 1) % _windowSize;
             }
         }
 
-        private bool IsStationary(Queue<(double x, double y)> history, object lockObj, double maxDriftThreshold, out double centerX, out double centerY, out double noiseVariance)
+        private bool IsStationaryRing((double x, double y)[] ring, int count, double sumX, double sumY, object lockObj, double maxDriftThreshold, out double centerX, out double centerY, out double noiseVariance)
         {
             centerX = 0;
             centerY = 0;
             noiseVariance = 0;
 
-            (double x, double y)[] samples;
-            lock (lockObj)
-            {
-                if (history.Count < _windowSize) return false;
-                samples = history.ToArray();
-            }
+            if (count < _windowSize) return false;
 
-            double sumX = 0, sumY = 0;
-            foreach (var p in samples)
-            {
-                sumX += p.x;
-                sumY += p.y;
-            }
-
-            double meanX = sumX / samples.Length;
-            double meanY = sumY / samples.Length;
+            double meanX;
+            double meanY;
             double varianceSum = 0;
 
-            foreach (var p in samples)
-                varianceSum += (p.x - meanX) * (p.x - meanX) + (p.y - meanY) * (p.y - meanY);
+            lock (lockObj)
+            {
+                meanX = sumX / count;
+                meanY = sumY / count;
 
-            noiseVariance = varianceSum / samples.Length;
+                for (int i = 0; i < count; i++)
+                {
+                    double dx = ring[i].x - meanX;
+                    double dy = ring[i].y - meanY;
+                    varianceSum += dx * dx + dy * dy;
+                }
+            }
+
+            noiseVariance = varianceSum / count;
 
             if (noiseVariance < 0.0001)
             {
@@ -183,7 +212,7 @@ namespace DriftLift.Core.Calibration
             return false;
         }
 
-        private void UpdateCircularityMetrics(double x, double y, double[] buckets, ref int bucketCount, StickDriftMetrics metrics)
+        private void UpdateCircularityMetrics(double x, double y, double[] buckets, ref int bucketCount, ref double bucketSumErr, StickDriftMetrics metrics)
         {
             double r = Math.Sqrt(x * x + y * y);
             if (r < 0.70) return;
@@ -192,35 +221,34 @@ namespace DriftLift.Core.Calibration
             if (angleRad < 0) angleRad += 2 * Math.PI;
             int deg = Math.Clamp((int)(angleRad * 180.0 / Math.PI), 0, 359);
 
-            if (buckets[deg] == 0) bucketCount++;
-            if (r > buckets[deg]) buckets[deg] = r;
-
             double instantError = Math.Abs(r - 1.0) * 100.0;
             metrics.LiveCircularityError = Math.Round(instantError, 1);
 
-            if (bucketCount <= 0) return;
-
-            double sumErr = 0;
-            int validBuckets = 0;
-            for (int i = 0; i < 360; i++)
+            if (r > buckets[deg])
             {
-                if (buckets[i] > 0)
+                if (buckets[deg] > 0)
                 {
-                    sumErr += Math.Abs(buckets[i] - 1.0) * 100.0;
-                    validBuckets++;
+                    bucketSumErr -= Math.Abs(buckets[deg] - 1.0) * 100.0;
                 }
-            }
+                else
+                {
+                    bucketCount++;
+                }
 
-            if (validBuckets > 0)
-            {
-                double avgErr = sumErr / validBuckets;
-                metrics.AverageCircularityError = Math.Round(avgErr, 1);
-                if (avgErr < metrics.MinCircularityError) metrics.MinCircularityError = Math.Round(avgErr, 1);
-                if (avgErr > metrics.MaxCircularityError) metrics.MaxCircularityError = Math.Round(avgErr, 1);
+                buckets[deg] = r;
+                bucketSumErr += instantError;
+
+                if (bucketCount > 0)
+                {
+                    double avgErr = bucketSumErr / bucketCount;
+                    metrics.AverageCircularityError = Math.Round(avgErr, 1);
+                    if (avgErr < metrics.MinCircularityError) metrics.MinCircularityError = Math.Round(avgErr, 1);
+                    if (avgErr > metrics.MaxCircularityError) metrics.MaxCircularityError = Math.Round(avgErr, 1);
+                }
             }
         }
 
-        private void ApplyCorrection(double inX, double inY, AxisSettings settings, out double outX, out double outY)
+        private static void ApplyCorrection(double inX, double inY, AxisSettings settings, out double outX, out double outY)
         {
             double x = inX - settings.CenterOffsetX;
             double y = inY - settings.CenterOffsetY;

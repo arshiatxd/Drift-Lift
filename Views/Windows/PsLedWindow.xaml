@@ -47,15 +47,15 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <controls:ColorWheelControl Grid.Column="0" x:Name="ColorWheel" Width="170" Height="170" Margin="0,0,16,0"/>
+                <controls:ColorWheelControl Grid.Column="0" x:Name="ColorWheel" Width="180" Height="180" Margin="0,0,16,0"/>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <Border Width="50" Height="50" CornerRadius="0" BorderThickness="2" Margin="0,0,0,12" x:Name="PreviewBorder" HorizontalAlignment="Left">
-                        <Border x:Name="PreviewFill" CornerRadius="0" Background="#FF1744"/>
+                        <Border x:Name="PreviewFill" CornerRadius="0" Background="#FF0000"/>
                     </Border>
                     <TextBlock Text="PRESET COLOR SWATCHES" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" Margin="0,0,0,8"/>
                     <WrapPanel x:Name="SwatchesPanel">
-                        <Border Width="22" Height="22" CornerRadius="0" Background="#FF1744" Margin="0,0,6,4" Cursor="Hand" MouseLeftButtonDown="Swatch_Click" Tag="#FF1744" ToolTip="Red"/>
+                        <Border Width="22" Height="22" CornerRadius="0" Background="#FF0000" Margin="0,0,6,4" Cursor="Hand" MouseLeftButtonDown="Swatch_Click" Tag="#FF0000" ToolTip="Red"/>
                         <Border Width="22" Height="22" CornerRadius="0" Background="#29B6F6" Margin="0,0,6,4" Cursor="Hand" MouseLeftButtonDown="Swatch_Click" Tag="#29B6F6" ToolTip="Electric Blue"/>
                         <Border Width="22" Height="22" CornerRadius="0" Background="#E040FB" Margin="0,0,6,4" Cursor="Hand" MouseLeftButtonDown="Swatch_Click" Tag="#E040FB" ToolTip="Neon Purple"/>
                         <Border Width="22" Height="22" CornerRadius="0" Background="#00E676" Margin="0,0,6,4" Cursor="Hand" MouseLeftButtonDown="Swatch_Click" Tag="#00E676" ToolTip="Neon Green"/>

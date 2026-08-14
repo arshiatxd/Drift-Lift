@@ -1,6 +1,6 @@
-# 🚀 Microsoft Store Release Guide — Drift Lift v1.0.4
+# 🚀 Microsoft Store Release Guide — Drift Lift v1.0.5
 
-This document contains everything needed to publish **Drift Lift v1.0.4** to the **Microsoft Store** via Windows Partner Center as a Win32 application.
+This document contains everything needed to publish **Drift Lift v1.0.5** to the **Microsoft Store** via Windows Partner Center as a Win32 application.
 
 ---
 
@@ -85,5 +85,5 @@ When filling the IARC questionnaire in Partner Center:
 
 When submitting via Win32 package URL in Partner Center:
 - Use the direct binary release URL from GitHub Releases:
-  `https://github.com/arshiatxd/Drift-Lift/releases/download/v1.0.4/DriftLift_Setup.exe`
+  `https://github.com/arshiatxd/Drift-Lift/releases/download/v1.0.5/DriftLift_Setup.exe`
 - Or upload `DriftLift_Setup.exe` directly if prompted.

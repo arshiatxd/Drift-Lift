@@ -1,5 +1,5 @@
 #define MyAppName      "Drift Lift"
-#define MyAppVersion   "1.0.4"
+#define MyAppVersion   "1.0.5"
 #define MyAppPublisher "arshiatxd"
 #define MyAppURL       "https://github.com/arshiatxd/Drift-Lift"
 #define MyAppExeName   "DriftliftApp.exe"

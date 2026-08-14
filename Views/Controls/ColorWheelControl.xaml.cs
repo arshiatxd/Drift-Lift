@@ -7,10 +7,13 @@ using System.Windows.Media.Imaging;
 
 namespace DriftLift.Views.Controls
 {
-
     public partial class ColorWheelControl : UserControl
     {
         private bool _isDragging = false;
+        private const double CenterX = 90.0;
+        private const double CenterY = 90.0;
+        private const double MaxRadius = 82.0;
+        private const double ThumbHalfSize = 8.0;
 
         public static readonly DependencyProperty SelectedColorProperty =
             DependencyProperty.Register(nameof(SelectedColor), typeof(Color), typeof(ColorWheelControl),
@@ -47,25 +50,24 @@ namespace DriftLift.Views.Controls
         private void DrawSpectrum()
         {
             SpectrumCanvas.Children.Clear();
-            double size = 180;
-            double radius = size / 2.0;
+            double radius = 90.0;
 
             DrawingVisual drawingVisual = new DrawingVisual();
             using (DrawingContext dc = drawingVisual.RenderOpen())
             {
-                for (int angle = 0; angle < 360; angle += 2)
+                Point center = new Point(radius, radius);
+                for (int angle = 0; angle < 360; angle++)
                 {
                     double rad1 = angle * Math.PI / 180.0;
-                    double rad2 = (angle + 3) * Math.PI / 180.0;
+                    double rad2 = (angle + 1.2) * Math.PI / 180.0;
 
                     Point p1 = new Point(radius + radius * Math.Cos(rad1), radius + radius * Math.Sin(rad1));
                     Point p2 = new Point(radius + radius * Math.Cos(rad2), radius + radius * Math.Sin(rad2));
-                    Point center = new Point(radius, radius);
 
                     PathGeometry geo = new PathGeometry();
                     PathFigure fig = new PathFigure { StartPoint = center, IsClosed = true };
-                    fig.Segments.Add(new LineSegment(p1, true));
-                    fig.Segments.Add(new LineSegment(p2, true));
+                    fig.Segments.Add(new LineSegment(p1, false));
+                    fig.Segments.Add(new LineSegment(p2, false));
                     geo.Figures.Add(fig);
 
                     Color c = HsvToRgb(angle, 1.0, 1.0);
@@ -95,62 +97,64 @@ namespace DriftLift.Views.Controls
 
         private void Wheel_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            _isDragging = false;
-            WheelGrid.ReleaseMouseCapture();
+            if (_isDragging)
+            {
+                _isDragging = false;
+                WheelGrid.ReleaseMouseCapture();
+            }
         }
 
         private void ProcessMouseInput(Point pos)
         {
-            double center = 90.0;
-            double dx = pos.X - center;
-            double dy = pos.Y - center;
+            double dx = pos.X - CenterX;
+            double dy = pos.Y - CenterY;
             double dist = Math.Sqrt(dx * dx + dy * dy);
-            double maxR = 78.0;
 
-            if (dist > maxR)
+            if (dist > MaxRadius && dist > 0)
             {
-                dx = (dx / dist) * maxR;
-                dy = (dy / dist) * maxR;
-                dist = maxR;
+                dx = (dx / dist) * MaxRadius;
+                dy = (dy / dist) * MaxRadius;
+                dist = MaxRadius;
             }
 
             double angleRad = Math.Atan2(dy, dx);
             double angleDeg = angleRad * 180.0 / Math.PI;
-            if (angleDeg < 0) angleDeg += 360;
+            if (angleDeg < 0) angleDeg += 360.0;
 
-            double sat = Math.Clamp(dist / maxR, 0.0, 1.0);
+            double sat = Math.Clamp(dist / MaxRadius, 0.0, 1.0);
             Color selected = HsvToRgb(angleDeg, sat, 1.0);
 
             SelectedColor = selected;
             ColorChanged?.Invoke(this, selected);
 
-            Canvas.SetLeft(ThumbRing, (center + dx) - 7);
-            Canvas.SetTop(ThumbRing, (center + dy) - 7);
+            Canvas.SetLeft(ThumbRing, (CenterX + dx) - ThumbHalfSize);
+            Canvas.SetTop(ThumbRing, (CenterY + dy) - ThumbHalfSize);
         }
 
         private void UpdateThumbPosition(Color c)
         {
             if (_isDragging) return;
-            RgbToHsv(c, out double hue, out double sat, out _);
-            double radius = sat * 78.0;
-            double rad = hue * Math.PI / 180.0;
-            double x = 90.0 + radius * Math.Cos(rad);
-            double y = 90.0 + radius * Math.Sin(rad);
 
-            Canvas.SetLeft(ThumbRing, x - 7);
-            Canvas.SetTop(ThumbRing, y - 7);
+            RgbToHsv(c, out double hue, out double sat, out _);
+            double dist = Math.Clamp(sat, 0.0, 1.0) * MaxRadius;
+            double rad = hue * Math.PI / 180.0;
+            double x = CenterX + dist * Math.Cos(rad);
+            double y = CenterY + dist * Math.Sin(rad);
+
+            Canvas.SetLeft(ThumbRing, x - ThumbHalfSize);
+            Canvas.SetTop(ThumbRing, y - ThumbHalfSize);
         }
 
         private static Color HsvToRgb(double hue, double saturation, double value)
         {
-            int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
-            double f = hue / 60 - Math.Floor(hue / 60);
+            int hi = Convert.ToInt32(Math.Floor(hue / 60.0)) % 6;
+            double f = hue / 60.0 - Math.Floor(hue / 60.0);
 
-            value = value * 255;
+            value = value * 255.0;
             byte v = (byte)Math.Clamp(value, 0, 255);
-            byte p = (byte)Math.Clamp(value * (1 - saturation), 0, 255);
-            byte q = (byte)Math.Clamp(value * (1 - f * saturation), 0, 255);
-            byte t = (byte)Math.Clamp(value * (1 - (1 - f) * saturation), 0, 255);
+            byte p = (byte)Math.Clamp(value * (1.0 - saturation), 0, 255);
+            byte q = (byte)Math.Clamp(value * (1.0 - f * saturation), 0, 255);
+            byte t = (byte)Math.Clamp(value * (1.0 - (1.0 - f) * saturation), 0, 255);
 
             return hi switch
             {
@@ -174,12 +178,12 @@ namespace DriftLift.Views.Controls
             double delta = max - min;
 
             hue = 0;
-            if (delta > 0)
+            if (delta > 0.00001)
             {
-                if (max == r) hue = (g - b) / delta + (g < b ? 6 : 0);
-                else if (max == g) hue = (b - r) / delta + 2;
-                else hue = (r - g) / delta + 4;
-                hue *= 60;
+                if (Math.Abs(max - r) < 0.00001) hue = (g - b) / delta + (g < b ? 6.0 : 0.0);
+                else if (Math.Abs(max - g) < 0.00001) hue = (b - r) / delta + 2.0;
+                else hue = (r - g) / delta + 4.0;
+                hue *= 60.0;
             }
 
             saturation = max == 0 ? 0 : delta / max;

@@ -8,17 +8,27 @@ namespace DriftLift.Core.Input
     {
         // ##== Fields & Identity ==##
         private readonly HidDevice _device;
+        private readonly bool _isBluetooth;
         private int _cachedBatteryLevel = -1;
+        private long _lastBatteryCheckTicks;
 
+        public HidDevice RawDevice => _device;
         public string DeviceId => _device.DevicePath;
+        public string InstanceId => DeviceEnumerator.ExtractInstanceId(_device.DevicePath);
         public string DeviceName { get; }
         public ControllerType Type { get; }
         public bool IsConnected => _device.IsConnected;
+        public int VendorId => _device.Attributes.VendorId;
+        public int ProductId => _device.Attributes.ProductId;
 
         public PlayStationController(HidDevice device)
         {
             _device = device;
             _device.OpenDevice();
+
+            string path = device.DevicePath?.ToLowerInvariant() ?? string.Empty;
+            _isBluetooth = path.Contains("bluetooth") || path.Contains("{00001124") || (!path.Contains("&mi_") && !path.Contains("usb"));
+
             string desc = device.Description ?? string.Empty;
 
             if (desc.Contains("DualSense", StringComparison.OrdinalIgnoreCase) || device.Attributes.ProductId == 0x0CE6)
@@ -53,11 +63,10 @@ namespace DriftLift.Core.Input
                 return state;
 
             byte[] data = report.Data;
-            if (data.Length < 8)
+            if (data == null || data.Length < 8)
                 return state;
 
-            bool isBluetooth = IsBluetooth();
-            int offset = isBluetooth ? 2 : (data[0] == 0x01 ? 1 : 0);
+            int offset = _isBluetooth ? 2 : (data[0] == 0x01 ? 1 : 0);
 
             if (data.Length < offset + 9)
                 return state;
@@ -85,16 +94,21 @@ namespace DriftLift.Core.Input
                 case 7: mask |= 0x0001 | 0x0004; break;
             }
 
-            if ((btn1 & 0x20) != 0) mask |= 0x1000;
-            if ((btn1 & 0x40) != 0) mask |= 0x2000;
-            if ((btn1 & 0x10) != 0) mask |= 0x4000;
-            if ((btn1 & 0x80) != 0) mask |= 0x8000;
-            if ((btn2 & 0x01) != 0) mask |= 0x0100;
-            if ((btn2 & 0x02) != 0) mask |= 0x0200;
-            if ((btn2 & 0x10) != 0) mask |= 0x0020;
-            if ((btn2 & 0x20) != 0) mask |= 0x0010;
-            if ((btn2 & 0x40) != 0) mask |= 0x0040;
-            if ((btn2 & 0x80) != 0) mask |= 0x0080;
+            // Face Buttons
+            if ((btn1 & 0x20) != 0) mask |= 0x1000; // Cross / A
+            if ((btn1 & 0x40) != 0) mask |= 0x2000; // Circle / B
+            if ((btn1 & 0x10) != 0) mask |= 0x4000; // Square / X
+            if ((btn1 & 0x80) != 0) mask |= 0x8000; // Triangle / Y
+
+            // Shoulders & Triggers & Sticks
+            if ((btn2 & 0x01) != 0) mask |= 0x0100; // L1 / LB
+            if ((btn2 & 0x02) != 0) mask |= 0x0200; // R1 / RB
+            if ((btn2 & 0x04) != 0) mask |= 0x0400; // L2 / LT Digital
+            if ((btn2 & 0x08) != 0) mask |= 0x0800; // R2 / RT Digital
+            if ((btn2 & 0x10) != 0) mask |= 0x0020; // Share / Back
+            if ((btn2 & 0x20) != 0) mask |= 0x0010; // Options / Start
+            if ((btn2 & 0x40) != 0) mask |= 0x0040; // L3
+            if ((btn2 & 0x80) != 0) mask |= 0x0080; // R3
 
             state.Buttons = mask;
 
@@ -110,15 +124,14 @@ namespace DriftLift.Core.Input
                 state.Touchpad = (specialBytes & 0x02) != 0;
             }
 
-            ParseBatteryReport(data, offset);
+            long now = Environment.TickCount64;
+            if (now - _lastBatteryCheckTicks > 500)
+            {
+                _lastBatteryCheckTicks = now;
+                ParseBatteryReport(data, offset);
+            }
 
             return state;
-        }
-
-        private bool IsBluetooth()
-        {
-            string path = _device.DevicePath.ToLowerInvariant();
-            return path.Contains("bluetooth") || path.Contains("{00001124") || (!path.Contains("&mi_") && !path.Contains("usb"));
         }
 
         private void ParseBatteryReport(byte[] data, int offset)
@@ -264,9 +277,7 @@ namespace DriftLift.Core.Input
         {
             if (!_device.IsConnected) return ("Disconnected", 0.0, false);
 
-            bool wireless = IsBluetooth();
-
-            if (!wireless)
+            if (!_isBluetooth)
                 return ("USB Power (Cable Connected)", 1.0, false);
 
             int level = _cachedBatteryLevel > 0 ? Math.Clamp(_cachedBatteryLevel, 0, 100) : 50;

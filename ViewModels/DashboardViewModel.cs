@@ -12,6 +12,7 @@ using DriftLift.Core;
 using DriftLift.Core.Icons;
 using DriftLift.Core.Input;
 using DriftLift.Models;
+using DriftLift.Services;
 using DriftLift.Views;
 using Nefarius.Drivers.HidHide;
 namespace DriftLift.ViewModels
@@ -68,11 +69,31 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private double _leftStickValY = 50;
         [ObservableProperty] private double _rightStickValX = 50;
         [ObservableProperty] private double _rightStickValY = 50;
+        [ObservableProperty] private bool _isVirtualOutputEnabled = true;
+
+        partial void OnIsVirtualOutputEnabledChanged(bool value)
+        {
+            _inputLoop.IsVirtualOutputEnabled = value;
+            if (_settingsManager != null)
+            {
+                _settingsManager.Settings.IsVirtualOutputEnabled = value;
+                _settingsManager.Save();
+            }
+        }
+
         partial void OnIsHidHideEnabledChanged(bool value)
         {
             if (_hidHideService != null)
             {
-                try { _hidHideService.IsActive = value; } catch { }
+                try
+                {
+                    _hidHideService.IsActive = value;
+                    if (value)
+                    {
+                        SyncHidHideBlockedDevices();
+                    }
+                }
+                catch { }
             }
         }
         [ObservableProperty] private bool _isDarkTheme = true;
@@ -221,6 +242,12 @@ namespace DriftLift.ViewModels
             {
                 IsDarkTheme = _settingsManager.Settings.IsDarkTheme;
                 ApplyTheme(IsDarkTheme);
+                IsVirtualOutputEnabled = _settingsManager.Settings.IsVirtualOutputEnabled;
+                _inputLoop.IsVirtualOutputEnabled = IsVirtualOutputEnabled;
+                PsLedRed = _settingsManager.Settings.PsLedRed;
+                PsLedGreen = _settingsManager.Settings.PsLedGreen;
+                PsLedBlue = _settingsManager.Settings.PsLedBlue;
+                PsLedBrightness = _settingsManager.Settings.PsLedBrightness;
             }
             else
             {
@@ -235,11 +262,10 @@ namespace DriftLift.ViewModels
                 if (_hidHideService.IsInstalled)
                 {
                     _hidHideService.IsActive = true;
+                    try { _hidHideService.IsAppListInverted = false; } catch { }
                     IsHidHideEnabled = true;
-                    if (Environment.ProcessPath != null)
-                    {
-                        _hidHideService.AddApplicationPath(Environment.ProcessPath);
-                    }
+                    HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
+                    HidHideInstallerService.AutoShieldPlayStationControllers();
                     SyncHidHideBlockedDevices();
                 }
             }
@@ -265,15 +291,7 @@ namespace DriftLift.ViewModels
         }
         private static string ExtractInstanceId(string path)
         {
-            if (string.IsNullOrEmpty(path)) return "";
-            string p = path;
-            if (p.StartsWith(@"\\?\") || p.StartsWith(@"\\.\")) p = p[4..];
-            int lastHashIndex = p.LastIndexOf('#');
-            if (lastHashIndex > 0 && p.IndexOf('{', lastHashIndex) > 0)
-            {
-                p = p[..lastHashIndex];
-            }
-            return p.Replace('#', '\\').ToUpperInvariant();
+            return DeviceEnumerator.ExtractInstanceId(path);
         }
         public void SyncHidHideBlockedDevices()
         {
@@ -282,10 +300,10 @@ namespace DriftLift.ViewModels
             {
                 _hidHideService.IsActive = IsHidHideEnabled;
                 if (!IsHidHideEnabled) return;
-                if (Environment.ProcessPath != null)
-                {
-                    _hidHideService.AddApplicationPath(Environment.ProcessPath);
-                }
+                
+                HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
+
+                // Shield all PlayStation devices currently active in InputLoop
                 foreach (var pair in _inputLoop.Devices.Values)
                 {
                     if (pair.Physical != null && !string.IsNullOrEmpty(pair.Physical.DeviceId))
@@ -297,6 +315,20 @@ namespace DriftLift.ViewModels
                             {
                                 _hidHideService.AddBlockedInstanceId(instanceId);
                             }
+                        }
+                        catch { }
+                    }
+                }
+
+                // Also scan and shield any other PlayStation HID interfaces
+                var psIds = DeviceEnumerator.GetAllPlayStationDeviceInstanceIds();
+                foreach (var id in psIds)
+                {
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        try
+                        {
+                            _hidHideService.AddBlockedInstanceId(id);
                         }
                         catch { }
                     }
@@ -438,7 +470,11 @@ namespace DriftLift.ViewModels
         {
             if (Application.Current != null)
             {
-                Application.Current.Dispatcher.Invoke(UpdateActiveProfile);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    UpdateActiveProfile();
+                    SyncHidHideBlockedDevices();
+                });
             }
         }
         [ObservableProperty] private string _p1Label = "P1";
@@ -456,8 +492,8 @@ namespace DriftLift.ViewModels
             };
         }
         [ObservableProperty] private byte _psLedRed = 255;
-        [ObservableProperty] private byte _psLedGreen = 23;
-        [ObservableProperty] private byte _psLedBlue = 68;
+        [ObservableProperty] private byte _psLedGreen = 0;
+        [ObservableProperty] private byte _psLedBlue = 0;
         [ObservableProperty] private double _psLedBrightness = 1.0;
 
         [RelayCommand]
@@ -481,6 +517,15 @@ namespace DriftLift.ViewModels
                             PsLedGreen = win.SelectedG;
                             PsLedBlue = win.SelectedB;
                             PsLedBrightness = win.Brightness;
+
+                            if (_settingsManager != null)
+                            {
+                                _settingsManager.Settings.PsLedRed = PsLedRed;
+                                _settingsManager.Settings.PsLedGreen = PsLedGreen;
+                                _settingsManager.Settings.PsLedBlue = PsLedBlue;
+                                _settingsManager.Settings.PsLedBrightness = PsLedBrightness;
+                                _settingsManager.Save();
+                            }
 
                             byte finalR = (byte)(PsLedRed * PsLedBrightness);
                             byte finalG = (byte)(PsLedGreen * PsLedBrightness);
@@ -596,7 +641,7 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.4";
+                DeviceFirmwareText = $"{connType} • v1.0.5";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(isPs);
@@ -649,16 +694,21 @@ namespace DriftLift.ViewModels
                 var profile = _activeProfile;
                 if (profile != null && profile.Physical != null && profile.Physical.IsConnected)
                 {
-                    var state = profile.Physical.GetCurrentState();
-                    TriggerL = state.LeftTrigger;
-                    TriggerR = state.RightTrigger;
-                    RawLeftX = state.LeftThumbX;
-                    RawLeftY = state.LeftThumbY;
-                    RawRightX = state.RightThumbX;
-                    RawRightY = state.RightThumbY;
-                    profile.Drift.Process(state, out double clx, out double cly, out double crx, out double cry);
-                    CorrectedLeftX = clx; CorrectedLeftY = cly;
-                    CorrectedRightX = crx; CorrectedRightY = cry;
+                    var rawState = profile.LatestRawState ?? profile.Physical.GetCurrentState();
+                    var corrState = profile.LatestCorrectedState ?? rawState;
+
+                    TriggerL = rawState.LeftTrigger;
+                    TriggerR = rawState.RightTrigger;
+                    RawLeftX = rawState.LeftThumbX;
+                    RawLeftY = rawState.LeftThumbY;
+                    RawRightX = rawState.RightThumbX;
+                    RawRightY = rawState.RightThumbY;
+
+                    CorrectedLeftX = corrState.LeftThumbX;
+                    CorrectedLeftY = corrState.LeftThumbY;
+                    CorrectedRightX = corrState.RightThumbX;
+                    CorrectedRightY = corrState.RightThumbY;
+
                     LeftStickTextX = $"X: {(int)(CorrectedLeftX * 100)}%";
                     LeftStickTextY = $"Y: {(int)(CorrectedLeftY * 100)}%";
                     RightStickTextX = $"X: {(int)(CorrectedRightX * 100)}%";
@@ -667,7 +717,7 @@ namespace DriftLift.ViewModels
                     LeftStickValY = Math.Clamp((CorrectedLeftY + 1.0) / 2.0 * 100.0, 0, 100);
                     RightStickValX = Math.Clamp((CorrectedRightX + 1.0) / 2.0 * 100.0, 0, 100);
                     RightStickValY = Math.Clamp((CorrectedRightY + 1.0) / 2.0 * 100.0, 0, 100);
-                    ushort rawButtons = state.Buttons;
+                    ushort rawButtons = rawState.Buttons;
                     if (IsWaitingForInput)
                     {
                         ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
@@ -746,7 +796,7 @@ namespace DriftLift.ViewModels
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
-                    IsTouchpadPressed = state.Touchpad;
+                    IsTouchpadPressed = rawState.Touchpad;
                     RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
                     RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
                 }
@@ -1238,11 +1288,11 @@ namespace DriftLift.ViewModels
         {
             string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
-            if (File.Exists(clientPath))
+            if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
-                HidHideStatusText = "INSTALLED";
+                HidHideStatusText = "INSTALLED & ACTIVE";
                 HidHideStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
-                HidHideButtonText = "Open Configurator";
+                HidHideButtonText = "Shield PS Controllers";
             }
             else
             {
@@ -1252,25 +1302,58 @@ namespace DriftLift.ViewModels
             }
         }
         [RelayCommand]
+        public void AutoShieldPlayStationControllers()
+        {
+            if (HidHideInstallerService.IsHidHideInstalled())
+            {
+                bool success = HidHideInstallerService.AutoShieldPlayStationControllers();
+                SyncHidHideBlockedDevices();
+
+                if (success)
+                {
+                    DriftLift.Views.Windows.CustomMessageDialog.Show(
+                        "Double-Input Shield is now ACTIVE!\n\nDrift Lift has whitelisted itself and hidden your physical PlayStation controller from games and Steam.\n\nYour inputs will now cleanly route through the virtual Xbox 360 controller without double presses.",
+                        "Double Input Shield Active", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    DriftLift.Views.Windows.CustomMessageDialog.Show(
+                        "HidHide driver is installed but could not be configured automatically.\n\nPlease open the HidHide Configurator as Administrator to verify permissions.",
+                        "Shield Notification", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                InstallHidHide();
+            }
+        }
+        [RelayCommand]
         private void InstallHidHide()
         {
             string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
-            if (File.Exists(clientPath))
+            if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
+                // Auto-configure first
+                HidHideInstallerService.AutoShieldPlayStationControllers();
+                SyncHidHideBlockedDevices();
+
                 DriftLift.Views.Windows.CustomMessageDialog.Show(
-                    "HidHide Configurator will now open.\n\nTo fix the 'double input' issue in games (like Steam):\n1. Go to the 'Applications' tab and add Drift Lift to the list (so it can see your controller).\n2. Go to the 'Devices' tab, check the box next to your PlayStation controller.\n3. Make sure 'Enable device hiding' is checked at the bottom.",
-                    "Fix Double Input", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    "PlayStation Controller Double-Input Shield is configured!\n\nOpening HidHide Configurator so you can verify blocked devices and application whitelist.",
+                    "HidHide Double Input Shield", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 try
                 {
-                    System.Diagnostics.Process.Start(clientPath);
+                    if (File.Exists(clientPath))
+                    {
+                        System.Diagnostics.Process.Start(clientPath);
+                    }
                 }
                 catch { }
             }
             else
             {
                 var result = DriftLift.Views.Windows.CustomMessageDialog.Show(
-                    "HidHide is required to hide your physical controller from games and prevent the 'Double Input' bug.\n\nWould you like to download it now?",
+                    "HidHide driver is required to hide your physical PlayStation controller from games and prevent the 'Double Input' bug in Steam and PC games.\n\nWould you like to open the official download page now?",
                     "HidHide Required", true);
                 if (result)
                 {
