@@ -173,46 +173,46 @@
                 </Image>
 
                 <!-- D-Pad (Up, Down, Left, Right) -->
-                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Up.png" Width="30.0" Height="27.0" Canvas.Left="137.4" Canvas.Top="150.0" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Up.png" Width="28.0" Height="26.0" Canvas.Left="138.0" Canvas.Top="154.0" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadUp" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Down.png" Width="28.8" Height="28.8" Canvas.Left="138.0" Canvas.Top="175.0" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Down.png" Width="28.0" Height="26.0" Canvas.Left="138.0" Canvas.Top="180.0" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadDown" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Left.png" Width="34.0" Height="27.0" Canvas.Left="123.0" Canvas.Top="162.5" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Left.png" Width="26.0" Height="26.0" Canvas.Left="125.0" Canvas.Top="167.0" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadLeft" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Right.png" Width="33.5" Height="26.7" Canvas.Left="148.0" Canvas.Top="162.8" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_D-PAD_Right.png" Width="26.0" Height="26.0" Canvas.Left="151.0" Canvas.Top="167.0" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadRight" />
                     </Image.InputBindings>
                 </Image>
 
                 <!-- Bumpers (LB, RB) -->
-                <Image Source="/Assets/Xbox/XBSeries_LeftBumper_Active.png" Width="136.0" Height="47.0" Canvas.Left="32.6" Canvas.Top="38.0" Tag="{Binding IsLbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_LeftBumper_Active.png" Width="124.0" Height="40.0" Canvas.Left="40.0" Canvas.Top="25.0" Tag="{Binding IsLbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="LB" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/Xbox/XBSeries_RightBumper_Active.png" Width="136.0" Height="47.0" Canvas.Left="251.0" Canvas.Top="38.0" Tag="{Binding IsRbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_RightBumper_Active.png" Width="124.0" Height="40.0" Canvas.Left="254.0" Canvas.Top="25.0" Tag="{Binding IsRbPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="RB" />
                     </Image.InputBindings>
                 </Image>
 
                 <!-- Triggers (LT, RT) -->
-                <Image Source="/Assets/Xbox/XBSeries_LeftTrigger_Active.png" Width="67.0" Height="52.0" Canvas.Left="58.0" Canvas.Top="0.0" Tag="{Binding IsL2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_LeftTrigger_Active.png" Width="58.0" Height="36.0" Canvas.Left="63.0" Canvas.Top="0.0" Tag="{Binding IsL2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="LT" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/Xbox/XBSeries_RightTrigger_Active.png" Width="66.0" Height="46.0" Canvas.Left="295.0" Canvas.Top="0.0" Tag="{Binding IsR2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/Xbox/XBSeries_RightTrigger_Active.png" Width="58.0" Height="36.0" Canvas.Left="297.0" Canvas.Top="0.0" Tag="{Binding IsR2Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="RT" />
                     </Image.InputBindings>
@@ -241,7 +241,7 @@
                 </Image>
                 
                 <!-- Thumbsticks (Left & Right) -->
-                <Grid Canvas.Left="77.0" Canvas.Top="105.6" Width="48.2" Height="48.0">
+                <Grid Canvas.Left="73.5" Canvas.Top="91.0" Width="48.2" Height="48.0">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding LeftGraphicTranslateX}" Y="{Binding LeftGraphicTranslateY}"/>
                     </Grid.RenderTransform>
@@ -252,7 +252,7 @@
                         </Image.InputBindings>
                     </Image>
                 </Grid>
-                <Grid Canvas.Left="243.4" Canvas.Top="176.1" Width="49.1" Height="46.3">
+                <Grid Canvas.Left="241.5" Canvas.Top="151.9" Width="49.1" Height="46.3">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding RightGraphicTranslateX}" Y="{Binding RightGraphicTranslateY}"/>
                     </Grid.RenderTransform>
