@@ -304,37 +304,8 @@ namespace DriftLift.ViewModels
                 _hidHideService.IsActive = IsHidHideEnabled;
                 try { _hidHideService.IsAppListInverted = false; } catch { }
                 if (!IsHidHideEnabled) return;
-                
-                HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
 
-                foreach (var pair in _inputLoop.Devices.Values)
-                {
-                    if (pair.Physical != null && !string.IsNullOrEmpty(pair.Physical.DeviceId))
-                    {
-                        try
-                        {
-                            string instanceId = ExtractInstanceId(pair.Physical.DeviceId);
-                            if (!string.IsNullOrEmpty(instanceId))
-                            {
-                                _hidHideService.AddBlockedInstanceId(instanceId);
-                            }
-                        }
-                        catch { }
-                    }
-                }
-
-                var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
-                foreach (var id in controllerIds)
-                {
-                    if (!string.IsNullOrEmpty(id))
-                    {
-                        try
-                        {
-                            _hidHideService.AddBlockedInstanceId(id);
-                        }
-                        catch { }
-                    }
-                }
+                HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
             }
             catch { }
         }

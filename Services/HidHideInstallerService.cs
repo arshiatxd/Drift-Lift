@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using Nefarius.Drivers.HidHide;
+using Nefarius.Utilities.DeviceManagement.PnP;
 using DriftLift.Core.Input;
 
 namespace DriftLift.Services
@@ -43,17 +44,37 @@ namespace DriftLift.Services
         {
             try
             {
-                if (Environment.ProcessPath != null)
+                if (!string.IsNullOrEmpty(Environment.ProcessPath))
                 {
-                    svc.AddApplicationPath(Environment.ProcessPath);
+                    try { svc.AddApplicationPath(Environment.ProcessPath); } catch { }
                 }
 
                 try
                 {
                     string? mainModule = Process.GetCurrentProcess().MainModule?.FileName;
-                    if (!string.IsNullOrEmpty(mainModule) && !string.Equals(mainModule, Environment.ProcessPath, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(mainModule))
                     {
                         svc.AddApplicationPath(mainModule);
+                    }
+                }
+                catch { }
+
+                try
+                {
+                    string baseDirApp = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DriftliftApp.exe");
+                    if (File.Exists(baseDirApp))
+                    {
+                        svc.AddApplicationPath(baseDirApp);
+                    }
+                }
+                catch { }
+
+                try
+                {
+                    string pfApp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "DriftLift", "DriftliftApp.exe");
+                    if (File.Exists(pfApp))
+                    {
+                        svc.AddApplicationPath(pfApp);
                     }
                 }
                 catch { }
@@ -72,17 +93,59 @@ namespace DriftLift.Services
                 try { svc.IsAppListInverted = false; } catch { }
                 WhitelistCurrentProcess(svc);
 
+                // Clean up any legacy or invalid entries
+                try
+                {
+                    foreach (var id in svc.BlockedInstanceIds)
+                    {
+                        if (string.IsNullOrWhiteSpace(id) || id.StartsWith("XINPUT_", StringComparison.OrdinalIgnoreCase))
+                        {
+                            try { svc.RemoveBlockedInstanceId(id); } catch { }
+                        }
+                    }
+                }
+                catch { }
+
                 var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
                 foreach (var id in controllerIds)
                 {
-                    if (!string.IsNullOrWhiteSpace(id))
+                    if (string.IsNullOrWhiteSpace(id) || id.StartsWith("XINPUT_", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    try
                     {
-                        try
-                        {
-                            svc.AddBlockedInstanceId(id);
-                        }
-                        catch { }
+                        svc.AddBlockedInstanceId(id);
                     }
+                    catch { }
+
+                    try
+                    {
+                        PnPDevice? pnp = null;
+                        try { pnp = PnPDevice.GetDeviceByInstanceId(id); } catch { }
+                        if (pnp is not null)
+                        {
+                            try
+                            {
+                                var parent = pnp.Parent;
+                                if (parent != null && !string.IsNullOrEmpty(parent.InstanceId)
+                                    && !parent.InstanceId.StartsWith("USB\\ROOT_HUB", StringComparison.OrdinalIgnoreCase)
+                                    && !parent.InstanceId.StartsWith("PCI\\", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    try { svc.AddBlockedInstanceId(parent.InstanceId); } catch { }
+                                }
+                            }
+                            catch { }
+
+                            try
+                            {
+#pragma warning disable CS0618
+                                pnp.Restart();
+#pragma warning restore CS0618
+                            }
+                            catch { }
+                        }
+                    }
+                    catch { }
                 }
                 return true;
             }
