@@ -20,10 +20,10 @@ namespace DriftLift.ViewModels
     public partial class DashboardViewModel : ObservableObject
     {
         // ##== Service & State Fields ==##
-        private readonly InputLoop _inputLoop;
-        private readonly SettingsManager _settingsManager;
-        private readonly DispatcherTimer _uiTimer;
-        private readonly DispatcherTimer _vibrationTimer;
+        private readonly InputLoop _inputLoop = null!;
+        private readonly SettingsManager _settingsManager = null!;
+        private readonly DispatcherTimer _uiTimer = null!;
+        private readonly DispatcherTimer _vibrationTimer = null!;
         private ControllerProfilePair? _activeProfile;
         private HidHideControlService? _hidHideService;
         // ##== Observable Properties ==##
@@ -306,7 +306,6 @@ namespace DriftLift.ViewModels
                 
                 HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
 
-                // Shield all PlayStation devices currently active in InputLoop
                 foreach (var pair in _inputLoop.Devices.Values)
                 {
                     if (pair.Physical != null && !string.IsNullOrEmpty(pair.Physical.DeviceId))
@@ -323,7 +322,6 @@ namespace DriftLift.ViewModels
                     }
                 }
 
-                // Also scan and shield any other PlayStation HID interfaces
                 var psIds = DeviceEnumerator.GetAllPlayStationDeviceInstanceIds();
                 foreach (var id in psIds)
                 {
@@ -1342,7 +1340,6 @@ namespace DriftLift.ViewModels
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
             if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
-                // Auto-configure first
                 HidHideInstallerService.AutoShieldPlayStationControllers();
                 SyncHidHideBlockedDevices();
 

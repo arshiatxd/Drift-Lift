@@ -20,7 +20,6 @@ namespace DriftLift.Core.Input
             string path = (device.DevicePath ?? string.Empty).ToLowerInvariant();
             string desc = (device.Description ?? string.Empty).ToLowerInvariant();
 
-            // Filter out virtual/emulated buses (ViGEmBus, Nefarius, virtual systems)
             if (path.Contains("root#system") || path.Contains(@"root\system") || path.Contains("vigem") 
                 || path.Contains("virtual") || path.Contains("nsoftware") || path.Contains("spaceport")
                 || path.Contains("amdxe") || path.Contains("rainway"))
@@ -43,7 +42,6 @@ namespace DriftLift.Core.Input
             if (p.StartsWith(@"\\?\") || p.StartsWith(@"\\.\")) p = p[4..];
             else if (p.StartsWith(@"\??\")) p = p[4..];
 
-            // Truncate the trailing device interface GUID #{...}
             int lastHashIndex = p.LastIndexOf('#');
             if (lastHashIndex > 0 && p.IndexOf('{', lastHashIndex) > 0)
             {
@@ -140,7 +138,6 @@ namespace DriftLift.Core.Input
                 {
                     if (XInput.GetState(i, out _))
                     {
-                        // If no physical Xbox HID hardware exists, any XInput slot is a virtual pad (e.g. ViGEm)
                         if (realXboxHidCount == 0)
                         {
                             continue;
@@ -150,7 +147,6 @@ namespace DriftLift.Core.Input
                             continue;
                         }
 
-                        // Determine if connected device is Xbox 360
                         bool is360 = false;
                         string devName = $"Xbox Controller ({i + 1})";
 

@@ -7,3 +7,4 @@ using System.Windows;
 )]
 [assembly: AssemblyVersion("1.0.5.0")]
 [assembly: AssemblyFileVersion("1.0.5.0")]
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("windows7.0")]
