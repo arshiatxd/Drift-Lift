@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:DriftLift"
         xmlns:views="clr-namespace:DriftLift.Views"
         mc:Ignorable="d"
-        Title="Drift Lift v1.0.6" Height="780" Width="1260"
+        Title="Drift Lift v1.0.7" Height="780" Width="1260"
         WindowStartupLocation="CenterScreen" WindowStyle="None"
         AllowsTransparency="True" Background="Transparent">
     <Window.Resources>
@@ -112,55 +112,55 @@
                         <Image Source="{Binding AppLogoSource}" Width="28" Height="28" Margin="0,0,10,0"/>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="DRIFT LIFT" FontWeight="Black" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
-                            <TextBlock Text="v1.0.6  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                            <TextBlock Text="v1.0.7  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
                         </StackPanel>
                     </StackPanel>
                     <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                             Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="12,5">
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="7" Height="7" Fill="{Binding ConnectionStatusColor}" Margin="0,0,8,0" VerticalAlignment="Center">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="#FF1744" BlurRadius="6" ShadowDepth="0"/>
-                                </Ellipse.Effect>
-                            </Ellipse>
-                            <TextBlock Text="{Binding ConnectionStatusText}"
-                                       Foreground="{Binding ConnectionStatusColor}"
-                                       FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock Text="PROFILE: " Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding AvailableProfiles}"
+                                      SelectedItem="{Binding CurrentProfile, Mode=TwoWay}"
+                                      Style="{DynamicResource ProfileComboBox}"
+                                      Width="160" Margin="6,0,0,0"/>
+                            <Button Command="{Binding NewProfileCommand}" Content="+" Style="{DynamicResource HeaderIconBtn}" ToolTip="New Profile" Margin="4,0,0,0"/>
+                            <Button Command="{Binding SaveProfileCommand}" Content="💾" Style="{DynamicResource HeaderIconBtn}" ToolTip="Save Profile" Margin="2,0,0,0"/>
+                            <Button Command="{Binding ImportProfileCommand}" Content="📥" Style="{DynamicResource HeaderIconBtn}" ToolTip="Import Profile" Margin="2,0,0,0"/>
+                            <Button Command="{Binding ExportProfileCommand}" Content="📤" Style="{DynamicResource HeaderIconBtn}" ToolTip="Export Profile" Margin="2,0,0,0"/>
                         </StackPanel>
                     </Border>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <Button Content="⚡ AUTO FIX DRIFT"
-                                Command="{Binding AutoFixStickDriftCommand}"
-                                Style="{DynamicResource RedNeonBtn}"
-                                Margin="0,0,8,0" FontSize="10"/>
-                        <Button Content="↺ RESET"
-                                Command="{Binding ResetCalibrationCommand}"
-                                Style="{DynamicResource DefaultButtonStyle}"
-                                FontSize="10" Padding="10,5"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding OpenPsLedSettingsCommand}" ToolTip="RGB Controller LED Configuration" Margin="0,0,4,0">
+                            <TextBlock Text="💡" FontSize="12"/>
+                        </Button>
+                        <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding ToggleThemeCommand}" ToolTip="Toggle Dark / Light Theme" Margin="0,0,4,0">
+                            <TextBlock Text="{Binding ThemeToggleIcon}" FontSize="12"/>
+                        </Button>
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Click="MinimizeBtn_Click" Style="{StaticResource TitleBarBtn}">
-                            <TextBlock Text="—" FontSize="12"/>
+                        <Button Style="{DynamicResource TitleBarBtn}" Click="MinimizeBtn_Click" ToolTip="Minimize">
+                            <TextBlock Text="─" FontSize="11" FontWeight="Bold"/>
                         </Button>
-                        <Button Click="MaximizeBtn_Click" Style="{StaticResource TitleBarBtn}">
-                            <TextBlock Text="□" FontSize="12"/>
+                        <Button Style="{DynamicResource TitleBarBtn}" Click="MaximizeBtn_Click" ToolTip="Maximize / Restore">
+                            <TextBlock Text="▢" FontSize="11"/>
                         </Button>
-                        <Button Click="CloseBtn_Click" Style="{StaticResource TitleBarCloseBtn}">
-                            <TextBlock Text="✕" FontSize="12"/>
+                        <Button Style="{DynamicResource TitleBarCloseBtn}" Click="CloseBtn_Click" ToolTip="Close">
+                            <TextBlock Text="✕" FontSize="11" FontWeight="Bold"/>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="SidebarCol" Width="200"/>
+                    <ColumnDefinition Width="200" x:Name="SidebarCol"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0"
-                        Background="{DynamicResource BgDark}"
+                        Background="{DynamicResource CardBg}"
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="0,0,1,0"
-                        x:Name="SidebarBorder">
+                        x:Name="SidebarBorder"
+                        ClipToBounds="True">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -168,15 +168,20 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0"
-                                Command="{Binding ToggleSidebarCommand}"
-                                HorizontalAlignment="Left" Margin="14,12,0,8"
-                                Background="Transparent" BorderThickness="0" Cursor="Hand"
-                                Click="SidebarToggle_Click">
-                            <Border CornerRadius="0" Padding="6,4" Background="Transparent">
-                                <TextBlock x:Name="HamburgerIcon" Text="≡" Foreground="{DynamicResource RedNeon}" FontSize="18" FontWeight="Bold"/>
-                            </Border>
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Click="SidebarToggle_Click"
+                                Padding="0,14"
+                                Margin="0,0,0,4">
+                            <Grid Width="180" HorizontalAlignment="Left">
+                                <TextBlock Text="☰" FontSize="14" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Width="28" TextAlignment="Center" Margin="14,0,0,0"/>
+                                <TextBlock Text="COLLAPSE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Margin="48,0,0,0" x:Name="CollapseLbl"/>
+                            </Grid>
                         </Button>
-                        <StackPanel Grid.Row="1" Margin="0,4,0,0">
+                        <StackPanel Grid.Row="1">
                             <RadioButton x:Name="NavHome" GroupName="NavMenu"
                                          IsChecked="True"
                                          Command="{Binding SelectTabCommand}" CommandParameter="0"
@@ -187,8 +192,17 @@
                                     <TextBlock x:Name="NavHomeLbl" Text="HOME" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </Grid>
                             </RadioButton>
-                            <RadioButton x:Name="NavRemap" GroupName="NavMenu"
+                            <RadioButton x:Name="NavProfiles" GroupName="NavMenu"
                                          Command="{Binding SelectTabCommand}" CommandParameter="1"
+                                         Style="{DynamicResource NavButtonStyle}"
+                                         Click="NavBtn_Click">
+                                <Grid Width="180" HorizontalAlignment="Left">
+                                    <TextBlock Text="🎮" FontSize="14" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock x:Name="NavProfilesLbl" Text="GAMES" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton x:Name="NavRemap" GroupName="NavMenu"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="2"
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
@@ -197,7 +211,7 @@
                                 </Grid>
                             </RadioButton>
                             <RadioButton x:Name="NavCalibrate" GroupName="NavMenu"
-                                         Command="{Binding SelectTabCommand}" CommandParameter="2"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="3"
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
@@ -206,7 +220,7 @@
                                 </Grid>
                             </RadioButton>
                             <RadioButton x:Name="NavMacros" GroupName="NavMenu"
-                                         Command="{Binding SelectTabCommand}" CommandParameter="3"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="4"
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
@@ -216,7 +230,6 @@
                             </RadioButton>
                         </StackPanel>
                         <StackPanel Grid.Row="2" Margin="0,0,0,12">
-                            
                             <Border Margin="6,0,6,4" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="8,8" x:Name="DeviceInfoPanel">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Grid Margin="0,0,8,0" HorizontalAlignment="Center">
@@ -229,9 +242,7 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
-                            
                             <Grid Margin="6,0,6,0">
-                                
                                 <Border x:Name="BatteryInfoPanelExpanded" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="10,8">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="🔋" FontSize="15" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -243,7 +254,6 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
-                                
                                 <Border x:Name="BatteryInfoPanelCollapsed" Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="4,8" Opacity="0" IsHitTestVisible="False" HorizontalAlignment="Center" Width="48">
                                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Grid Width="20" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -257,7 +267,7 @@
                                 </Border>
                             </Grid>
                             <RadioButton x:Name="NavSettings" GroupName="NavMenu"
-                                         Command="{Binding SelectTabCommand}" CommandParameter="4"
+                                         Command="{Binding SelectTabCommand}" CommandParameter="5"
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click" Margin="0,8,0,0">
                                 <Grid Width="180" HorizontalAlignment="Left">
@@ -271,6 +281,8 @@
                 <Grid Grid.Column="1" Margin="14" x:Name="ContentGrid">
                     <views:HomeView x:Name="ViewHome"
                                     Opacity="0" IsHitTestVisible="False"/>
+                    <views:ProfilesView x:Name="ViewProfiles"
+                                        Opacity="0" IsHitTestVisible="False"/>
                     <views:RemapView x:Name="ViewRemap"
                                      Opacity="0" IsHitTestVisible="False"/>
                     <views:CalibrateView x:Name="ViewCalibrate"

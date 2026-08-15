@@ -17,6 +17,23 @@ namespace DriftLift
         public MainWindow()
         {
             InitializeComponent();
+            DataContextChanged += (s, e) =>
+            {
+                if (DataContext is DashboardViewModel vm)
+                {
+                    vm.NotificationRequested += (title, msg) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            try
+                            {
+                                MyNotifyIcon.ShowBalloonTip(title, msg, Hardcodet.Wpf.TaskbarNotification.BalloonIcon.Info);
+                            }
+                            catch { }
+                        });
+                    };
+                }
+            };
             Loaded += (s, e) => {
                 ViewHome.IsHitTestVisible = true;
                 Panel.SetZIndex(ViewHome, 1);
@@ -129,6 +146,7 @@ namespace DriftLift
             double labelOpacity = _sidebarExpanded ? 1.0 : 0.0;
             double collapsedOpacity = _sidebarExpanded ? 0.0 : 1.0;
             FadeElement(NavHomeLbl, labelOpacity);
+            FadeElement(NavProfilesLbl, labelOpacity);
             FadeElement(NavRemapLbl, labelOpacity);
             FadeElement(NavCalibrateLbl, labelOpacity);
             FadeElement(NavMacrosLbl, labelOpacity);
@@ -169,11 +187,12 @@ namespace DriftLift
         private void NavBtn_Click(object sender, RoutedEventArgs e)
         {
             UIElement? nextView = null;
-            if (NavHome.IsChecked == true)       nextView = ViewHome;
-            else if (NavRemap.IsChecked == true)     nextView = ViewRemap;
+            if (NavHome.IsChecked == true)            nextView = ViewHome;
+            else if (NavProfiles.IsChecked == true)   nextView = ViewProfiles;
+            else if (NavRemap.IsChecked == true)      nextView = ViewRemap;
             else if (NavCalibrate.IsChecked == true)  nextView = ViewCalibrate;
-            else if (NavMacros.IsChecked == true)    nextView = ViewMacros;
-            else if (NavSettings.IsChecked == true)  nextView = ViewSettings;
+            else if (NavMacros.IsChecked == true)     nextView = ViewMacros;
+            else if (NavSettings.IsChecked == true)   nextView = ViewSettings;
             if (nextView == null || nextView == _currentVisibleView) return;
             var prev = _currentVisibleView;
             _currentVisibleView = nextView;

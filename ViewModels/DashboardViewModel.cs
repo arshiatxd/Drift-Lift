@@ -24,11 +24,16 @@ namespace DriftLift.ViewModels
         private readonly SettingsManager _settingsManager = null!;
         private readonly DispatcherTimer _uiTimer = null!;
         private readonly DispatcherTimer _vibrationTimer = null!;
+        private readonly GameWatcherService _gameWatcher = null!;
         private ControllerProfilePair? _activeProfile;
         private HidHideControlService? _hidHideService;
+        public event Action<string, string>? NotificationRequested;
         // ##== Observable Properties ==##
         [ObservableProperty]
         private ObservableCollection<CustomMapping> _activeMappings = new ObservableCollection<CustomMapping>();
+        public ObservableCollection<GameProfileModel> GameProfiles { get; } = new();
+        [ObservableProperty] private GameProfileModel? _selectedGameProfile;
+        [ObservableProperty] private bool _isAutoSwitchingGlobalEnabled = true;
         [ObservableProperty] private object _currentView = null!;
         [ObservableProperty] private bool _isWaitingForInput;
         [ObservableProperty] private string _waitingTargetText = "";
@@ -283,6 +288,7 @@ namespace DriftLift.ViewModels
         public ObservableCollection<string> SavedConfigFiles { get; } = new();
         public ControllerProfilePair? ActiveProfile => _activeProfile;
         public HomeView HomeViewInstance { get; } = new();
+        public ProfilesView ProfilesViewInstance { get; } = new();
         public RemapView RemapViewInstance { get; } = new();
         public CalibrateView CalibrateViewInstance { get; } = new();
         public MacrosView MacrosViewInstance { get; } = new();
@@ -298,6 +304,12 @@ namespace DriftLift.ViewModels
             _uiTimer.Start();
             _vibrationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _vibrationTimer.Tick += VibrationTimer_Tick;
+
+            InitializeDefaultGameProfiles();
+            _gameWatcher = new GameWatcherService();
+            _gameWatcher.ActiveGameChanged += OnActiveGameChanged;
+            _gameWatcher.Start();
+
             CurrentView = HomeViewInstance;
 
             if (_settingsManager != null)
@@ -1215,10 +1227,11 @@ namespace DriftLift.ViewModels
                 CurrentView = idx switch
                 {
                     0 => HomeViewInstance,
-                    1 => RemapViewInstance,
-                    2 => CalibrateViewInstance,
-                    3 => MacrosViewInstance,
-                    4 => SettingsViewInstance,
+                    1 => ProfilesViewInstance,
+                    2 => RemapViewInstance,
+                    3 => CalibrateViewInstance,
+                    4 => MacrosViewInstance,
+                    5 => SettingsViewInstance,
                     _ => HomeViewInstance
                 };
             }
@@ -1228,6 +1241,221 @@ namespace DriftLift.ViewModels
         {
             IsSidebarExpanded = !IsSidebarExpanded;
             SidebarColumnWidth = IsSidebarExpanded ? 250 : 60;
+        }
+
+        // ##== Game Profile Auto-Switching Engine ==##
+        private void InitializeDefaultGameProfiles()
+        {
+            GameProfiles.Clear();
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "EA Sports FC 25 / 24",
+                ExecutableName = "fc25.exe, fc24.exe, fc26.exe, fc27.exe",
+                Category = "Sports",
+                IconGlyph = "⚽",
+                LeftStickDeadzone = 3.0,
+                RightStickDeadzone = 3.0,
+                StickSensitivity = 1.0,
+                IsAutoSwitchEnabled = true
+            });
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "Rocket League",
+                ExecutableName = "rocketleague.exe",
+                Category = "Arcade Driving",
+                IconGlyph = "🏎️",
+                LeftStickDeadzone = 5.0,
+                RightStickDeadzone = 5.0,
+                StickSensitivity = 1.2,
+                IsAutoSwitchEnabled = true
+            });
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "Call of Duty: Warzone",
+                ExecutableName = "cod.exe, bootstrapper.exe",
+                Category = "FPS Combat",
+                IconGlyph = "🎯",
+                LeftStickDeadzone = 4.0,
+                RightStickDeadzone = 4.0,
+                StickSensitivity = 1.1,
+                IsAutoSwitchEnabled = true
+            });
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "Apex Legends",
+                ExecutableName = "r5apex.exe",
+                Category = "Battle Royale",
+                IconGlyph = "👑",
+                LeftStickDeadzone = 3.0,
+                RightStickDeadzone = 3.0,
+                StickSensitivity = 1.0,
+                IsAutoSwitchEnabled = true
+            });
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "Fortnite",
+                ExecutableName = "fortniteclient-win64-shipping.exe",
+                Category = "Battle Royale",
+                IconGlyph = "⚡",
+                LeftStickDeadzone = 6.0,
+                RightStickDeadzone = 6.0,
+                StickSensitivity = 1.0,
+                IsAutoSwitchEnabled = true
+            });
+            GameProfiles.Add(new GameProfileModel
+            {
+                GameName = "Forza Horizon 5",
+                ExecutableName = "forzahorizon5.exe, forzahorizon4.exe",
+                Category = "Racing Simulation",
+                IconGlyph = "🏁",
+                LeftStickDeadzone = 2.0,
+                RightStickDeadzone = 2.0,
+                StickSensitivity = 1.0,
+                IsAutoSwitchEnabled = true
+            });
+
+            SelectedGameProfile = GameProfiles.FirstOrDefault();
+        }
+
+        private void OnActiveGameChanged(string activeExe)
+        {
+            if (!IsAutoSwitchingGlobalEnabled || Application.Current == null) return;
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (string.IsNullOrWhiteSpace(activeExe))
+                {
+                    RevertToDefaultProfile();
+                    return;
+                }
+
+                var matched = GameProfiles.FirstOrDefault(p =>
+                    p.IsAutoSwitchEnabled &&
+                    p.ExecutableName.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Any(exe => exe.Trim().Equals(activeExe, StringComparison.OrdinalIgnoreCase)));
+
+                if (matched != null)
+                {
+                    ApplyGameProfile(matched);
+                }
+                else
+                {
+                    RevertToDefaultProfile();
+                }
+            });
+        }
+
+        private void ApplyGameProfile(GameProfileModel profile)
+        {
+            foreach (var p in GameProfiles) p.IsActive = (p == profile);
+
+            LeftStickDeadzone = profile.LeftStickDeadzone;
+            RightStickDeadzone = profile.RightStickDeadzone;
+            StickSensitivity = profile.StickSensitivity;
+
+            if (_activeProfile != null)
+            {
+                _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = profile.LeftStickDeadzone / 100.0;
+                _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = profile.RightStickDeadzone / 100.0;
+                _activeProfile.Drift.Profile.LeftStick.Sensitivity = profile.StickSensitivity;
+                _activeProfile.Drift.Profile.RightStick.Sensitivity = profile.StickSensitivity;
+            }
+
+            NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {profile.GameName} profile auto-activated");
+        }
+
+        private void RevertToDefaultProfile()
+        {
+            bool hadActive = false;
+            foreach (var p in GameProfiles)
+            {
+                if (p.IsActive) hadActive = true;
+                p.IsActive = false;
+            }
+
+            if (hadActive)
+            {
+                LeftStickDeadzone = 5.0;
+                RightStickDeadzone = 5.0;
+                StickSensitivity = 1.0;
+                if (_activeProfile != null)
+                {
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = 0.05;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = 0.05;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = 1.0;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = 1.0;
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void SelectGameProfile(GameProfileModel? profile)
+        {
+            if (profile != null) SelectedGameProfile = profile;
+        }
+
+        [RelayCommand]
+        private void ActivateSelectedGameProfile()
+        {
+            if (SelectedGameProfile != null)
+            {
+                ApplyGameProfile(SelectedGameProfile);
+            }
+        }
+
+        [RelayCommand]
+        private void AddCustomGame()
+        {
+            var newProfile = new GameProfileModel
+            {
+                GameName = "Custom Game",
+                ExecutableName = "game.exe",
+                Category = "Custom",
+                IconGlyph = "🎮",
+                LeftStickDeadzone = 5.0,
+                RightStickDeadzone = 5.0,
+                StickSensitivity = 1.0,
+                IsAutoSwitchEnabled = true
+            };
+            GameProfiles.Add(newProfile);
+            SelectedGameProfile = newProfile;
+        }
+
+        [RelayCommand]
+        private void BrowseGameExe()
+        {
+            if (SelectedGameProfile == null) return;
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Executable Files (*.exe)|*.exe|All Files (*.*)|*.*",
+                Title = "Select Game Executable"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                SelectedGameProfile.ExecutableName = Path.GetFileName(dialog.FileName).ToLowerInvariant();
+                if (SelectedGameProfile.GameName == "Custom Game" || string.IsNullOrWhiteSpace(SelectedGameProfile.GameName))
+                {
+                    SelectedGameProfile.GameName = Path.GetFileNameWithoutExtension(dialog.FileName);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void DeleteSelectedGameProfile()
+        {
+            if (SelectedGameProfile != null && GameProfiles.Count > 1)
+            {
+                var toRemove = SelectedGameProfile;
+                int idx = GameProfiles.IndexOf(toRemove);
+                GameProfiles.Remove(toRemove);
+                SelectedGameProfile = GameProfiles.ElementAtOrDefault(Math.Max(0, idx - 1)) ?? GameProfiles.FirstOrDefault();
+            }
+        }
+
+        [RelayCommand]
+        private void ResetGameProfiles()
+        {
+            InitializeDefaultGameProfiles();
         }
         // ##== Calibration & Auto-Fix Engine ==##
         [RelayCommand]
