@@ -250,6 +250,10 @@ namespace DriftLift.Core.Input
                         _devices.TryAdd(phys.DeviceId, pair);
                         changed = true;
                     }
+                    else
+                    {
+                        try { phys.Dispose(); } catch { }
+                    }
                 }
 
                 if (changed)

@@ -166,6 +166,10 @@ namespace DriftLift.Core.Input
                         {
                             psDevices.Add(psCtrl);
                         }
+                        else
+                        {
+                            try { psCtrl.Dispose(); } catch { }
+                        }
                     }
                     catch { }
                 }
