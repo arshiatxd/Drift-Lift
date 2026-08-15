@@ -808,7 +808,37 @@ namespace DriftLift.ViewModels
                             });
                         }
                     }
+
+                    if (!IsMacroPlaying && !IsRecordingMacro && ActiveMacros.Count > 0)
+                    {
+                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        foreach (var m in ActiveMacros)
+                        {
+                            if (m.IsEnabled && m.TriggerMask != 0 && (rawButtons & m.TriggerMask) == m.TriggerMask && (newPresses & m.TriggerMask) != 0)
+                            {
+                                _ = PlayMacro(m);
+                                break;
+                            }
+                        }
+                    }
+
                     _lastRawButtons = rawButtons;
+
+                    if (_inputLoop != null && ActiveMappings.Count > 0)
+                    {
+                        foreach (var m in ActiveMappings)
+                        {
+                            ushort bit = GetBitFromName(m.SourceButton);
+                            if (bit != 0)
+                            {
+                                if (!string.IsNullOrEmpty(m.TurboMode) && m.TurboMode.Contains("Rapid", StringComparison.OrdinalIgnoreCase))
+                                    _inputLoop.TurboButtons[bit] = true;
+                                else
+                                    _inputLoop.TurboButtons.TryRemove(bit, out _);
+                            }
+                        }
+                    }
+
                     ushort mappedB = 0;
                     foreach (var kvp in profile.Remaps)
                     {

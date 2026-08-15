@@ -50,7 +50,16 @@ namespace DriftLift
                 {
                     DataContext = viewModel
                 };
-                mainWindow.Show();
+
+                if (SettingsManager.Settings.StartMinimized)
+                {
+                    mainWindow.WindowState = WindowState.Minimized;
+                    mainWindow.Hide();
+                }
+                else
+                {
+                    mainWindow.Show();
+                }
             }
             catch (Exception ex)
             {

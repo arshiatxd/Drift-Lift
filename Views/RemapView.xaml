@@ -313,11 +313,11 @@
                                                 <TextBlock Text="{Binding TargetButton}" Foreground="{DynamicResource TextPrimary}" FontSize="11" VerticalAlignment="Center"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" Text="{Binding MappingType}" Foreground="{DynamicResource TextSecondary}" FontSize="11" VerticalAlignment="Center"/>
-                                            <ComboBox Grid.Column="3" SelectedItem="{Binding TurboMode}" Style="{StaticResource MappingCombo}" Margin="0,0,10,0">
+                                            <ComboBox Grid.Column="3" SelectedValue="{Binding TurboMode}" SelectedValuePath="Content" Style="{StaticResource MappingCombo}" Margin="0,0,10,0">
                                                 <ComboBoxItem Content="None"/>
                                                 <ComboBoxItem Content="Rapid (20/s)"/>
                                             </ComboBox>
-                                            <ComboBox Grid.Column="4" SelectedItem="{Binding MacroName}" Style="{StaticResource MappingCombo}" Margin="0,0,10,0">
+                                            <ComboBox Grid.Column="4" SelectedValue="{Binding MacroName}" SelectedValuePath="Content" Style="{StaticResource MappingCombo}" Margin="0,0,10,0">
                                                 <ComboBoxItem Content="None"/>
                                                 <ComboBoxItem Content="MULTI-KEY"/>
                                             </ComboBox>
