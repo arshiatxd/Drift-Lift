@@ -61,18 +61,19 @@ namespace DriftLift.Services
             catch { }
         }
 
-        public static bool AutoShieldPlayStationControllers()
+        public static bool AutoShieldAllControllers(HidHideControlService? existingSvc = null)
         {
             try
             {
-                var svc = new HidHideControlService();
+                var svc = existingSvc ?? new HidHideControlService();
                 if (!svc.IsInstalled) return false;
 
                 svc.IsActive = true;
+                try { svc.IsAppListInverted = false; } catch { }
                 WhitelistCurrentProcess(svc);
 
-                var psInstanceIds = DeviceEnumerator.GetAllPlayStationDeviceInstanceIds();
-                foreach (var id in psInstanceIds)
+                var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
+                foreach (var id in controllerIds)
                 {
                     if (!string.IsNullOrWhiteSpace(id))
                     {
@@ -90,6 +91,8 @@ namespace DriftLift.Services
                 return false;
             }
         }
+
+        public static bool AutoShieldPlayStationControllers() => AutoShieldAllControllers();
 
         public static async Task DownloadAndInstallAsync(IProgress<(double ProgressPercentage, string DownloadStats)> progress, Action<string> statusCallback)
         {

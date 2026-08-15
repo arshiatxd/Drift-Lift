@@ -60,7 +60,28 @@ namespace DriftLift.Core.Input
             return p.Replace('#', '\\').ToUpperInvariant();
         }
 
-        public static List<string> GetAllPlayStationDeviceInstanceIds()
+        public static readonly HashSet<int> KnownPhysicalControllerVendorIds = new()
+        {
+            0x054C,
+            0x073A,
+            0x0F0D,
+            0x146B,
+            0x7359,
+            0x045E,
+            0x0738,
+            0x1532,
+            0x24C6,
+            0x1BAD,
+            0x046D,
+            0x0079,
+            0x0E6F,
+            0x20D6,
+            0x2DC8,
+            0x1038,
+            0x057E
+        };
+
+        public static List<string> GetAllPhysicalControllerInstanceIds()
         {
             var list = new List<string>();
             try
@@ -73,10 +94,18 @@ namespace DriftLift.Core.Input
                     int vid = dev.Attributes.VendorId;
                     string desc = dev.Description ?? string.Empty;
 
-                    if (PlayStationVendorIds.Contains(vid)
+                    bool isController = KnownPhysicalControllerVendorIds.Contains(vid)
+                        || desc.Contains("Controller", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("Gamepad", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("Joystick", StringComparison.OrdinalIgnoreCase)
                         || desc.Contains("DualSense", StringComparison.OrdinalIgnoreCase)
                         || desc.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase))
+                        || desc.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("Xbox", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("360", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("PlayStation", StringComparison.OrdinalIgnoreCase);
+
+                    if (isController)
                     {
                         string id = ExtractInstanceId(dev.DevicePath);
                         if (!string.IsNullOrEmpty(id) && !list.Contains(id))
@@ -89,6 +118,8 @@ namespace DriftLift.Core.Input
             catch { }
             return list;
         }
+
+        public static List<string> GetAllPlayStationDeviceInstanceIds() => GetAllPhysicalControllerInstanceIds();
 
         public static List<IPhysicalController> GetConnectedControllers()
         {

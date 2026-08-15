@@ -268,7 +268,7 @@ namespace DriftLift.ViewModels
                     try { _hidHideService.IsAppListInverted = false; } catch { }
                     IsHidHideEnabled = true;
                     HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
-                    HidHideInstallerService.AutoShieldPlayStationControllers();
+                    HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
                     SyncHidHideBlockedDevices();
                 }
             }
@@ -302,6 +302,7 @@ namespace DriftLift.ViewModels
             try
             {
                 _hidHideService.IsActive = IsHidHideEnabled;
+                try { _hidHideService.IsAppListInverted = false; } catch { }
                 if (!IsHidHideEnabled) return;
                 
                 HidHideInstallerService.WhitelistCurrentProcess(_hidHideService);
@@ -322,8 +323,8 @@ namespace DriftLift.ViewModels
                     }
                 }
 
-                var psIds = DeviceEnumerator.GetAllPlayStationDeviceInstanceIds();
-                foreach (var id in psIds)
+                var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
+                foreach (var id in controllerIds)
                 {
                     if (!string.IsNullOrEmpty(id))
                     {
@@ -1296,9 +1297,9 @@ namespace DriftLift.ViewModels
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
             if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
-                HidHideStatusText = "INSTALLED & ACTIVE";
+                HidHideStatusText = "SHIELD ACTIVE";
                 HidHideStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
-                HidHideButtonText = "Shield PS Controllers";
+                HidHideButtonText = "Shield Controllers";
             }
             else
             {
@@ -1312,13 +1313,13 @@ namespace DriftLift.ViewModels
         {
             if (HidHideInstallerService.IsHidHideInstalled())
             {
-                bool success = HidHideInstallerService.AutoShieldPlayStationControllers();
+                bool success = HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
                 SyncHidHideBlockedDevices();
 
                 if (success)
                 {
                     DriftLift.Views.Windows.CustomMessageDialog.Show(
-                        "Double-Input Shield is now ACTIVE!\n\nDrift Lift has whitelisted itself and hidden your physical PlayStation controller from games and Steam.\n\nYour inputs will now cleanly route through the virtual Xbox 360 controller without double presses.",
+                        "Double-Input Shield is now ACTIVE!\n\nDrift Lift has whitelisted itself and hidden your physical controller from games and Steam.\n\nYour inputs will now cleanly route through the virtual Xbox 360 controller with calibrated zero stick drift and no double presses.",
                         "Double Input Shield Active", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 }
                 else
@@ -1340,11 +1341,11 @@ namespace DriftLift.ViewModels
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
             if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
-                HidHideInstallerService.AutoShieldPlayStationControllers();
+                HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
                 SyncHidHideBlockedDevices();
 
                 DriftLift.Views.Windows.CustomMessageDialog.Show(
-                    "PlayStation Controller Double-Input Shield is configured!\n\nOpening HidHide Configurator so you can verify blocked devices and application whitelist.",
+                    "Controller Double-Input Shield is configured!\n\nOpening HidHide Configurator so you can verify blocked devices and application whitelist.",
                     "HidHide Double Input Shield", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 try
                 {
