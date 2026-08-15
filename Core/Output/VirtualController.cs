@@ -16,6 +16,7 @@ namespace DriftLift.Core.Output
         private bool _disposed;
 
         public bool IsActive => _isCreated && _target != null;
+        public event Action<double, double>? FeedbackReceived;
 
         // ##== Lifecycle ==##
         public void EnsureCreated()
@@ -29,6 +30,7 @@ namespace DriftLift.Core.Output
                 {
                     _client = new ViGEmClient();
                     _target = _client.CreateXbox360Controller();
+                    _target.FeedbackReceived += Target_FeedbackReceived;
                     _target.Connect();
                     _isCreated = true;
                 }
@@ -38,6 +40,11 @@ namespace DriftLift.Core.Output
                     _isCreated = false;
                 }
             }
+        }
+
+        private void Target_FeedbackReceived(object sender, Xbox360FeedbackReceivedEventArgs e)
+        {
+            FeedbackReceived?.Invoke(e.LargeMotor / 255.0, e.SmallMotor / 255.0);
         }
 
         private short _lastLx, _lastLy, _lastRx, _lastRy;

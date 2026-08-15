@@ -438,9 +438,9 @@
             </Grid>
             
             <Grid Grid.Row="3" VerticalAlignment="Bottom" Margin="0,-30,0,0">
-                <TextBlock Text="INPUT METHOD: DirectInput" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Left" Margin="0,0,0,5"/>
-                <TextBlock Text="POLLING RATE: 1000Hz     LATENCY: 1ms     FIRMWARE: 2.15" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,5"/>
-                <TextBlock Text="ⓘ KEEP THIS WINDOW OPEN TO APPLY CHANGES" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Right" Margin="0,0,0,5"/>
+                <TextBlock Text="{Binding ControllerConnectionIcon, StringFormat='INPUT INTERFACE: {0}'}" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Left" Margin="0,0,0,5"/>
+                <TextBlock Text="POLLING RATE: 1000Hz     PRECISION: 0.001     ENGINE: Active" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <TextBlock Text="ⓘ ANTI-DRIFT &amp; REMAPPING ENGINE RUNNING" Foreground="{DynamicResource TextSecondary}" FontSize="10" HorizontalAlignment="Right" Margin="0,0,0,5"/>
             </Grid>
         </Grid>
     </Grid>

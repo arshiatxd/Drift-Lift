@@ -87,6 +87,16 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="System Integration &amp; Background Lifecycle" Foreground="{DynamicResource RedNeon}" FontSize="13" FontWeight="Bold" Margin="0,0,4,0"/>
+                        <TextBlock Text="Configure window close behaviors, auto-startup on boot, and background tray execution" Foreground="{DynamicResource TextSecondary}" FontSize="11" Margin="0,0,0,12"/>
+                        <CheckBox Content="Minimize to System Tray on Close (keep anti-drift active)" IsChecked="{Binding MinimizeToTrayOnClose}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,8"/>
+                        <CheckBox Content="Launch Drift Lift on Windows Startup" IsChecked="{Binding StartWithWindows}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,8"/>
+                        <CheckBox Content="Start Minimized in System Tray on Boot" IsChecked="{Binding StartMinimized}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" FontSize="11"/>
+                    </StackPanel>
+                </Border>
                 
                 <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20" Margin="0,0,0,16">
                     <StackPanel>

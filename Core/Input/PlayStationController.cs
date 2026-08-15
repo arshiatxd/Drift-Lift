@@ -173,11 +173,12 @@ namespace DriftLift.Core.Input
             byte left = (byte)(Math.Clamp(leftMotor, 0.0, 1.0) * 255);
             byte right = (byte)(Math.Clamp(rightMotor, 0.0, 1.0) * 255);
 
-            if (Type == ControllerType.DualShock4)
+            try
             {
-                try
+                var hidReport = _device.CreateReport();
+
+                if (Type == ControllerType.DualShock4)
                 {
-                    var hidReport = _device.CreateReport();
                     if (_device.Capabilities.InputReportByteLength > 64)
                     {
                         hidReport.ReportId = 0x11;
@@ -201,10 +202,36 @@ namespace DriftLift.Core.Input
                             hidReport.Data[4] = left;
                         }
                     }
-                    _device.WriteReport(hidReport);
                 }
-                catch { }
+                else if (Type == ControllerType.DualSense)
+                {
+                    if (_device.Capabilities.InputReportByteLength > 64)
+                    {
+                        hidReport.ReportId = 0x31;
+                        if (hidReport.Data.Length >= 5)
+                        {
+                            hidReport.Data[0] = 0x02;
+                            hidReport.Data[1] = 0x03;
+                            hidReport.Data[2] = right;
+                            hidReport.Data[3] = left;
+                        }
+                    }
+                    else
+                    {
+                        hidReport.ReportId = 0x02;
+                        if (hidReport.Data.Length >= 5)
+                        {
+                            hidReport.Data[0] = 0xFF;
+                            hidReport.Data[1] = 0x03;
+                            hidReport.Data[2] = right;
+                            hidReport.Data[3] = left;
+                        }
+                    }
+                }
+
+                _device.WriteReport(hidReport);
             }
+            catch { }
         }
 
         public void SetLedColor(byte r, byte g, byte b)

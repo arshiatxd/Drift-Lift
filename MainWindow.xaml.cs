@@ -66,6 +66,7 @@ namespace DriftLift
             else
                 DragMove();
         }
+        private bool _isExplicitExit = false;
         private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
             => WindowState = WindowState.Minimized;
         private void MaximizeBtn_Click(object sender, RoutedEventArgs e)
@@ -78,7 +79,10 @@ namespace DriftLift
                 if (settings.MinimizeToTrayOnClose)
                     Hide();
                 else
+                {
+                    _isExplicitExit = true;
                     Application.Current.Shutdown();
+                }
                 return;
             }
             var prompt = new DriftLift.Views.Windows.ClosePromptWindow { Owner = this };
@@ -91,7 +95,10 @@ namespace DriftLift
                     App.SettingsManager.Save();
                 }
                 if (prompt.ResultExitCompletely)
+                {
+                    _isExplicitExit = true;
                     Application.Current.Shutdown();
+                }
                 else
                     Hide();
             }
@@ -99,8 +106,21 @@ namespace DriftLift
         private void TrayIcon_DoubleClick(object sender, RoutedEventArgs e) { Show(); WindowState = WindowState.Normal; Activate(); }
         private void TrayRestore_Click(object sender, RoutedEventArgs e) { Show(); WindowState = WindowState.Normal; Activate(); }
         private void TrayMinimize_Click(object sender, RoutedEventArgs e) => Hide();
-        private void TrayExit_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
-        protected override void OnClosing(CancelEventArgs e) { e.Cancel = true; Hide(); base.OnClosing(e); }
+        private void TrayExit_Click(object sender, RoutedEventArgs e)
+        {
+            _isExplicitExit = true;
+            Application.Current.Shutdown();
+        }
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (!_isExplicitExit && App.SettingsManager?.Settings != null && App.SettingsManager.Settings.MinimizeToTrayOnClose)
+            {
+                e.Cancel = true;
+                Hide();
+                return;
+            }
+            base.OnClosing(e);
+        }
         private void SidebarToggle_Click(object sender, RoutedEventArgs e)
         {
             _sidebarExpanded = !_sidebarExpanded;

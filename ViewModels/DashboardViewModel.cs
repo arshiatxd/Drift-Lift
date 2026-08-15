@@ -104,6 +104,9 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private double _stickSensitivity = 1.0;
         [ObservableProperty] private double _leftStickDeadzone = 5.0;
         [ObservableProperty] private double _rightStickDeadzone = 5.0;
+        [ObservableProperty] private bool _minimizeToTrayOnClose;
+        [ObservableProperty] private bool _startWithWindows;
+        [ObservableProperty] private bool _startMinimized;
         
         partial void OnStickSensitivityChanged(double value)
         {
@@ -119,6 +122,10 @@ namespace DriftLift.ViewModels
             {
                 _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = value / 100.0;
             }
+            if (Math.Abs(LeftInnerDeadzone - value / 100.0) > 0.001)
+            {
+                LeftInnerDeadzone = value / 100.0;
+            }
         }
         partial void OnRightStickDeadzoneChanged(double value)
         {
@@ -126,6 +133,55 @@ namespace DriftLift.ViewModels
             {
                 _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = value / 100.0;
             }
+            if (Math.Abs(RightInnerDeadzone - value / 100.0) > 0.001)
+            {
+                RightInnerDeadzone = value / 100.0;
+            }
+        }
+        partial void OnMinimizeToTrayOnCloseChanged(bool value)
+        {
+            if (_settingsManager != null)
+            {
+                _settingsManager.Settings.MinimizeToTrayOnClose = value;
+                _settingsManager.Save();
+            }
+        }
+        partial void OnStartWithWindowsChanged(bool value)
+        {
+            if (_settingsManager != null)
+            {
+                _settingsManager.Settings.StartWithWindows = value;
+                _settingsManager.Save();
+                SetStartupRegistry(value);
+            }
+        }
+        partial void OnStartMinimizedChanged(bool value)
+        {
+            if (_settingsManager != null)
+            {
+                _settingsManager.Settings.StartMinimized = value;
+                _settingsManager.Save();
+            }
+        }
+        private static void SetStartupRegistry(bool enable)
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                if (key != null)
+                {
+                    if (enable)
+                    {
+                        string exe = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                        if (!string.IsNullOrEmpty(exe)) key.SetValue("DriftLift", $"\"{exe}\"");
+                    }
+                    else
+                    {
+                        key.DeleteValue("DriftLift", false);
+                    }
+                }
+            }
+            catch { }
         }
 
         public ObservableCollection<MacroItem> ActiveMacros { get; } = new();
@@ -161,9 +217,12 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private double _rightInnerDeadzone = 0.05;
         [ObservableProperty] private double _rightOuterDeadzone = 0.98;
         [ObservableProperty] private double _rightAntiDeadzone = 0.0;
-        [ObservableProperty] private double _rightAxialDeadzone = 0.0;
         [ObservableProperty] private double _leftLiveCircularity;
         [ObservableProperty] private double _rightLiveCircularity;
+        [ObservableProperty] private double _leftAvgCircularity;
+        [ObservableProperty] private double _rightAvgCircularity;
+        [ObservableProperty] private double _leftNoiseVariance;
+        [ObservableProperty] private double _rightNoiseVariance;
         [ObservableProperty] private string _controllerConnectionIcon = "❌ NONE";
         [ObservableProperty] private string _macroErrorNotifier = "";
         [ObservableProperty] private bool _isAPressed;
@@ -251,6 +310,9 @@ namespace DriftLift.ViewModels
                 PsLedGreen = _settingsManager.Settings.PsLedGreen;
                 PsLedBlue = _settingsManager.Settings.PsLedBlue;
                 PsLedBrightness = _settingsManager.Settings.PsLedBrightness;
+                MinimizeToTrayOnClose = _settingsManager.Settings.MinimizeToTrayOnClose;
+                StartWithWindows = _settingsManager.Settings.StartWithWindows;
+                StartMinimized = _settingsManager.Settings.StartMinimized;
             }
             else
             {
@@ -695,6 +757,17 @@ namespace DriftLift.ViewModels
                     LeftStickValY = Math.Clamp((CorrectedLeftY + 1.0) / 2.0 * 100.0, 0, 100);
                     RightStickValX = Math.Clamp((CorrectedRightX + 1.0) / 2.0 * 100.0, 0, 100);
                     RightStickValY = Math.Clamp((CorrectedRightY + 1.0) / 2.0 * 100.0, 0, 100);
+
+                    if (profile.Drift != null)
+                    {
+                        LeftLiveCircularity = profile.Drift.LeftMetrics.LiveCircularityError;
+                        RightLiveCircularity = profile.Drift.RightMetrics.LiveCircularityError;
+                        LeftAvgCircularity = profile.Drift.LeftMetrics.AverageCircularityError;
+                        RightAvgCircularity = profile.Drift.RightMetrics.AverageCircularityError;
+                        LeftNoiseVariance = Math.Round(profile.Drift.LeftMetrics.RestingNoiseVariance * 10000.0, 2);
+                        RightNoiseVariance = Math.Round(profile.Drift.RightMetrics.RestingNoiseVariance * 10000.0, 2);
+                    }
+
                     ushort rawButtons = rawState.Buttons;
                     if (IsWaitingForInput)
                     {
@@ -702,10 +775,10 @@ namespace DriftLift.ViewModels
                         if (newPresses != 0)
                         {
                             ushort pressedBit = (ushort)(newPresses & -newPresses);
-                            profile.Remaps[_waitingTargetBit] = pressedBit;
+                            profile.Remaps[pressedBit] = _waitingTargetBit;
                             IsWaitingForInput = false;
-                            string sourceStr = GetButtonName(_waitingTargetBit);
-                            string targetStr = GetButtonName(pressedBit);
+                            string sourceStr = GetButtonName(pressedBit);
+                            string targetStr = GetButtonName(_waitingTargetBit);
                             var existing = ActiveMappings.FirstOrDefault(m => m.SourceButton == sourceStr);
                             if (existing != null)
                             {
@@ -856,6 +929,11 @@ namespace DriftLift.ViewModels
         private void NewProfile()
         {
             ActiveMappings.Clear();
+            if (_activeProfile != null)
+            {
+                _activeProfile.Remaps.Clear();
+                UpdateMappingsForControllerType(IsPlayStation);
+            }
             DriftLift.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
@@ -876,6 +954,20 @@ namespace DriftLift.ViewModels
                     if (loaded != null)
                     {
                         ActiveMappings = loaded;
+                        if (_activeProfile != null)
+                        {
+                            _activeProfile.Remaps.Clear();
+                            foreach (var map in loaded)
+                            {
+                                ushort src = GetBitFromName(map.SourceButton);
+                                ushort tgt = GetBitFromName(map.TargetButton);
+                                if (src != 0 && tgt != 0)
+                                {
+                                    _activeProfile.Remaps[src] = tgt;
+                                }
+                            }
+                            UpdateMappingsForControllerType(IsPlayStation);
+                        }
                         DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
@@ -911,24 +1003,18 @@ namespace DriftLift.ViewModels
             }
         }
         [RelayCommand]
-        private void ImportProfile()
-        {
-            DriftLift.Views.Windows.CustomMessageDialog.Show("Import Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        private void ImportProfile() => LoadProfile();
         [RelayCommand]
-        private void ExportProfile()
-        {
-            DriftLift.Views.Windows.CustomMessageDialog.Show("Export Profile feature coming soon!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+        private void ExportProfile() => SaveProfile();
         [RelayCommand]
         private void AutoMap()
         {
-            ActiveMappings.Clear();
-            ActiveMappings.Add(new CustomMapping { SourceButton = "CROSS", TargetButton = "A" });
-            ActiveMappings.Add(new CustomMapping { SourceButton = "CIRCLE", TargetButton = "B" });
-            ActiveMappings.Add(new CustomMapping { SourceButton = "SQUARE", TargetButton = "X" });
-            ActiveMappings.Add(new CustomMapping { SourceButton = "TRIANGLE", TargetButton = "Y" });
-            DriftLift.Views.Windows.CustomMessageDialog.Show("Auto Mapping complete (Default XInput).", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (_activeProfile != null)
+            {
+                _activeProfile.Remaps.Clear();
+                UpdateMappingsForControllerType(IsPlayStation);
+            }
+            DriftLift.Views.Windows.CustomMessageDialog.Show("Mappings reset to default 1:1 layout.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void AddMapping()
@@ -991,26 +1077,18 @@ namespace DriftLift.ViewModels
 
             try
             {
-                var profile = _activeProfile;
                 foreach (var step in target.Steps)
                 {
-                    if (profile != null && profile.Physical != null)
-                    {
-                        var simState = new ControllerState
-                        {
-                            Buttons = step.ButtonMask,
-                            IsConnected = true
-                        };
-                        _inputLoop.SendSimulatedState(simState);
-                    }
+                    _inputLoop.SetInjectedMacroButtons(step.ButtonMask);
                     await Task.Delay(Math.Max(10, step.DelayMs));
-                    _inputLoop.SendSimulatedState(new ControllerState { Buttons = 0, IsConnected = true });
+                    _inputLoop.SetInjectedMacroButtons(0);
                     await Task.Delay(25);
                 }
             }
             catch { }
             finally
             {
+                _inputLoop.SetInjectedMacroButtons(0);
                 IsMacroPlaying = false;
                 MacroStatusText = "IDLE";
             }
@@ -1044,9 +1122,15 @@ namespace DriftLift.ViewModels
         [RelayCommand]
         private void RemoveMapping(CustomMapping mapping)
         {
-            if (mapping != null && ActiveMappings.Contains(mapping))
+            if (mapping != null)
             {
+                ushort srcBit = GetBitFromName(mapping.SourceButton);
+                if (_activeProfile != null && srcBit != 0)
+                {
+                    _activeProfile.Remaps.TryRemove(srcBit, out _);
+                }
                 ActiveMappings.Remove(mapping);
+                UpdateMappingsForControllerType(IsPlayStation);
             }
         }
         [RelayCommand]
@@ -1125,6 +1209,11 @@ namespace DriftLift.ViewModels
                 switch (CalibrationStep)
                 {
                     case 2:
+                        if (_activeProfile != null)
+                        {
+                            _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
+                            _activeProfile.Drift.ResetMetrics();
+                        }
                         StepPromptText = "Rotate both sticks 6 to 7 times in full circles (clockwise & counter-clockwise)";
                         StepSubPromptText = "Ensure maximum outer boundary reaches 1.0 range, then press Next";
                         break;
@@ -1133,6 +1222,13 @@ namespace DriftLift.ViewModels
                         StepSubPromptText = "Check circularity error metrics, then press Next";
                         break;
                     case 4:
+                        if (_activeProfile != null)
+                        {
+                            LeftInnerDeadzone = _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius;
+                            RightInnerDeadzone = _activeProfile.Drift.Profile.RightStick.DeadzoneRadius;
+                            LeftStickDeadzone = Math.Round(LeftInnerDeadzone * 100.0, 0);
+                            RightStickDeadzone = Math.Round(RightInnerDeadzone * 100.0, 0);
+                        }
                         StepPromptText = "Save permanent calibration data to controller profile";
                         StepSubPromptText = "Calibration complete!";
                         break;
@@ -1143,7 +1239,8 @@ namespace DriftLift.ViewModels
                 CalibrationStep = 1;
                 StepPromptText = "Push both sticks to the top-left corner, then release";
                 StepSubPromptText = "Release the sticks completely, then press Next";
-                DriftLift.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                SaveConfigPreset();
+                DriftLift.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved and locked!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
         [RelayCommand]
@@ -1151,16 +1248,19 @@ namespace DriftLift.ViewModels
         {
             if (_activeProfile != null)
             {
-                _activeProfile.Drift.AutoFixStickDrift();
-                LeftInnerDeadzone = _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius;
-                RightInnerDeadzone = _activeProfile.Drift.Profile.RightStick.DeadzoneRadius;
+                var (lx, ly, lDz, rx, ry, rDz) = _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
+                LeftInnerDeadzone = lDz;
+                RightInnerDeadzone = rDz;
+                LeftStickDeadzone = Math.Round(lDz * 100.0, 0);
+                RightStickDeadzone = Math.Round(rDz * 100.0, 0);
             }
             DriftLift.Views.Windows.CustomMessageDialog.Show("Quick Auto Calibrate completed! Center offset & deadzones locked.", "DriftLift Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void RemapHotspot(string buttonName)
         {
-            ushort bit = buttonName.ToUpper() switch
+            string norm = (buttonName ?? "").ToUpper().Replace(" ", "").Replace("-", "").Replace("_", "");
+            ushort bit = norm switch
             {
                 "CROSS" or "A" => 0x1000,
                 "CIRCLE" or "B" => 0x2000,
@@ -1170,14 +1270,14 @@ namespace DriftLift.ViewModels
                 "R1" or "RB" => 0x0200,
                 "L2" or "LT" => 0x0400,
                 "R2" or "RT" => 0x0800,
-                "SHARE" or "BACK" => 0x0020,
+                "SHARE" or "BACK" or "SELECT" => 0x0020,
                 "OPTIONS" or "START" => 0x0010,
-                "L3" => 0x0040,
-                "R3" => 0x0080,
-                "DPAD UP" => 0x0001,
-                "DPAD DOWN" => 0x0002,
-                "DPAD LEFT" => 0x0004,
-                "DPAD RIGHT" => 0x0008,
+                "L3" or "LEFTTHUMB" => 0x0040,
+                "R3" or "RIGHTTHUMB" => 0x0080,
+                "DPADUP" or "UP" => 0x0001,
+                "DPADDOWN" or "DOWN" => 0x0002,
+                "DPADLEFT" or "LEFT" => 0x0004,
+                "DPADRIGHT" or "RIGHT" => 0x0008,
                 _ => 0x1000
             };
             BeginRemap(bit.ToString());

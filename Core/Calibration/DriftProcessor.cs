@@ -69,37 +69,47 @@ namespace DriftLift.Core.Calibration
         // ##== Auto Calibration & Calculation ==##
         public (double lx, double ly, double lDeadzone, double rx, double ry, double rDeadzone) AutoCalibrateBoth(double currentLx, double currentLy, double currentRx, double currentRy)
         {
-            double leftX, leftY, leftMax;
-            double rightX, rightY, rightMax;
+            double leftX = currentLx;
+            double leftY = currentLy;
+            double rightX = currentRx;
+            double rightY = currentRy;
 
             lock (_leftLock)
             {
-                _leftCount = 0;
-                _leftHead = 0;
-                _leftSumX = 0;
-                _leftSumY = 0;
-                leftX = currentLx;
-                leftY = currentLy;
-                leftMax = Math.Sqrt(currentLx * currentLx + currentLy * currentLy);
+                if (_leftCount > 10)
+                {
+                    leftX = _leftSumX / _leftCount;
+                    leftY = _leftSumY / _leftCount;
+                }
             }
 
             lock (_rightLock)
             {
-                _rightCount = 0;
-                _rightHead = 0;
-                _rightSumX = 0;
-                _rightSumY = 0;
-                rightX = currentRx;
-                rightY = currentRy;
-                rightMax = Math.Sqrt(currentRx * currentRx + currentRy * currentRy);
+                if (_rightCount > 10)
+                {
+                    rightX = _rightSumX / _rightCount;
+                    rightY = _rightSumY / _rightCount;
+                }
             }
 
-            Profile.LeftStick.CenterOffsetX = Math.Round(leftX, 3);
-            Profile.LeftStick.CenterOffsetY = Math.Round(leftY, 3);
-            Profile.LeftStick.DeadzoneRadius = Math.Clamp(Math.Round(leftMax + 0.02, 2), 0.03, 0.25);
-            Profile.RightStick.CenterOffsetX = Math.Round(rightX, 3);
-            Profile.RightStick.CenterOffsetY = Math.Round(rightY, 3);
-            Profile.RightStick.DeadzoneRadius = Math.Clamp(Math.Round(rightMax + 0.02, 2), 0.03, 0.25);
+            double leftResidual = Math.Sqrt((currentLx - leftX) * (currentLx - leftX) + (currentLy - leftY) * (currentLy - leftY));
+            double rightResidual = Math.Sqrt((currentRx - rightX) * (currentRx - rightX) + (currentRy - rightY) * (currentRy - rightY));
+
+            double lDz = Math.Clamp(Math.Round(Math.Max(0.04, leftResidual + 0.03), 2), 0.04, 0.25);
+            double rDz = Math.Clamp(Math.Round(Math.Max(0.04, rightResidual + 0.03), 2), 0.04, 0.25);
+
+            Profile.LeftStick.CenterOffsetX = Math.Round(leftX, 4);
+            Profile.LeftStick.CenterOffsetY = Math.Round(leftY, 4);
+            Profile.LeftStick.DeadzoneRadius = lDz;
+
+            Profile.RightStick.CenterOffsetX = Math.Round(rightX, 4);
+            Profile.RightStick.CenterOffsetY = Math.Round(rightY, 4);
+            Profile.RightStick.DeadzoneRadius = rDz;
+
+            LeftMetrics.CenterOffsetX = Profile.LeftStick.CenterOffsetX;
+            LeftMetrics.CenterOffsetY = Profile.LeftStick.CenterOffsetY;
+            RightMetrics.CenterOffsetX = Profile.RightStick.CenterOffsetX;
+            RightMetrics.CenterOffsetY = Profile.RightStick.CenterOffsetY;
 
             return (Profile.LeftStick.CenterOffsetX, Profile.LeftStick.CenterOffsetY, Profile.LeftStick.DeadzoneRadius,
                     Profile.RightStick.CenterOffsetX, Profile.RightStick.CenterOffsetY, Profile.RightStick.DeadzoneRadius);

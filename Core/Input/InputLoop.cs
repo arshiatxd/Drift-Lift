@@ -36,7 +36,11 @@ namespace DriftLift.Core.Input
         private readonly Thread _watcherThread;
         private volatile bool _running;
         private volatile bool _isVirtualOutputEnabled = true;
+        private volatile ushort _injectedMacroButtons = 0;
         private readonly VirtualController _persistentVirtualPad = new();
+
+        public ConcurrentDictionary<ushort, bool> TurboButtons { get; } = new();
+        public void SetInjectedMacroButtons(ushort buttons) => _injectedMacroButtons = buttons;
 
         public event Action? DevicesChanged;
         public IReadOnlyDictionary<string, ControllerProfilePair> Devices => _devices;
@@ -56,6 +60,7 @@ namespace DriftLift.Core.Input
 
         public InputLoop()
         {
+            _persistentVirtualPad.FeedbackReceived += PersistentVirtualPad_FeedbackReceived;
             _loopThread = new Thread(Loop)
             {
                 IsBackground = true,
@@ -68,6 +73,15 @@ namespace DriftLift.Core.Input
                 Priority = ThreadPriority.BelowNormal,
                 Name = "DriftLift.DeviceWatcherThread"
             };
+        }
+
+        private void PersistentVirtualPad_FeedbackReceived(double left, double right)
+        {
+            var pairs = _activePairsCache;
+            for (int i = 0; i < pairs.Length; i++)
+            {
+                try { pairs[i]?.Physical?.SetVibration(left, right); } catch { }
+            }
         }
 
         public void Start()
@@ -101,6 +115,7 @@ namespace DriftLift.Core.Input
                 try
                 {
                     ControllerState? outState = null;
+                    bool turboCycleOn = (Environment.TickCount64 / 25) % 2 == 0;
 
                     for (int i = 0; i < pairs.Length; i++)
                     {
@@ -125,6 +140,17 @@ namespace DriftLift.Core.Input
                         }
 
                         finalButtons |= (ushort)(rb & ~mappedSources);
+
+                        if (!turboCycleOn && TurboButtons.Count > 0)
+                        {
+                            foreach (var tb in TurboButtons)
+                            {
+                                if (tb.Value)
+                                    finalButtons &= (ushort)~tb.Key;
+                            }
+                        }
+
+                        finalButtons |= _injectedMacroButtons;
 
                         var correctedState = new ControllerState
                         {

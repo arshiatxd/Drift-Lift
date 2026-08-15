@@ -166,29 +166,41 @@
                         </Grid>
                         <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
                         
-                        <TextBlock Text="🛡 SYSTEM DIAGNOSTICS" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
+                        <TextBlock Text="🛡 SYSTEM DIAGNOSTICS &amp; METRICS" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,0,0,12"/>
                         <StackPanel Margin="0,0,0,16">
                             <Grid Margin="0,0,0,6">
                                 <TextBlock Text="{Binding BatteryPercentageText, StringFormat='🔋 {0}'}" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
                                 <TextBlock Text="OK" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Grid>
                             <Grid Margin="0,0,0,6">
-                                <TextBlock Text="🔌 USB Connection" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
-                                <TextBlock Text="CONNECTED" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                <TextBlock Text="Left Circularity Error" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="{Binding LeftLiveCircularity, StringFormat='{}{0:F1}%'}" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Right Circularity Error" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="{Binding RightLiveCircularity, StringFormat='{}{0:F1}%'}" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Left Avg Error" Foreground="{DynamicResource TextMuted}" FontSize="10"/>
+                                <TextBlock Text="{Binding LeftAvgCircularity, StringFormat='{}{0:F1}%'}" Foreground="{DynamicResource TextPrimary}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Right Avg Error" Foreground="{DynamicResource TextMuted}" FontSize="10"/>
+                                <TextBlock Text="{Binding RightAvgCircularity, StringFormat='{}{0:F1}%'}" Foreground="{DynamicResource TextPrimary}" FontSize="10" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                             </Grid>
                             <Grid>
-                                <TextBlock Text="✔ Controller Signature" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
-                                <TextBlock Text="VERIFIED" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                <TextBlock Text="✔ Virtual Bus Link" Foreground="{DynamicResource TextPrimary}" FontSize="11"/>
+                                <TextBlock Text="ACTIVE" Foreground="#2ECC71" FontSize="10" FontWeight="Bold" HorizontalAlignment="Right"/>
                             </Grid>
                         </StackPanel>
                         <Separator Background="{DynamicResource BorderBrush}" Margin="0,0,0,16"/>
                         
                         <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12">
                             <StackPanel>
-                                <TextBlock Text="⚠ INSTRUCTIONS" Foreground="#F39C12" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
-                                <TextBlock Text="• Maintain USB connection throughout the entire calibration process." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                <TextBlock Text="• Rotate thumbsticks in slow, complete 360° outer circles for range measurement." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                <TextBlock Text="• Permanent NVS save writes calibration parameters to profile memory." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap"/>
+                                <TextBlock Text="⚠ CALIBRATION GUIDE" Foreground="#F39C12" FontSize="11" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="• Release both sticks during Step 1 for true zero resting offset capture." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Rotate thumbsticks in full 360° circles during Step 2 for range sweep." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="• Step 4 permanently saves the calibrated deadzones and center bounds." Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
