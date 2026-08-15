@@ -419,44 +419,44 @@
             <!-- ============================================== -->
             <Canvas Visibility="{Binding IsPs5, Converter={StaticResource BoolToVis}}">
                 <!-- Face Buttons (Triangle, Circle, Cross, Square) -->
-                <Image Source="/Assets/PS5/DualSense_Triangle.png" Width="28.0" Height="28.0" Canvas.Left="325.6" Canvas.Top="99.0" Tag="{Binding IsYPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Triangle.png" Width="28.0" Height="28.0" Canvas.Left="331.0" Canvas.Top="100.0" Tag="{Binding IsYPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Triangle" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Circle.png" Width="28.0" Height="28.0" Canvas.Left="355.0" Canvas.Top="124.0" Tag="{Binding IsBPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Circle.png" Width="28.0" Height="28.0" Canvas.Left="359.0" Canvas.Top="129.0" Tag="{Binding IsBPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Circle" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Cross.png" Width="28.0" Height="28.0" Canvas.Left="325.6" Canvas.Top="149.0" Tag="{Binding IsAPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Cross.png" Width="28.0" Height="28.0" Canvas.Left="331.0" Canvas.Top="158.0" Tag="{Binding IsAPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Cross" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Square.png" Width="28.0" Height="28.0" Canvas.Left="296.0" Canvas.Top="124.0" Tag="{Binding IsXPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Square.png" Width="28.0" Height="28.0" Canvas.Left="303.0" Canvas.Top="129.0" Tag="{Binding IsXPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Square" />
                     </Image.InputBindings>
                 </Image>
                 
                 <!-- D-Pad (Up, Down, Left, Right) -->
-                <Image Source="/Assets/PS5/DualSense_D-PAD_Up.png" Width="26.0" Height="28.0" Canvas.Left="66.0" Canvas.Top="105.0" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_D-PAD_Up.png" Width="26.0" Height="28.0" Canvas.Left="67.0" Canvas.Top="106.0" Tag="{Binding IsDpadUpPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadUp" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_D-PAD_Down.png" Width="26.0" Height="28.0" Canvas.Left="66.0" Canvas.Top="146.0" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_D-PAD_Down.png" Width="26.0" Height="28.0" Canvas.Left="67.0" Canvas.Top="152.0" Tag="{Binding IsDpadDownPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadDown" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_D-PAD_Left.png" Width="28.0" Height="26.0" Canvas.Left="43.0" Canvas.Top="126.4" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_D-PAD_Left.png" Width="28.0" Height="26.0" Canvas.Left="43.0" Canvas.Top="130.0" Tag="{Binding IsDpadLeftPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadLeft" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_D-PAD_Right.png" Width="28.0" Height="26.0" Canvas.Left="88.0" Canvas.Top="124.2" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_D-PAD_Right.png" Width="28.0" Height="26.0" Canvas.Left="89.0" Canvas.Top="130.0" Tag="{Binding IsDpadRightPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="DpadRight" />
                     </Image.InputBindings>
@@ -487,36 +487,36 @@
                 </Image>
 
                 <!-- System Controls (Create, Options, PS Button, Mute) -->
-                <Image Source="/Assets/PS5/DualSense_Create_Button.png" Width="16.0" Height="26.0" Canvas.Left="103.0" Canvas.Top="87.0" Tag="{Binding IsSharePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Create_Button.png" Width="16.0" Height="24.0" Canvas.Left="104.0" Canvas.Top="82.0" Tag="{Binding IsSharePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Share" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Option_Button.png" Width="16.0" Height="26.0" Canvas.Left="301.0" Canvas.Top="87.0" Tag="{Binding IsOptionsPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Option_Button.png" Width="16.0" Height="24.0" Canvas.Left="300.0" Canvas.Top="82.0" Tag="{Binding IsOptionsPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Options" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Home_Button.png" Width="28.0" Height="15.5" Canvas.Left="197.4" Canvas.Top="169.8" Tag="{Binding IsGuidePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Home_Button.png" Width="28.0" Height="18.0" Canvas.Left="196.0" Canvas.Top="156.0" Tag="{Binding IsGuidePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Guide" />
                     </Image.InputBindings>
                 </Image>
-                <Image Source="/Assets/PS5/DualSense_Mute_Button.png" Width="20.0" Height="12.0" Canvas.Left="201.0" Canvas.Top="188.0" Tag="{Binding IsMutePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Mute_Button.png" Width="20.0" Height="10.0" Canvas.Left="200.0" Canvas.Top="184.0" Tag="{Binding IsMutePressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Mute" />
                     </Image.InputBindings>
                 </Image>
                 
                 <!-- Touchpad -->
-                <Image Source="/Assets/PS5/DualSense_Touchpad_Touch.png" Width="150.0" Height="64.0" Canvas.Left="135.0" Canvas.Top="72.0" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
+                <Image Source="/Assets/PS5/DualSense_Touchpad_Touch.png" Width="130.0" Height="64.0" Canvas.Left="145.0" Canvas.Top="73.0" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                     <Image.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
                     </Image.InputBindings>
                 </Image>
                 
                 <!-- Thumbsticks (Left & Right) -->
-                <Grid Canvas.Left="118.3" Canvas.Top="171.8" Width="46.0" Height="46.0">
+                <Grid Canvas.Left="125.0" Canvas.Top="166.0" Width="46.0" Height="46.0">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding PsLeftGraphicTranslateX}" Y="{Binding PsLeftGraphicTranslateY}"/>
                     </Grid.RenderTransform>
@@ -538,7 +538,7 @@
                         </Image.InputBindings>
                     </Image>
                 </Grid>
-                <Grid Canvas.Left="256.1" Canvas.Top="172.0" Width="46.0" Height="46.0">
+                <Grid Canvas.Left="249.0" Canvas.Top="166.0" Width="46.0" Height="46.0">
                     <Grid.RenderTransform>
                         <TranslateTransform X="{Binding PsRightGraphicTranslateX}" Y="{Binding PsRightGraphicTranslateY}"/>
                     </Grid.RenderTransform>
