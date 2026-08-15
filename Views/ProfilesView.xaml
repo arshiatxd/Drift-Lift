@@ -255,7 +255,29 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <Button Command="{Binding ActivateSelectedGameProfileCommand}" Content="⚡ ACTIVATE PROFILE" Style="{DynamicResource RedNeonBtn}" Padding="14,6" FontSize="11" Margin="0,0,8,0"/>
+                                    <Button Command="{Binding ActivateSelectedGameProfileCommand}" Content="⚡ ACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource RedNeonBtn}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedGameProfile.IsActive}" Value="True">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Command="{Binding DeactivateSelectedGameProfileCommand}" Content="⏹ DEACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedGameProfile.IsActive}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
                                     <Button Command="{Binding DeleteSelectedGameProfileCommand}" Content="🗑 DELETE" Style="{DynamicResource DefaultButtonStyle}" Padding="10,6" FontSize="11"/>
                                 </StackPanel>
                             </Grid>

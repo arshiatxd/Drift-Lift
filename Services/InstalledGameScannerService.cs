@@ -86,7 +86,6 @@ namespace DriftLift.Services
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // 1. Steam Directories from Registry
             try
             {
                 using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
@@ -95,7 +94,6 @@ namespace DriftLift.Services
                     string steamApps = Path.Combine(steamPath.Replace('/', '\\'), "steamapps", "common");
                     if (Directory.Exists(steamApps)) paths.Add(steamApps);
 
-                    // Check libraryfolders.vdf for extra drives
                     string vdfPath = Path.Combine(steamPath.Replace('/', '\\'), "steamapps", "libraryfolders.vdf");
                     if (File.Exists(vdfPath))
                     {
@@ -114,7 +112,6 @@ namespace DriftLift.Services
             }
             catch { }
 
-            // 2. Default paths
             string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 
@@ -129,7 +126,6 @@ namespace DriftLift.Services
             paths.Add(@"C:\GOG Games");
             paths.Add(@"C:\XboxGames");
 
-            // Check secondary drives
             foreach (var drive in DriveInfo.GetDrives())
             {
                 if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
@@ -155,14 +151,12 @@ namespace DriftLift.Services
                 if (valid.Count > 1)
                 {
                     string folderName = Path.GetFileName(folder);
-                    // Match name closest to folder name or largest binary
                     var exact = valid.FirstOrDefault(e => Path.GetFileNameWithoutExtension(e).Replace(" ", "").Contains(folderName.Replace(" ", ""), StringComparison.OrdinalIgnoreCase));
                     if (exact != null) return exact;
 
                     return valid.OrderByDescending(f => new FileInfo(f).Length).FirstOrDefault();
                 }
 
-                // Search 1 level deeper (e.g. Binaries/Win64)
                 var subExes = Directory.GetFiles(folder, "*.exe", SearchOption.AllDirectories)
                     .Where(e => !ExcludedExeNames.Contains(Path.GetFileName(e)) && !e.Contains(@"\Engine\", StringComparison.OrdinalIgnoreCase))
                     .Take(10)

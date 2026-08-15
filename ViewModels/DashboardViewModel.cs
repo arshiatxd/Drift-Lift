@@ -266,6 +266,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private bool _isXbox360;
         [ObservableProperty] private bool _isXboxOne;
         [ObservableProperty] private string _deviceModelText = "No Controller Connected";
+        [ObservableProperty] private string _controllerModelIconKey = "IconControllerDisconnected";
         [ObservableProperty] private string _deviceSerialText = "-";
         [ObservableProperty] private string _deviceFirmwareText = "Please connect a device via USB or Bluetooth.";
         [ObservableProperty] private string _batteryPercentageText = "Battery: --%";
@@ -670,28 +671,32 @@ namespace DriftLift.ViewModels
                 if (_activeProfile.Physical.Type == ControllerType.DualSense)
                 {
                     DeviceModelText = "PS5 DualSense";
-                    ControllerConnectionIcon = "🎮 PS5";
+                    ControllerConnectionIcon = "PS5";
+                    ControllerModelIconKey = "IconControllerDualSense";
                 }
                 else if (_activeProfile.Physical.Type == ControllerType.DualShock4)
                 {
                     DeviceModelText = "PS4 DualShock 4";
-                    ControllerConnectionIcon = "🎮 PS4";
+                    ControllerConnectionIcon = "PS4";
+                    ControllerModelIconKey = "IconControllerDualShock4";
                 }
                 else if (is360 || _activeProfile.Physical.DeviceName.Contains("360"))
                 {
                     IsXbox360 = true;
                     IsXboxOne = false;
                     DeviceModelText = "Xbox 360 Controller";
-                    ControllerConnectionIcon = "🎮 X360";
+                    ControllerConnectionIcon = "X360";
+                    ControllerModelIconKey = "IconControllerXbox";
                 }
                 else
                 {
                     DeviceModelText = "Xbox Wireless Controller";
-                    ControllerConnectionIcon = "🎮 XBOX";
+                    ControllerConnectionIcon = "XBOX";
+                    ControllerModelIconKey = "IconControllerXbox";
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.6";
+                DeviceFirmwareText = $"{connType} • v1.0.7";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
@@ -715,7 +720,8 @@ namespace DriftLift.ViewModels
                 IsXbox360 = false;
                 IsXboxOne = true;
                 DeviceModelText = "No Controller Connected";
-                ControllerConnectionIcon = "❌ NONE";
+                ControllerConnectionIcon = "NONE";
+                ControllerModelIconKey = "IconControllerDisconnected";
                 DeviceFirmwareText = "";
                 BatteryPercentageText = "Battery: --%";
                 BatteryPercentageShortText = "--%";
@@ -1333,6 +1339,17 @@ namespace DriftLift.ViewModels
             if (SelectedGameProfile != null)
             {
                 ApplyGameProfile(SelectedGameProfile);
+            }
+        }
+
+        [RelayCommand]
+        private void DeactivateSelectedGameProfile()
+        {
+            if (SelectedGameProfile != null)
+            {
+                SelectedGameProfile.IsActive = false;
+                RevertToDefaultProfile();
+                NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {SelectedGameProfile.GameName} profile deactivated");
             }
         }
 
