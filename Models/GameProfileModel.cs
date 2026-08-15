@@ -14,6 +14,7 @@ namespace DriftLift.Models
         [ObservableProperty] private string _iconGlyph = "🎮";
         [ObservableProperty] private System.Windows.Media.ImageSource? _gameIcon;
         [ObservableProperty] private string? _fullExecutablePath;
+        [ObservableProperty] private string? _customLogoPath;
         [ObservableProperty] private bool _isAutoSwitchEnabled = true;
         [ObservableProperty] private bool _isActive;
 

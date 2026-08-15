@@ -1247,105 +1247,7 @@ namespace DriftLift.ViewModels
         private void InitializeDefaultGameProfiles()
         {
             GameProfiles.Clear();
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "EA Sports FC 25 / 24",
-                ExecutableName = "fc25.exe, fc24.exe, fc26.exe, fc27.exe",
-                Category = "Sports",
-                IconGlyph = "⚽",
-                LeftStickDeadzone = 3.0,
-                RightStickDeadzone = 3.0,
-                StickSensitivity = 1.0,
-                IsAutoSwitchEnabled = true
-            });
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "Rocket League",
-                ExecutableName = "rocketleague.exe",
-                Category = "Arcade Driving",
-                IconGlyph = "🏎️",
-                LeftStickDeadzone = 5.0,
-                RightStickDeadzone = 5.0,
-                StickSensitivity = 1.2,
-                IsAutoSwitchEnabled = true
-            });
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "Call of Duty: Warzone",
-                ExecutableName = "cod.exe, bootstrapper.exe",
-                Category = "FPS Combat",
-                IconGlyph = "🎯",
-                LeftStickDeadzone = 4.0,
-                RightStickDeadzone = 4.0,
-                StickSensitivity = 1.1,
-                IsAutoSwitchEnabled = true
-            });
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "Apex Legends",
-                ExecutableName = "r5apex.exe",
-                Category = "Battle Royale",
-                IconGlyph = "👑",
-                LeftStickDeadzone = 3.0,
-                RightStickDeadzone = 3.0,
-                StickSensitivity = 1.0,
-                IsAutoSwitchEnabled = true
-            });
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "Fortnite",
-                ExecutableName = "fortniteclient-win64-shipping.exe",
-                Category = "Battle Royale",
-                IconGlyph = "⚡",
-                LeftStickDeadzone = 6.0,
-                RightStickDeadzone = 6.0,
-                StickSensitivity = 1.0,
-                IsAutoSwitchEnabled = true
-            });
-            GameProfiles.Add(new GameProfileModel
-            {
-                GameName = "Forza Horizon 5",
-                ExecutableName = "forzahorizon5.exe, forzahorizon4.exe",
-                Category = "Racing Simulation",
-                IconGlyph = "🏁",
-                LeftStickDeadzone = 2.0,
-                RightStickDeadzone = 2.0,
-                StickSensitivity = 1.0,
-                IsAutoSwitchEnabled = true
-            });
-
-            SelectedGameProfile = GameProfiles.FirstOrDefault();
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    var installed = await InstalledGameScannerService.ScanAllInstalledGamesAsync();
-                    if (installed.Count > 0 && Application.Current != null)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            foreach (var profile in GameProfiles)
-                            {
-                                if (profile.GameIcon == null)
-                                {
-                                    var match = installed.FirstOrDefault(i =>
-                                        profile.ExecutableName.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                            .Any(e => e.Trim().Equals(i.ExecutableName, StringComparison.OrdinalIgnoreCase)) ||
-                                        profile.GameName.Equals(i.Title, StringComparison.OrdinalIgnoreCase));
-
-                                    if (match != null)
-                                    {
-                                        profile.GameIcon = match.Icon;
-                                        profile.FullExecutablePath = match.ExecutablePath;
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }
-                catch { }
-            });
+            SelectedGameProfile = null;
         }
 
         private void OnActiveGameChanged(string activeExe)
@@ -1473,6 +1375,7 @@ namespace DriftLift.ViewModels
                     GameProfiles.Add(newProfile);
                 }
 
+                if (SelectedGameProfile == null) SelectedGameProfile = GameProfiles.FirstOrDefault();
                 NotificationRequested?.Invoke("Installed Games Imported", $"Successfully linked {dlg.SelectedGames.Count} games with auto-profiles.");
             }
         }
@@ -1517,9 +1420,36 @@ namespace DriftLift.ViewModels
         }
 
         [RelayCommand]
+        private void ChangeSelectedGameLogo()
+        {
+            if (SelectedGameProfile == null) return;
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.ico;*.webp;*.bmp)|*.png;*.jpg;*.jpeg;*.ico;*.webp;*.bmp|All Files (*.*)|*.*",
+                Title = "Select Custom Game Logo"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var bi = new System.Windows.Media.Imaging.BitmapImage();
+                    bi.BeginInit();
+                    bi.UriSource = new Uri(dialog.FileName);
+                    bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bi.EndInit();
+                    bi.Freeze();
+
+                    SelectedGameProfile.GameIcon = bi;
+                    SelectedGameProfile.CustomLogoPath = dialog.FileName;
+                }
+                catch { }
+            }
+        }
+
+        [RelayCommand]
         private void DeleteSelectedGameProfile()
         {
-            if (SelectedGameProfile != null && GameProfiles.Count > 1)
+            if (SelectedGameProfile != null && GameProfiles.Count > 0)
             {
                 var toRemove = SelectedGameProfile;
                 int idx = GameProfiles.IndexOf(toRemove);
