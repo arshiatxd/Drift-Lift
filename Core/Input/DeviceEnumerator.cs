@@ -81,6 +81,46 @@ namespace DriftLift.Core.Input
             0x057E
         };
 
+        public static bool IsGameController(HidDevice? dev)
+        {
+            if (dev == null || IsVirtualDevice(dev)) return false;
+
+            int vid = dev.Attributes.VendorId;
+            string desc = dev.Description ?? string.Empty;
+
+            if (desc.Contains("System Controller", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Consumer Control", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Keyboard", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Mouse", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Webcam", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Camera", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Audio", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (PlayStationVendorIds.Contains(vid)
+                || desc.Contains("DualSense", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
+                || desc.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (vid == 0x045E && (desc.Contains("Xbox", StringComparison.OrdinalIgnoreCase) || desc.Contains("Controller", StringComparison.OrdinalIgnoreCase) || desc.Contains("Gamepad", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            if (KnownPhysicalControllerVendorIds.Contains(vid)
+                && (desc.Contains("Controller", StringComparison.OrdinalIgnoreCase) || desc.Contains("Gamepad", StringComparison.OrdinalIgnoreCase) || desc.Contains("Joystick", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static List<string> GetAllPhysicalControllerInstanceIds()
         {
             var list = new List<string>();
@@ -89,29 +129,12 @@ namespace DriftLift.Core.Input
                 var allHid = HidDevices.Enumerate();
                 foreach (var dev in allHid)
                 {
-                    if (IsVirtualDevice(dev)) continue;
+                    if (dev == null || !IsGameController(dev)) continue;
 
-                    int vid = dev.Attributes.VendorId;
-                    string desc = dev.Description ?? string.Empty;
-
-                    bool isController = KnownPhysicalControllerVendorIds.Contains(vid)
-                        || desc.Contains("Controller", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("Gamepad", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("Joystick", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("DualSense", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("Xbox", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("360", StringComparison.OrdinalIgnoreCase)
-                        || desc.Contains("PlayStation", StringComparison.OrdinalIgnoreCase);
-
-                    if (isController)
+                    string id = ExtractInstanceId(dev.DevicePath);
+                    if (!string.IsNullOrEmpty(id) && id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase) && !list.Contains(id))
                     {
-                        string id = ExtractInstanceId(dev.DevicePath);
-                        if (!string.IsNullOrEmpty(id) && !list.Contains(id))
-                        {
-                            list.Add(id);
-                        }
+                        list.Add(id);
                     }
                 }
             }

@@ -93,15 +93,15 @@ namespace DriftLift.Services
                 try { svc.IsAppListInverted = false; } catch { }
                 WhitelistCurrentProcess(svc);
 
-                // Clean up any legacy or invalid entries
+                // Clean up any non-HID or legacy invalid entries
                 try
                 {
-                    foreach (var id in svc.BlockedInstanceIds)
+                    var invalidEntries = svc.BlockedInstanceIds
+                        .Where(id => string.IsNullOrWhiteSpace(id) || !id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                    foreach (var inv in invalidEntries)
                     {
-                        if (string.IsNullOrWhiteSpace(id) || id.StartsWith("XINPUT_", StringComparison.OrdinalIgnoreCase))
-                        {
-                            try { svc.RemoveBlockedInstanceId(id); } catch { }
-                        }
+                        try { svc.RemoveBlockedInstanceId(inv); } catch { }
                     }
                 }
                 catch { }
@@ -109,41 +109,12 @@ namespace DriftLift.Services
                 var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
                 foreach (var id in controllerIds)
                 {
-                    if (string.IsNullOrWhiteSpace(id) || id.StartsWith("XINPUT_", StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(id) || !id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     try
                     {
                         svc.AddBlockedInstanceId(id);
-                    }
-                    catch { }
-
-                    try
-                    {
-                        PnPDevice? pnp = null;
-                        try { pnp = PnPDevice.GetDeviceByInstanceId(id); } catch { }
-                        if (pnp is not null)
-                        {
-                            try
-                            {
-                                var parent = pnp.Parent;
-                                if (parent != null && !string.IsNullOrEmpty(parent.InstanceId)
-                                    && !parent.InstanceId.StartsWith("USB\\ROOT_HUB", StringComparison.OrdinalIgnoreCase)
-                                    && !parent.InstanceId.StartsWith("PCI\\", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    try { svc.AddBlockedInstanceId(parent.InstanceId); } catch { }
-                                }
-                            }
-                            catch { }
-
-                            try
-                            {
-#pragma warning disable CS0618
-                                pnp.Restart();
-#pragma warning restore CS0618
-                            }
-                            catch { }
-                        }
                     }
                     catch { }
                 }
