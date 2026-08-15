@@ -1315,6 +1315,37 @@ namespace DriftLift.ViewModels
             });
 
             SelectedGameProfile = GameProfiles.FirstOrDefault();
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var installed = await InstalledGameScannerService.ScanAllInstalledGamesAsync();
+                    if (installed.Count > 0 && Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            foreach (var profile in GameProfiles)
+                            {
+                                if (profile.GameIcon == null)
+                                {
+                                    var match = installed.FirstOrDefault(i =>
+                                        profile.ExecutableName.Split(new[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                            .Any(e => e.Trim().Equals(i.ExecutableName, StringComparison.OrdinalIgnoreCase)) ||
+                                        profile.GameName.Equals(i.Title, StringComparison.OrdinalIgnoreCase));
+
+                                    if (match != null)
+                                    {
+                                        profile.GameIcon = match.Icon;
+                                        profile.FullExecutablePath = match.ExecutablePath;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+                catch { }
+            });
         }
 
         private void OnActiveGameChanged(string activeExe)
@@ -1404,6 +1435,49 @@ namespace DriftLift.ViewModels
         }
 
         [RelayCommand]
+        private async Task ScanInstalledGames()
+        {
+            var dlg = new Views.Windows.ScanGamesDialog
+            {
+                Owner = Application.Current?.MainWindow
+            };
+            if (dlg.ShowDialog() == true && dlg.SelectedGames.Count > 0)
+            {
+                foreach (var g in dlg.SelectedGames)
+                {
+                    var existing = GameProfiles.FirstOrDefault(p =>
+                        p.ExecutableName.Equals(g.ExecutableName, StringComparison.OrdinalIgnoreCase) ||
+                        p.GameName.Equals(g.Title, StringComparison.OrdinalIgnoreCase));
+
+                    if (existing != null)
+                    {
+                        existing.GameIcon = g.Icon ?? existing.GameIcon;
+                        existing.FullExecutablePath = g.ExecutablePath;
+                        existing.IsAutoSwitchEnabled = true;
+                        continue;
+                    }
+
+                    var newProfile = new GameProfileModel
+                    {
+                        GameName = g.Title,
+                        ExecutableName = g.ExecutableName,
+                        Category = g.Category,
+                        IconGlyph = "🎮",
+                        GameIcon = g.Icon,
+                        FullExecutablePath = g.ExecutablePath,
+                        LeftStickDeadzone = g.Category.Contains("FPS") ? 3.0 : (g.Category.Contains("Racing") ? 2.0 : 4.0),
+                        RightStickDeadzone = g.Category.Contains("FPS") ? 3.0 : (g.Category.Contains("Racing") ? 2.0 : 4.0),
+                        StickSensitivity = 1.0,
+                        IsAutoSwitchEnabled = true
+                    };
+                    GameProfiles.Add(newProfile);
+                }
+
+                NotificationRequested?.Invoke("Installed Games Imported", $"Successfully linked {dlg.SelectedGames.Count} games with auto-profiles.");
+            }
+        }
+
+        [RelayCommand]
         private void AddCustomGame()
         {
             var newProfile = new GameProfileModel
@@ -1432,7 +1506,9 @@ namespace DriftLift.ViewModels
             };
             if (dialog.ShowDialog() == true)
             {
+                SelectedGameProfile.FullExecutablePath = dialog.FileName;
                 SelectedGameProfile.ExecutableName = Path.GetFileName(dialog.FileName).ToLowerInvariant();
+                SelectedGameProfile.GameIcon = GameIconExtractor.GetExecutableIcon(dialog.FileName);
                 if (SelectedGameProfile.GameName == "Custom Game" || string.IsNullOrWhiteSpace(SelectedGameProfile.GameName))
                 {
                     SelectedGameProfile.GameName = Path.GetFileNameWithoutExtension(dialog.FileName);

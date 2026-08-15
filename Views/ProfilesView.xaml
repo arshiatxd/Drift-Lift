@@ -22,7 +22,8 @@
                     <TextBlock Text="Drift Lift dynamically activates game-specific deadzones and curves the exact millisecond your game window gains focus" Foreground="{DynamicResource TextSecondary}" FontSize="11"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding AddCustomGameCommand}" Content="+ ADD CUSTOM GAME" Style="{DynamicResource RedNeonBtn}" Padding="16,8" FontSize="11" Margin="0,0,8,0"/>
+                    <Button Command="{Binding ScanInstalledGamesCommand}" Content="🔍 SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="16,8" FontSize="11" Margin="0,0,8,0"/>
+                    <Button Command="{Binding AddCustomGameCommand}" Content="+ ADD CUSTOM" Style="{DynamicResource DefaultButtonStyle}" Padding="12,8" FontSize="11" Margin="0,0,8,0"/>
                     <Button Command="{Binding ResetGameProfilesCommand}" Content="↺ RESET DEFAULTS" Style="{DynamicResource DefaultButtonStyle}" Padding="12,8" FontSize="11"/>
                 </StackPanel>
             </Grid>
@@ -65,7 +66,35 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding IconGlyph}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            
+                                            <!-- Game Icon / Fallback Glyph -->
+                                            <Grid Grid.Column="0" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding IconGlyph}" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding GameIcon}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <Image Source="{Binding GameIcon}" Width="28" Height="28" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding GameIcon}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </Grid>
+
                                             <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding GameName}" Foreground="{DynamicResource TextPrimary}" FontSize="12" FontWeight="Bold"/>
                                                 <TextBlock Text="{Binding ExecutableName}" Foreground="{DynamicResource TextMuted}" FontSize="10"/>
@@ -112,11 +141,39 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding SelectedGameProfile.GameName, FallbackValue='No Game Selected'}" Foreground="{DynamicResource TextPrimary}" FontSize="16" FontWeight="Black"/>
-                                <TextBlock Text="{Binding SelectedGameProfile.Category, StringFormat='Category: {0}', FallbackValue=''}" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,2,0,0"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Grid Width="34" Height="34" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedGameProfile.IconGlyph}" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedGameProfile.GameIcon}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <Image Source="{Binding SelectedGameProfile.GameIcon}" Width="32" Height="32" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedGameProfile.GameIcon}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
+                                </Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SelectedGameProfile.GameName, FallbackValue='No Game Selected'}" Foreground="{DynamicResource TextPrimary}" FontSize="16" FontWeight="Black"/>
+                                    <TextBlock Text="{Binding SelectedGameProfile.Category, StringFormat='Category: {0}', FallbackValue=''}" Foreground="{DynamicResource RedNeon}" FontSize="11" FontWeight="Bold" Margin="0,2,0,0"/>
+                                </StackPanel>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <Button Command="{Binding ActivateSelectedGameProfileCommand}" Content="⚡ ACTIVATE PROFILE" Style="{DynamicResource RedNeonBtn}" Padding="14,6" FontSize="11" Margin="0,0,8,0"/>
                                 <Button Command="{Binding DeleteSelectedGameProfileCommand}" Content="🗑 DELETE" Style="{DynamicResource DefaultButtonStyle}" Padding="10,6" FontSize="11"/>
                             </StackPanel>

@@ -116,17 +116,17 @@
                         </StackPanel>
                     </StackPanel>
                     <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Background="{DynamicResource SubCardBg}" CornerRadius="0" Padding="12,5">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="PROFILE: " Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                            Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="PROFILE" Foreground="{DynamicResource RedNeon}" FontSize="10" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox ItemsSource="{Binding AvailableProfiles}"
                                       SelectedItem="{Binding CurrentProfile, Mode=TwoWay}"
                                       Style="{DynamicResource ProfileComboBox}"
-                                      Width="160" Margin="6,0,0,0"/>
-                            <Button Command="{Binding NewProfileCommand}" Content="+" Style="{DynamicResource HeaderIconBtn}" ToolTip="New Profile" Margin="4,0,0,0"/>
-                            <Button Command="{Binding SaveProfileCommand}" Content="💾" Style="{DynamicResource HeaderIconBtn}" ToolTip="Save Profile" Margin="2,0,0,0"/>
-                            <Button Command="{Binding ImportProfileCommand}" Content="📥" Style="{DynamicResource HeaderIconBtn}" ToolTip="Import Profile" Margin="2,0,0,0"/>
-                            <Button Command="{Binding ExportProfileCommand}" Content="📤" Style="{DynamicResource HeaderIconBtn}" ToolTip="Export Profile" Margin="2,0,0,0"/>
+                                      Width="170"/>
+                            <Button Command="{Binding NewProfileCommand}" Content="+" Style="{DynamicResource HeaderIconBtn}" ToolTip="New Profile" Margin="6,0,0,0"/>
+                            <Button Command="{Binding SaveProfileCommand}" Content="💾" Style="{DynamicResource HeaderIconBtn}" ToolTip="Save Profile" Margin="3,0,0,0"/>
+                            <Button Command="{Binding ImportProfileCommand}" Content="📥" Style="{DynamicResource HeaderIconBtn}" ToolTip="Import Profile" Margin="3,0,0,0"/>
+                            <Button Command="{Binding ExportProfileCommand}" Content="📤" Style="{DynamicResource HeaderIconBtn}" ToolTip="Export Profile" Margin="3,0,0,0"/>
                         </StackPanel>
                     </Border>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -175,10 +175,10 @@
                                 HorizontalContentAlignment="Left"
                                 Click="SidebarToggle_Click"
                                 Padding="0,14"
-                                Margin="0,0,0,4">
+                                Margin="0,0,0,4"
+                                ToolTip="Toggle Navigation Menu">
                             <Grid Width="180" HorizontalAlignment="Left">
-                                <TextBlock Text="☰" FontSize="14" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Width="28" TextAlignment="Center" Margin="14,0,0,0"/>
-                                <TextBlock Text="COLLAPSE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Margin="48,0,0,0" x:Name="CollapseLbl"/>
+                                <TextBlock Text="☰" FontSize="15" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" Width="28" TextAlignment="Center" Margin="14,0,0,0"/>
                             </Grid>
                         </Button>
                         <StackPanel Grid.Row="1">
