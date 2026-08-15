@@ -187,6 +187,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private bool _isOptionsPressed;
         [ObservableProperty] private bool _isSharePressed;
         [ObservableProperty] private bool _isTouchpadPressed;
+        [ObservableProperty] private bool _isMutePressed;
         [ObservableProperty] private bool _isGuidePressed;
         [ObservableProperty] private bool _isVibrating;
         [ObservableProperty] private double _vibrationTimeRemaining;
@@ -196,6 +197,8 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private Brush _connectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
         [ObservableProperty] private string _activeControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
         [ObservableProperty] private bool _isPlayStation = true;
+        [ObservableProperty] private bool _isPs4 = true;
+        [ObservableProperty] private bool _isPs5;
         [ObservableProperty] private bool _isXbox360;
         [ObservableProperty] private bool _isXboxOne;
         [ObservableProperty] private string _deviceModelText = "No Controller Connected";
@@ -609,11 +612,14 @@ namespace DriftLift.ViewModels
             {
                 ConnectionStatusText = $"CONNECTED: {_activeProfile.Physical.DeviceName.ToUpper()}";
                 ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
-                bool isPs = _activeProfile.Physical.Type == ControllerType.DualSense || _activeProfile.Physical.Type == ControllerType.DualShock4;
+                bool isPs5 = _activeProfile.Physical.Type == ControllerType.DualSense;
+                bool isPs4 = _activeProfile.Physical.Type == ControllerType.DualShock4;
                 bool is360 = _activeProfile.Physical.Type == ControllerType.Xbox360;
                 bool isXbOne = _activeProfile.Physical.Type == ControllerType.Xbox;
 
-                IsPlayStation = isPs;
+                IsPs5 = isPs5;
+                IsPs4 = isPs4;
+                IsPlayStation = isPs4 || isPs5;
                 IsXbox360 = is360;
                 IsXboxOne = isXbOne;
 
@@ -644,10 +650,10 @@ namespace DriftLift.ViewModels
                 DeviceFirmwareText = $"{connType} • v1.0.5";
                 
                 UpdateBatteryMetrics();
-                UpdateMappingsForControllerType(isPs);
-                ActiveControllerImagePath = isPs ? "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png" : "pack://application:,,,/DriftliftApp;component/Assets/xbox_placeholder.png";
+                UpdateMappingsForControllerType(IsPlayStation);
+                ActiveControllerImagePath = IsPlayStation ? "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png" : "pack://application:,,,/DriftliftApp;component/Assets/xbox_placeholder.png";
 
-                if (isPs)
+                if (IsPlayStation)
                 {
                     byte finalR = (byte)(PsLedRed * PsLedBrightness);
                     byte finalG = (byte)(PsLedGreen * PsLedBrightness);
@@ -660,6 +666,8 @@ namespace DriftLift.ViewModels
                 ConnectionStatusText = "DISCONNECTED";
                 ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
                 IsPlayStation = false;
+                IsPs4 = false;
+                IsPs5 = false;
                 IsXbox360 = false;
                 IsXboxOne = true;
                 DeviceModelText = "No Controller Connected";
