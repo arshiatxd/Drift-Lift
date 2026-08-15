@@ -1,6 +1,6 @@
 [Setup]
 AppName=Drift Lift
-AppVersion=1.0.5
+AppVersion=1.0.6
 AppPublisher=DriftTeam
 AppCopyright=© 2026 DriftTeam. All rights reserved.
 DefaultDirName={autopf}\DriftLift
