@@ -75,6 +75,16 @@ dotnet publish -c Release -o ./publish
 
 ---
 
+## Microsoft Store Support
+
+Drift Lift is built for seamless packaging and deployment to the Microsoft Store as a high-performance Win32 application. See [`STORE_RELEASE_GUIDE.md`](STORE_RELEASE_GUIDE.md) for full Partner Center submission instructions, privacy policy compliance, and automated silent arguments:
+
+```bash
+# Silent unattended installation
+DriftLift_Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+```
+
+---
 
 ## Troubleshooting
 

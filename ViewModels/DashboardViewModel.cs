@@ -33,6 +33,13 @@ namespace DriftLift.ViewModels
         private ObservableCollection<CustomMapping> _activeMappings = new ObservableCollection<CustomMapping>();
         public ObservableCollection<GameProfileModel> GameProfiles { get; } = new();
         [ObservableProperty] private GameProfileModel? _selectedGameProfile;
+        partial void OnSelectedGameProfileChanged(GameProfileModel? oldValue, GameProfileModel? newValue)
+        {
+            if (oldValue != null)
+            {
+                SaveGameProfilesToDisk();
+            }
+        }
         [ObservableProperty] private bool _isAutoSwitchingGlobalEnabled = true;
         [ObservableProperty] private object _currentView = null!;
         [ObservableProperty] private bool _isWaitingForInput;
@@ -307,6 +314,7 @@ namespace DriftLift.ViewModels
             _vibrationTimer.Tick += VibrationTimer_Tick;
 
             InitializeDefaultGameProfiles();
+            LoadUserMappingsAndMacros();
             _gameWatcher = new GameWatcherService();
             _gameWatcher.ActiveGameChanged += OnActiveGameChanged;
             _gameWatcher.Start();
@@ -475,16 +483,32 @@ namespace DriftLift.ViewModels
         }
         public void UpdateActiveMappingsTable()
         {
-            ActiveMappings.Clear();
             if (_activeProfile != null)
             {
-                foreach (var kvp in _activeProfile.Remaps)
+                if (_activeProfile.Remaps.Count == 0 && ActiveMappings.Count > 0)
                 {
-                    ActiveMappings.Add(new CustomMapping
+                    foreach (var map in ActiveMappings)
                     {
-                        SourceButton = GetButtonName(kvp.Key),
-                        TargetButton = GetButtonName(kvp.Value)
-                    });
+                        ushort src = GetBitFromName(map.SourceButton);
+                        ushort tgt = GetBitFromName(map.TargetButton);
+                        if (src != 0 && tgt != 0)
+                        {
+                            _activeProfile.Remaps[src] = tgt;
+                        }
+                    }
+                }
+                else
+                {
+                    ActiveMappings.Clear();
+                    foreach (var kvp in _activeProfile.Remaps)
+                    {
+                        ActiveMappings.Add(new CustomMapping
+                        {
+                            SourceButton = GetButtonName(kvp.Key),
+                            TargetButton = GetButtonName(kvp.Value)
+                        });
+                    }
+                    SaveUserMappingsAndMacros();
                 }
             }
             foreach (var r in FaceButtonsRemap) r.RefreshTarget();
@@ -973,6 +997,61 @@ namespace DriftLift.ViewModels
             _vibrationTimer.Start();
         }
         // ##== Profile & Mapping Management ==##
+        public void SaveUserMappingsAndMacros()
+        {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
+                Directory.CreateDirectory(folder);
+                string mapPath = Path.Combine(folder, "user_mappings.json");
+                string macroPath = Path.Combine(folder, "user_macros.json");
+
+                File.WriteAllText(mapPath, JsonSerializer.Serialize(ActiveMappings, new JsonSerializerOptions { WriteIndented = true }));
+                File.WriteAllText(macroPath, JsonSerializer.Serialize(ActiveMacros, new JsonSerializerOptions { WriteIndented = true }));
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "SaveUserMappingsAndMacros");
+            }
+        }
+
+        public void LoadUserMappingsAndMacros()
+        {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
+                string mapPath = Path.Combine(folder, "user_mappings.json");
+                string macroPath = Path.Combine(folder, "user_macros.json");
+
+                if (File.Exists(mapPath))
+                {
+                    string json = File.ReadAllText(mapPath);
+                    var loadedMaps = JsonSerializer.Deserialize<ObservableCollection<CustomMapping>>(json);
+                    if (loadedMaps != null && loadedMaps.Count > 0)
+                    {
+                        ActiveMappings.Clear();
+                        foreach (var m in loadedMaps) ActiveMappings.Add(m);
+                    }
+                }
+
+                if (File.Exists(macroPath))
+                {
+                    string json = File.ReadAllText(macroPath);
+                    var loadedMacros = JsonSerializer.Deserialize<ObservableCollection<MacroItem>>(json);
+                    if (loadedMacros != null && loadedMacros.Count > 0)
+                    {
+                        ActiveMacros.Clear();
+                        foreach (var m in loadedMacros) ActiveMacros.Add(m);
+                        ActiveMacro = ActiveMacros.FirstOrDefault();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "LoadUserMappingsAndMacros");
+            }
+        }
+
         [RelayCommand]
         private void NewProfile()
         {
@@ -982,6 +1061,7 @@ namespace DriftLift.ViewModels
                 _activeProfile.Remaps.Clear();
                 UpdateMappingsForControllerType(IsPlayStation);
             }
+            SaveUserMappingsAndMacros();
             DriftLift.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
@@ -1016,6 +1096,7 @@ namespace DriftLift.ViewModels
                             }
                             UpdateMappingsForControllerType(IsPlayStation);
                         }
+                        SaveUserMappingsAndMacros();
                         DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
@@ -1057,17 +1138,25 @@ namespace DriftLift.ViewModels
         [RelayCommand]
         private void AutoMap()
         {
-            if (_activeProfile != null)
+            bool confirm = DriftLift.Views.Windows.CustomMessageDialog.Show(
+                "Are you sure you want to reset all button mappings to default 1:1 layout?",
+                "RESET MAPPINGS", true);
+            if (confirm)
             {
-                _activeProfile.Remaps.Clear();
-                UpdateMappingsForControllerType(IsPlayStation);
+                if (_activeProfile != null)
+                {
+                    _activeProfile.Remaps.Clear();
+                    UpdateMappingsForControllerType(IsPlayStation);
+                }
+                SaveUserMappingsAndMacros();
+                DriftLift.Views.Windows.CustomMessageDialog.Show("Mappings reset to default 1:1 layout.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            DriftLift.Views.Windows.CustomMessageDialog.Show("Mappings reset to default 1:1 layout.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void AddMapping()
         {
             ActiveMappings.Add(new CustomMapping { SourceButton = "NEW", TargetButton = "UNMAPPED" });
+            SaveUserMappingsAndMacros();
         }
         [RelayCommand]
         private void AddMacro()
@@ -1087,6 +1176,7 @@ namespace DriftLift.ViewModels
             newM.Steps.Add(new MacroStep { ButtonName = "Cross", ButtonMask = 0x1000, DelayMs = 50 });
             ActiveMacros.Add(newM);
             ActiveMacro = newM;
+            SaveUserMappingsAndMacros();
         }
         [RelayCommand]
         private void ToggleRecordMacro()
@@ -1249,11 +1339,76 @@ namespace DriftLift.ViewModels
             SidebarColumnWidth = IsSidebarExpanded ? 250 : 60;
         }
 
-        // ##== Game Profile Auto-Switching Engine ==##
-        private void InitializeDefaultGameProfiles()
+        // ##== Game Profile Auto-Switching Engine & Persistent Disk Cache ==##
+        public void SaveGameProfilesToDisk()
         {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
+                Directory.CreateDirectory(folder);
+                string filePath = Path.Combine(folder, "game_profiles.json");
+                string json = JsonSerializer.Serialize(GameProfiles, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "SaveGameProfilesToDisk");
+            }
+        }
+
+        public void LoadGameProfilesFromDisk()
+        {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
+                string filePath = Path.Combine(folder, "game_profiles.json");
+                if (File.Exists(filePath))
+                {
+                    string json = File.ReadAllText(filePath);
+                    var loaded = JsonSerializer.Deserialize<ObservableCollection<GameProfileModel>>(json);
+                    if (loaded != null && loaded.Count > 0)
+                    {
+                        GameProfiles.Clear();
+                        foreach (var p in loaded)
+                        {
+                            p.IsActive = false;
+                            if (!string.IsNullOrEmpty(p.CustomLogoPath) && File.Exists(p.CustomLogoPath))
+                            {
+                                try
+                                {
+                                    var bi = new System.Windows.Media.Imaging.BitmapImage();
+                                    bi.BeginInit();
+                                    bi.UriSource = new Uri(p.CustomLogoPath);
+                                    bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                                    bi.EndInit();
+                                    bi.Freeze();
+                                    p.GameIcon = bi;
+                                }
+                                catch { }
+                            }
+                            else if (!string.IsNullOrEmpty(p.FullExecutablePath) && File.Exists(p.FullExecutablePath))
+                            {
+                                p.GameIcon = GameIconExtractor.GetExecutableIcon(p.FullExecutablePath);
+                            }
+                            GameProfiles.Add(p);
+                        }
+                        SelectedGameProfile = GameProfiles.FirstOrDefault();
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "LoadGameProfilesFromDisk");
+            }
+
             GameProfiles.Clear();
             SelectedGameProfile = null;
+        }
+
+        private void InitializeDefaultGameProfiles()
+        {
+            LoadGameProfilesFromDisk();
         }
 
         private void OnActiveGameChanged(string activeExe)
@@ -1393,6 +1548,7 @@ namespace DriftLift.ViewModels
                 }
 
                 if (SelectedGameProfile == null) SelectedGameProfile = GameProfiles.FirstOrDefault();
+                SaveGameProfilesToDisk();
                 NotificationRequested?.Invoke("Installed Games Imported", $"Successfully linked {dlg.SelectedGames.Count} games with auto-profiles.");
             }
         }
@@ -1413,6 +1569,7 @@ namespace DriftLift.ViewModels
             };
             GameProfiles.Add(newProfile);
             SelectedGameProfile = newProfile;
+            SaveGameProfilesToDisk();
         }
 
         [RelayCommand]
@@ -1433,6 +1590,7 @@ namespace DriftLift.ViewModels
                 {
                     SelectedGameProfile.GameName = Path.GetFileNameWithoutExtension(dialog.FileName);
                 }
+                SaveGameProfilesToDisk();
             }
         }
 
@@ -1458,6 +1616,7 @@ namespace DriftLift.ViewModels
 
                     SelectedGameProfile.GameIcon = bi;
                     SelectedGameProfile.CustomLogoPath = dialog.FileName;
+                    SaveGameProfilesToDisk();
                 }
                 catch { }
             }
@@ -1472,13 +1631,28 @@ namespace DriftLift.ViewModels
                 int idx = GameProfiles.IndexOf(toRemove);
                 GameProfiles.Remove(toRemove);
                 SelectedGameProfile = GameProfiles.ElementAtOrDefault(Math.Max(0, idx - 1)) ?? GameProfiles.FirstOrDefault();
+                SaveGameProfilesToDisk();
             }
         }
 
         [RelayCommand]
         private void ResetGameProfiles()
         {
-            InitializeDefaultGameProfiles();
+            bool confirm = DriftLift.Views.Windows.CustomMessageDialog.Show(
+                "Are you sure you want to clear all linked game profiles?",
+                "CLEAR PROFILES", true);
+            if (confirm)
+            {
+                GameProfiles.Clear();
+                SelectedGameProfile = null;
+                try
+                {
+                    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
+                    string filePath = Path.Combine(folder, "game_profiles.json");
+                    if (File.Exists(filePath)) File.Delete(filePath);
+                }
+                catch { }
+            }
         }
         // ##== Calibration & Auto-Fix Engine ==##
         [RelayCommand]
@@ -1579,6 +1753,87 @@ namespace DriftLift.ViewModels
             catch (Exception ex)
             {
                 DriftLift.Views.Windows.CustomMessageDialog.Show($"Failed to save config: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        [RelayCommand]
+        private void OpenSavedConfigsFolder()
+        {
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
+                Directory.CreateDirectory(folder);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = folder,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                DriftLift.Views.Windows.CustomMessageDialog.Show($"Failed to open folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        [RelayCommand]
+        private void DeleteSavedConfigFile(string? fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return;
+            bool confirm = DriftLift.Views.Windows.CustomMessageDialog.Show(
+                $"Are you sure you want to permanently delete preset '{fileName}'?",
+                "DELETE PRESET", true);
+            if (confirm)
+            {
+                try
+                {
+                    string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
+                    string path = Path.Combine(folder, fileName);
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                        RefreshSavedConfigFiles();
+                        DriftLift.Views.Windows.CustomMessageDialog.Show($"Preset '{fileName}' deleted.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Failed to delete preset: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        [RelayCommand]
+        private void LoadSavedConfigFile(string? fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return;
+            try
+            {
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
+                string path = Path.Combine(folder, fileName);
+                if (File.Exists(path))
+                {
+                    string json = File.ReadAllText(path);
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+                    if (root.TryGetProperty("LeftInnerDeadzone", out var lid)) LeftInnerDeadzone = lid.GetDouble();
+                    if (root.TryGetProperty("RightInnerDeadzone", out var rid)) RightInnerDeadzone = rid.GetDouble();
+                    if (root.TryGetProperty("LeftOuterDeadzone", out var lod)) LeftOuterDeadzone = lod.GetDouble();
+                    if (root.TryGetProperty("RightOuterDeadzone", out var rod)) RightOuterDeadzone = rod.GetDouble();
+                    if (root.TryGetProperty("StickSensitivity", out var ss)) StickSensitivity = ss.GetDouble();
+
+                    LeftStickDeadzone = Math.Round(LeftInnerDeadzone * 100.0, 0);
+                    RightStickDeadzone = Math.Round(RightInnerDeadzone * 100.0, 0);
+
+                    if (_activeProfile != null)
+                    {
+                        _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = LeftInnerDeadzone;
+                        _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = RightInnerDeadzone;
+                        _activeProfile.Drift.Profile.LeftStick.Sensitivity = StickSensitivity;
+                        _activeProfile.Drift.Profile.RightStick.Sensitivity = StickSensitivity;
+                    }
+                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Preset '{fileName}' loaded successfully!", "Calibration Preset Loaded", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                DriftLift.Views.Windows.CustomMessageDialog.Show($"Failed to load preset: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         [RelayCommand]

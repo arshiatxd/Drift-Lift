@@ -12,6 +12,7 @@ namespace DriftLift.Models
         [ObservableProperty] private string _executableName = "game.exe";
         [ObservableProperty] private string _category = "Sports";
         [ObservableProperty] private string _iconGlyph = "🎮";
+        [System.Text.Json.Serialization.JsonIgnore]
         [ObservableProperty] private System.Windows.Media.ImageSource? _gameIcon;
         [ObservableProperty] private string? _fullExecutablePath;
         [ObservableProperty] private string? _customLogoPath;

@@ -521,6 +521,86 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#0F172A"/>
+        <Setter Property="BorderBrush" Value="#0284C7"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HasDropShadow" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#0284C7" BlurRadius="8" ShadowDepth="0" Opacity="0.25"/>
+                        </Border.Effect>
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ContextMenu">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="#0284C7"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0"
+                            Padding="{TemplateBinding Padding}">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="2" Opacity="0.15"/>
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Icon"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Shortcut"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" ContentSource="Icon" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#220284C7"/>
+                            <Setter Property="Foreground" Value="#0284C7"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Geometry x:Key="IconControllerVector">M7.5,4 C5.5,4 4,5.5 4,7.5 L4,10.5 C4,13.5 5.8,16 8.5,16.8 L10.5,17.4 C11,17.6 11.5,17.2 11.5,16.7 L11.5,14 L12.5,14 L12.5,16.7 C12.5,17.2 13,17.6 13.5,17.4 L15.5,16.8 C18.2,16 20,13.5 20,10.5 L20,7.5 C20,5.5 18.5,4 16.5,4 L7.5,4 Z M8,7 L9,7 L9,8 L10,8 L10,9 L9,9 L9,10 L8,10 L8,9 L7,9 L7,8 L8,8 L8,7 Z M15.5,7 C16,7 16.5,7.5 16.5,8 C16.5,8.5 16,9 15.5,9 C15,9 14.5,8.5 14.5,8 C14.5,7.5 15,7 15.5,7 Z M14,9.5 C14.5,9.5 15,10 15,10.5 C15,11 14.5,11.5 14,11.5 C13.5,11.5 13,11 13,10.5 C13,10 13.5,9.5 14,9.5 Z M17,9.5 C17.5,9.5 18,10 18,10.5 C18,11 17.5,11.5 17,11.5 C16.5,11.5 16,11 16,10.5 C16,10 16.5,9.5 17,9.5 Z M15.5,12 C16,12 16.5,12.5 16.5,13 C16.5,13.5 16,14 15.5,14 C15,14 14.5,13.5 14.5,13 C14.5,12.5 15,12 15.5,12 Z</Geometry>
 

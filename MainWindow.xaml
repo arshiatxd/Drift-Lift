@@ -115,20 +115,8 @@
                             <TextBlock Text="v1.0.7  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
                         </StackPanel>
                     </StackPanel>
-                    <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="PROFILE" Foreground="{DynamicResource RedNeon}" FontSize="10" FontWeight="Black" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <ComboBox ItemsSource="{Binding AvailableProfiles}"
-                                      SelectedItem="{Binding CurrentProfile, Mode=TwoWay}"
-                                      Style="{DynamicResource ProfileComboBox}"
-                                      Width="170"/>
-                            <Button Command="{Binding NewProfileCommand}" Content="+" Style="{DynamicResource HeaderIconBtn}" ToolTip="New Profile" Margin="6,0,0,0"/>
-                            <Button Command="{Binding SaveProfileCommand}" Content="💾" Style="{DynamicResource HeaderIconBtn}" ToolTip="Save Profile" Margin="3,0,0,0"/>
-                            <Button Command="{Binding ImportProfileCommand}" Content="📥" Style="{DynamicResource HeaderIconBtn}" ToolTip="Import Profile" Margin="3,0,0,0"/>
-                            <Button Command="{Binding ExportProfileCommand}" Content="📤" Style="{DynamicResource HeaderIconBtn}" ToolTip="Export Profile" Margin="3,0,0,0"/>
-                        </StackPanel>
-                    </Border>
+                    <!-- Clean Minimalist Header Center Space -->
+                    <Grid Grid.Column="1"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
                         <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding OpenPsLedSettingsCommand}" ToolTip="RGB Controller LED Configuration" Margin="0,0,4,0">
                             <TextBlock Text="💡" FontSize="12"/>
