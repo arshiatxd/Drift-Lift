@@ -16,7 +16,7 @@ namespace DriftLift.Core.Input
         public IPhysicalController Physical { get; set; } = null!;
         public DriftProcessor Drift { get; set; } = null!;
         public VirtualController Virtual { get; set; } = null!;
-        public ConcurrentDictionary<ushort, ushort> Remaps { get; } = new();
+        public ConcurrentDictionary<uint, uint> Remaps { get; } = new();
         public ControllerState LatestRawState { get; set; } = new();
         public ControllerState LatestCorrectedState { get; set; } = new();
     }
@@ -36,11 +36,11 @@ namespace DriftLift.Core.Input
         private readonly Thread _watcherThread;
         private volatile bool _running;
         private volatile bool _isVirtualOutputEnabled = true;
-        private volatile ushort _injectedMacroButtons = 0;
+        private volatile uint _injectedMacroButtons = 0;
         private readonly VirtualController _persistentVirtualPad = new();
 
-        public ConcurrentDictionary<ushort, bool> TurboButtons { get; } = new();
-        public void SetInjectedMacroButtons(ushort buttons) => _injectedMacroButtons = buttons;
+        public ConcurrentDictionary<uint, bool> TurboButtons { get; } = new();
+        public void SetInjectedMacroButtons(uint buttons) => _injectedMacroButtons = buttons;
 
         public event Action? DevicesChanged;
         public IReadOnlyDictionary<string, ControllerProfilePair> Devices => _devices;
@@ -128,9 +128,9 @@ namespace DriftLift.Core.Input
 
                         pair.Drift.Process(rawState, out double clx, out double cly, out double crx, out double cry);
 
-                        ushort rb = rawState.Buttons;
-                        ushort mappedSources = 0;
-                        ushort finalButtons = 0;
+                        uint rb = rawState.Buttons;
+                        uint mappedSources = 0;
+                        uint finalButtons = 0;
 
                         foreach (var kvp in pair.Remaps)
                         {
@@ -139,14 +139,14 @@ namespace DriftLift.Core.Input
                             mappedSources |= kvp.Key;
                         }
 
-                        finalButtons |= (ushort)(rb & ~mappedSources);
+                        finalButtons |= (uint)(rb & ~mappedSources);
 
                         if (!turboCycleOn && TurboButtons.Count > 0)
                         {
                             foreach (var tb in TurboButtons)
                             {
                                 if (tb.Value)
-                                    finalButtons &= (ushort)~tb.Key;
+                                    finalButtons &= ~tb.Key;
                             }
                         }
 
@@ -160,10 +160,10 @@ namespace DriftLift.Core.Input
                             LeftThumbY = cly,
                             RightThumbX = crx,
                             RightThumbY = cry,
-                            LeftTrigger = rawState.LeftTrigger,
-                            RightTrigger = rawState.RightTrigger,
+                            LeftTrigger = (finalButtons & 0x0400) != 0 ? 1.0 : rawState.LeftTrigger,
+                            RightTrigger = (finalButtons & 0x0800) != 0 ? 1.0 : rawState.RightTrigger,
                             Buttons = finalButtons,
-                            Touchpad = rawState.Touchpad,
+                            Touchpad = (finalButtons & 0x00010000) != 0 || rawState.Touchpad,
                             IsConnected = true
                         };
 

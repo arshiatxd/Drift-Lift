@@ -49,7 +49,7 @@ namespace DriftLift.Core.Input
                 state.LeftTrigger = gamepad.LeftTrigger / 255.0;
                 state.RightTrigger = gamepad.RightTrigger / 255.0;
 
-                ushort mask = 0;
+                uint mask = 0;
                 var btns = gamepad.Buttons;
                 if ((btns & GamepadButtons.DPadUp) != 0) mask |= 0x0001;
                 if ((btns & GamepadButtons.DPadDown) != 0) mask |= 0x0002;

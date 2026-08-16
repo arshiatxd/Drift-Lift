@@ -6,8 +6,8 @@ namespace DriftLift.Models
     {
         public string ButtonName { get; set; } = "";
         public string MappedValueText { get; set; } = "";
-        public ushort SourceBit { get; set; }
-        public ushort TargetBit { get; set; }
+        public uint SourceBit { get; set; }
+        public uint TargetBit { get; set; }
         public string XboxText { get; set; } = "";
         public string XboxPathData { get; set; } = "";
         public Brush XboxColor { get; set; } = Brushes.White;

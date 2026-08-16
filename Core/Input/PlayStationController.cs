@@ -80,7 +80,7 @@ namespace DriftLift.Core.Input
 
                 byte btn1 = data[offset + 4];
                 byte btn2 = data[offset + 5];
-                ushort mask = 0;
+                uint mask = 0;
 
                 byte dpad = (byte)(btn1 & 0x0F);
                 switch (dpad)
@@ -109,18 +109,30 @@ namespace DriftLift.Core.Input
                 if ((btn2 & 0x40) != 0) mask |= 0x0040;
                 if ((btn2 & 0x80) != 0) mask |= 0x0080;
 
+                if (data.Length > offset + 6)
+                {
+                    byte specialBytes = data[offset + 6];
+                    state.Touchpad = (specialBytes & 0x02) != 0;
+                    if (state.Touchpad)
+                    {
+                        mask |= 0x00010000;
+                    }
+                    if ((specialBytes & 0x01) != 0)
+                    {
+                        mask |= 0x00040000;
+                    }
+                    if ((specialBytes & 0x04) != 0)
+                    {
+                        mask |= 0x00020000;
+                    }
+                }
+
                 state.Buttons = mask;
 
                 if (data.Length > offset + 8)
                 {
                     state.LeftTrigger = data[offset + 7] / 255.0;
                     state.RightTrigger = data[offset + 8] / 255.0;
-                }
-
-                if (data.Length > offset + 6)
-                {
-                    byte specialBytes = data[offset + 6];
-                    state.Touchpad = (specialBytes & 0x02) != 0;
                 }
 
                 long now = Environment.TickCount64;

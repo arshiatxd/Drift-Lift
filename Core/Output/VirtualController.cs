@@ -49,7 +49,7 @@ namespace DriftLift.Core.Output
 
         private short _lastLx, _lastLy, _lastRx, _lastRy;
         private byte _lastLt, _lastRt;
-        private ushort _lastButtons;
+        private uint _lastButtons;
         private long _lastSubmitTicks;
 
         // ##== State Submission ==##
@@ -63,9 +63,9 @@ namespace DriftLift.Core.Output
                 short ly = (short)(state.LeftThumbY * 32767);
                 short rx = (short)(state.RightThumbX * 32767);
                 short ry = (short)(state.RightThumbY * 32767);
-                byte lt = (byte)(Math.Clamp(state.LeftTrigger, 0.0, 1.0) * 255);
-                byte rt = (byte)(Math.Clamp(state.RightTrigger, 0.0, 1.0) * 255);
-                ushort b = state.Buttons;
+                byte lt = (byte)(Math.Clamp((state.Buttons & 0x0400) != 0 ? 1.0 : state.LeftTrigger, 0.0, 1.0) * 255);
+                byte rt = (byte)(Math.Clamp((state.Buttons & 0x0800) != 0 ? 1.0 : state.RightTrigger, 0.0, 1.0) * 255);
+                uint b = state.Buttons;
 
                 long now = Environment.TickCount64;
                 bool changed = lx != _lastLx || ly != _lastLy || rx != _lastRx || ry != _lastRy ||
@@ -99,7 +99,8 @@ namespace DriftLift.Core.Output
                     _target.SetButtonState(Xbox360Button.LeftThumb, (b & 0x0040) != 0);
                     _target.SetButtonState(Xbox360Button.RightThumb, (b & 0x0080) != 0);
                     _target.SetButtonState(Xbox360Button.Start, (b & 0x0010) != 0);
-                    _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0);
+                    _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0 || (b & 0x00010000) != 0);
+                    _target.SetButtonState(Xbox360Button.Guide, (b & 0x00040000) != 0);
 
                     _target.SubmitReport();
                 }

@@ -44,8 +44,8 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private object _currentView = null!;
         [ObservableProperty] private bool _isWaitingForInput;
         [ObservableProperty] private string _waitingTargetText = "";
-        private ushort _waitingTargetBit;
-        private ushort _lastRawButtons;
+        private uint _waitingTargetBit;
+        private uint _lastRawButtons;
         [ObservableProperty] private int _selectedTabIndex = 0;
         [ObservableProperty] private bool _isSidebarExpanded = true;
         [ObservableProperty] private int _sidebarColumnWidth = 250;
@@ -460,7 +460,8 @@ namespace DriftLift.ViewModels
                 "L3",
                 "R3",
                 isPs ? "Share" : "Back",
-                isPs ? "Options" : "Start"
+                isPs ? "Options" : "Start",
+                "Touchpad"
             };
 
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
@@ -482,6 +483,7 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x00010000, "Touchpad", options));
         }
         public void UpdateActiveMappingsTable()
         {
@@ -491,8 +493,8 @@ namespace DriftLift.ViewModels
                 {
                     foreach (var map in ActiveMappings)
                     {
-                        ushort src = GetBitFromName(map.SourceButton);
-                        ushort tgt = GetBitFromName(map.TargetButton);
+                        uint src = GetBitFromName(map.SourceButton);
+                        uint tgt = GetBitFromName(map.TargetButton);
                         if (src != 0 && tgt != 0)
                         {
                             _activeProfile.Remaps[src] = tgt;
@@ -518,7 +520,7 @@ namespace DriftLift.ViewModels
             foreach (var r in ShouldersRemap) r.RefreshTarget();
             foreach (var r in SpecialSticksRemap) r.RefreshTarget();
         }
-        public ushort GetBitFromName(string name)
+        public uint GetBitFromName(string name)
         {
             if (string.IsNullOrEmpty(name)) return 0;
             string n = name.Trim().ToUpperInvariant();
@@ -538,6 +540,7 @@ namespace DriftLift.ViewModels
             if (n == "R3") return 0x0080;
             if (n == "SHARE" || n == "BACK") return 0x0020;
             if (n == "OPTIONS" || n == "START") return 0x0010;
+            if (n.Contains("TOUCHPAD") || n.Contains("TPAD")) return 0x00010000;
             return 0;
         }
         private void OnDevicesChanged()
@@ -812,13 +815,13 @@ namespace DriftLift.ViewModels
                         RightNoiseVariance = Math.Round(profile.Drift.RightMetrics.RestingNoiseVariance * 10000.0, 2);
                     }
 
-                    ushort rawButtons = rawState.Buttons;
+                    uint rawButtons = rawState.Buttons;
                     if (IsWaitingForInput)
                     {
-                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
                         if (newPresses != 0)
                         {
-                            ushort pressedBit = (ushort)(newPresses & -newPresses);
+                            uint pressedBit = (uint)(newPresses & -newPresses);
                             profile.Remaps[pressedBit] = _waitingTargetBit;
                             IsWaitingForInput = false;
                             string sourceStr = GetButtonName(pressedBit);
@@ -837,10 +840,10 @@ namespace DriftLift.ViewModels
                     }
                     if (IsRecordingMacro && ActiveMacro != null)
                     {
-                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
                         if (newPresses != 0)
                         {
-                            ushort pressedBit = (ushort)(newPresses & -newPresses);
+                            uint pressedBit = (uint)(newPresses & -newPresses);
                             string bName = GetButtonName(pressedBit);
                             int elapsed = _lastRecordTick == 0 ? 50 : Math.Clamp(Environment.TickCount - _lastRecordTick, 10, 500);
                             _lastRecordTick = Environment.TickCount;
@@ -855,7 +858,7 @@ namespace DriftLift.ViewModels
 
                     if (!IsMacroPlaying && !IsRecordingMacro && ActiveMacros.Count > 0)
                     {
-                        ushort newPresses = (ushort)(rawButtons & ~_lastRawButtons);
+                        uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
                         foreach (var m in ActiveMacros)
                         {
                             if (m.IsEnabled && m.TriggerMask != 0 && (rawButtons & m.TriggerMask) == m.TriggerMask && (newPresses & m.TriggerMask) != 0)
@@ -872,7 +875,7 @@ namespace DriftLift.ViewModels
                     {
                         foreach (var m in ActiveMappings)
                         {
-                            ushort bit = GetBitFromName(m.SourceButton);
+                            uint bit = GetBitFromName(m.SourceButton);
                             if (bit != 0)
                             {
                                 if (!string.IsNullOrEmpty(m.TurboMode) && m.TurboMode.Contains("Rapid", StringComparison.OrdinalIgnoreCase))
@@ -883,15 +886,15 @@ namespace DriftLift.ViewModels
                         }
                     }
 
-                    ushort mappedB = 0;
+                    uint mappedB = 0;
                     foreach (var kvp in profile.Remaps)
                     {
                         if ((rawButtons & kvp.Key) != 0)
                             mappedB |= kvp.Value;
                     }
-                    ushort mappedSources = 0;
+                    uint mappedSources = 0;
                     foreach (var k in profile.Remaps.Keys) mappedSources |= k;
-                    mappedB |= (ushort)(rawButtons & ~mappedSources);
+                    mappedB |= (uint)(rawButtons & ~mappedSources);
                     LeftGraphicTranslateX = CorrectedLeftX * 12.0;
                     LeftGraphicTranslateY = -CorrectedLeftY * 12.0;
                     RightGraphicTranslateX = CorrectedRightX * 12.0;
@@ -900,7 +903,7 @@ namespace DriftLift.ViewModels
                     PsLeftGraphicTranslateY = -CorrectedLeftY * 12.0;
                     PsRightGraphicTranslateX = CorrectedRightX * 12.0;
                     PsRightGraphicTranslateY = -CorrectedRightY * 12.0;
-                    ushort b = mappedB;
+                    uint b = mappedB;
                     IsDpadUpPressed = (b & 0x0001) != 0;
                     IsDpadDownPressed = (b & 0x0002) != 0;
                     IsDpadLeftPressed = (b & 0x0004) != 0;
@@ -915,13 +918,13 @@ namespace DriftLift.ViewModels
                     IsL1Pressed = IsLbPressed;
                     IsRbPressed = (b & 0x0200) != 0;
                     IsR1Pressed = IsRbPressed;
-                    IsL2Pressed = TriggerL > 0.1;
-                    IsR2Pressed = TriggerR > 0.1;
+                    IsL2Pressed = (b & 0x0400) != 0 || TriggerL > 0.1;
+                    IsR2Pressed = (b & 0x0800) != 0 || TriggerR > 0.1;
                     IsAPressed = (b & 0x1000) != 0;
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
-                    IsTouchpadPressed = rawState.Touchpad;
+                    IsTouchpadPressed = (b & 0x00010000) != 0 || rawState.Touchpad;
                     RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
                     RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
                 }
@@ -1089,8 +1092,8 @@ namespace DriftLift.ViewModels
                             _activeProfile.Remaps.Clear();
                             foreach (var map in loaded)
                             {
-                                ushort src = GetBitFromName(map.SourceButton);
-                                ushort tgt = GetBitFromName(map.TargetButton);
+                                uint src = GetBitFromName(map.SourceButton);
+                                uint tgt = GetBitFromName(map.TargetButton);
                                 if (src != 0 && tgt != 0)
                                 {
                                     _activeProfile.Remaps[src] = tgt;
@@ -1264,7 +1267,7 @@ namespace DriftLift.ViewModels
         {
             if (mapping != null)
             {
-                ushort srcBit = GetBitFromName(mapping.SourceButton);
+                uint srcBit = GetBitFromName(mapping.SourceButton);
                 if (_activeProfile != null && srcBit != 0)
                 {
                     _activeProfile.Remaps.TryRemove(srcBit, out _);
@@ -1732,7 +1735,7 @@ namespace DriftLift.ViewModels
         private void RemapHotspot(string buttonName)
         {
             string norm = (buttonName ?? "").ToUpper().Replace(" ", "").Replace("-", "").Replace("_", "");
-            ushort bit = norm switch
+            uint bit = norm switch
             {
                 "CROSS" or "A" => 0x1000,
                 "CIRCLE" or "B" => 0x2000,
@@ -1750,6 +1753,7 @@ namespace DriftLift.ViewModels
                 "DPADDOWN" or "DOWN" => 0x0002,
                 "DPADLEFT" or "LEFT" => 0x0004,
                 "DPADRIGHT" or "RIGHT" => 0x0008,
+                "TOUCHPAD" or "TPAD" => 0x00010000,
                 _ => 0x1000
             };
             BeginRemap(bit.ToString());
@@ -1872,7 +1876,7 @@ namespace DriftLift.ViewModels
         [RelayCommand]
         public void BeginRemap(string parameter)
         {
-            if (ushort.TryParse(parameter, out ushort targetBit))
+            if (uint.TryParse(parameter, out uint targetBit))
             {
                 _waitingTargetBit = targetBit;
                 WaitingTargetText = $"Press a physical button to map to {GetButtonName(targetBit)}...";
@@ -1893,7 +1897,7 @@ namespace DriftLift.ViewModels
                 UpdateMappingsForControllerType(IsPlayStation);
             }
         }
-        public string GetButtonName(ushort bit)
+        public string GetButtonName(uint bit)
         {
             return bit switch
             {
@@ -1907,10 +1911,13 @@ namespace DriftLift.ViewModels
                 0x0080 => "R3",
                 0x0100 => IsPlayStation ? "L1" : "LB",
                 0x0200 => IsPlayStation ? "R1" : "RB",
+                0x0400 => IsPlayStation ? "L2" : "LT",
+                0x0800 => IsPlayStation ? "R2" : "RT",
                 0x1000 => IsPlayStation ? "Cross" : "A",
                 0x2000 => IsPlayStation ? "Circle" : "B",
                 0x4000 => IsPlayStation ? "Square" : "X",
                 0x8000 => IsPlayStation ? "Triangle" : "Y",
+                0x00010000 => "Touchpad",
                 _ => "Unknown"
             };
         }
@@ -2003,10 +2010,10 @@ namespace DriftLift.ViewModels
     public partial class RemapRowViewModel : ObservableObject
     {
         private readonly DashboardViewModel _parent;
-        public ushort SourceBit { get; }
+        public uint SourceBit { get; }
         public string SourceButtonName { get; }
         public ObservableCollection<string> TargetOptions { get; }
-        public RemapRowViewModel(DashboardViewModel parent, ushort sourceBit, string sourceButtonName, List<string> options)
+        public RemapRowViewModel(DashboardViewModel parent, uint sourceBit, string sourceButtonName, List<string> options)
         {
             _parent = parent;
             SourceBit = sourceBit;
@@ -2017,7 +2024,7 @@ namespace DriftLift.ViewModels
         {
             get
             {
-                if (_parent.ActiveProfile != null && _parent.ActiveProfile.Remaps.TryGetValue(SourceBit, out ushort targetBit))
+                if (_parent.ActiveProfile != null && _parent.ActiveProfile.Remaps.TryGetValue(SourceBit, out uint targetBit))
                 {
                     return _parent.GetButtonName(targetBit);
                 }
@@ -2026,7 +2033,7 @@ namespace DriftLift.ViewModels
             set
             {
                 if (string.IsNullOrEmpty(value)) return;
-                ushort bit = _parent.GetBitFromName(value);
+                uint bit = _parent.GetBitFromName(value);
                 if (_parent.ActiveProfile != null)
                 {
                     if (bit == SourceBit || bit == 0)
