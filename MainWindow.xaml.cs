@@ -130,6 +130,12 @@ namespace DriftLift
         }
         protected override void OnClosing(CancelEventArgs e)
         {
+            if (DataContext is DashboardViewModel vm)
+            {
+                vm.SaveGameProfilesToDisk();
+                vm.SaveUserMappingsAndMacros();
+            }
+
             if (!_isExplicitExit && App.SettingsManager?.Settings != null && App.SettingsManager.Settings.MinimizeToTrayOnClose)
             {
                 e.Cancel = true;

@@ -1340,6 +1340,13 @@ namespace DriftLift.ViewModels
         }
 
         // ##== Game Profile Auto-Switching Engine & Persistent Disk Cache ==##
+        private static readonly JsonSerializerOptions ProfileJsonOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+        };
+
         public void SaveGameProfilesToDisk()
         {
             try
@@ -1347,7 +1354,8 @@ namespace DriftLift.ViewModels
                 string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift");
                 Directory.CreateDirectory(folder);
                 string filePath = Path.Combine(folder, "game_profiles.json");
-                string json = JsonSerializer.Serialize(GameProfiles, new JsonSerializerOptions { WriteIndented = true });
+                var list = GameProfiles.ToList();
+                string json = JsonSerializer.Serialize(list, ProfileJsonOptions);
                 File.WriteAllText(filePath, json);
             }
             catch (Exception ex)
@@ -1365,7 +1373,7 @@ namespace DriftLift.ViewModels
                 if (File.Exists(filePath))
                 {
                     string json = File.ReadAllText(filePath);
-                    var loaded = JsonSerializer.Deserialize<ObservableCollection<GameProfileModel>>(json);
+                    var loaded = JsonSerializer.Deserialize<List<GameProfileModel>>(json, ProfileJsonOptions);
                     if (loaded != null && loaded.Count > 0)
                     {
                         GameProfiles.Clear();
@@ -1409,6 +1417,7 @@ namespace DriftLift.ViewModels
         private void InitializeDefaultGameProfiles()
         {
             LoadGameProfilesFromDisk();
+            GameProfiles.CollectionChanged += (s, e) => SaveGameProfilesToDisk();
         }
 
         private void OnActiveGameChanged(string activeExe)

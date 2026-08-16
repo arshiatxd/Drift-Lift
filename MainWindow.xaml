@@ -117,7 +117,13 @@
                     </StackPanel>
                     <!-- Clean Minimalist Header Center Space -->
                     <Grid Grid.Column="1"/>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Button Style="{DynamicResource RedNeonBtn}" Command="{Binding AutoFixStickDriftCommand}" ToolTip="Quick Auto Fix Stick Drift &amp; Calibrate Deadzones" Margin="0,0,8,0" Padding="12,4" Height="26" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="⚡" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="AUTO FIX DRIFT" FontSize="10" FontWeight="Black" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding OpenPsLedSettingsCommand}" ToolTip="RGB Controller LED Configuration" Margin="0,0,4,0">
                             <TextBlock Text="💡" FontSize="12"/>
                         </Button>
