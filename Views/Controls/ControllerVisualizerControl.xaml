@@ -6,6 +6,28 @@
              mc:Ignorable="d" 
     d:DesignHeight="300" d:DesignWidth="450">
 
+    <UserControl.Resources>
+        <Style x:Key="ImageBtnPress" TargetType="Image">
+            <Setter Property="Opacity" Value="0.0"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                    <Setter Property="Opacity" Value="1.0"/>
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="1.06" ScaleY="1.06"/>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="24"/>
@@ -360,12 +382,21 @@
                     </Image.InputBindings>
                 </Image>
                 
-                <!-- Touchpad -->
-                <Image Source="/Assets/PS4/DS4_Touchpad_Touch.png" Width="145.0" Height="68.8" Canvas.Left="137.5" Canvas.Top="72.2" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
-                    <Image.InputBindings>
+                <!-- Touchpad (Clean Click-Reactive Border) -->
+                <Border Width="145.0" Height="68.8" Canvas.Left="137.5" Canvas.Top="72.2" Background="#44FF1744" CornerRadius="4" Opacity="0" Tag="{Binding IsTouchpadPressed}" Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                    <Setter Property="Opacity" Value="0.8"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Border.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
-                    </Image.InputBindings>
-                </Image>
+                    </Border.InputBindings>
+                </Border>
                 
                 <!-- Thumbsticks (Left & Right) -->
                 <Grid Canvas.Left="122.4" Canvas.Top="174.9" Width="45.2" Height="40.2">
@@ -373,17 +404,6 @@
                         <TranslateTransform X="{Binding PsLeftGraphicTranslateX}" Y="{Binding PsLeftGraphicTranslateY}"/>
                     </Grid.RenderTransform>
                     <Image Source="/Assets/PS4/PS4_LeftStick.png" Stretch="Fill" />
-                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsL3Pressed}">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                        <Setter Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
                     <Image Source="/Assets/PS4/DS4_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsL3Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                         <Image.InputBindings>
                             <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L3" />
@@ -395,17 +415,6 @@
                         <TranslateTransform X="{Binding PsRightGraphicTranslateX}" Y="{Binding PsRightGraphicTranslateY}"/>
                     </Grid.RenderTransform>
                     <Image Source="/Assets/PS4/PS4_RightStick.png" Stretch="Fill" />
-                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsR3Pressed}">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                        <Setter Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
                     <Image Source="/Assets/PS4/DS4_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsR3Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                         <Image.InputBindings>
                             <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R3" />
@@ -508,12 +517,21 @@
                     </Image.InputBindings>
                 </Image>
                 
-                <!-- Touchpad -->
-                <Image Source="/Assets/PS5/DualSense_Touchpad_Touch.png" Width="130.0" Height="64.0" Canvas.Left="145.0" Canvas.Top="73.0" Tag="{Binding IsTouchpadPressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
-                    <Image.InputBindings>
+                <!-- Touchpad (Clean Click-Reactive Border) -->
+                <Border Width="130.0" Height="64.0" Canvas.Left="145.0" Canvas.Top="73.0" Background="#44FF1744" CornerRadius="4" Opacity="0" Tag="{Binding IsTouchpadPressed}" Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                    <Setter Property="Opacity" Value="0.8"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Border.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
-                    </Image.InputBindings>
-                </Image>
+                    </Border.InputBindings>
+                </Border>
                 
                 <!-- Thumbsticks (Left & Right) -->
                 <Grid Canvas.Left="118.3" Canvas.Top="171.8" Width="46.0" Height="46.0">
@@ -521,17 +539,6 @@
                         <TranslateTransform X="{Binding PsLeftGraphicTranslateX}" Y="{Binding PsLeftGraphicTranslateY}"/>
                     </Grid.RenderTransform>
                     <Image Source="/Assets/PS4/PS4_LeftStick.png" Stretch="Fill" />
-                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsL3Pressed}">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                        <Setter Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
                     <Image Source="/Assets/PS5/DualSense_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsL3Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                         <Image.InputBindings>
                             <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="L3" />
@@ -543,17 +550,6 @@
                         <TranslateTransform X="{Binding PsRightGraphicTranslateX}" Y="{Binding PsRightGraphicTranslateY}"/>
                     </Grid.RenderTransform>
                     <Image Source="/Assets/PS4/PS4_RightStick.png" Stretch="Fill" />
-                    <Ellipse Fill="Cyan" Width="15" Height="15" Opacity="0" Tag="{Binding IsR3Pressed}">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
-                                        <Setter Property="Opacity" Value="1"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
                     <Image Source="/Assets/PS5/DualSense_AnalogStick_Click.png" Stretch="Fill" Tag="{Binding IsR3Pressed}" Style="{DynamicResource ImageBtnPress}" Cursor="Hand">
                         <Image.InputBindings>
                             <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="R3" />

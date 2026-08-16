@@ -109,6 +109,8 @@ namespace DriftLift.ViewModels
             }
         }
         [ObservableProperty] private bool _isDarkTheme = true;
+        public string ThemeToggleIcon => IsDarkTheme ? "🌙" : "☀️";
+        partial void OnIsDarkThemeChanged(bool value) => OnPropertyChanged(nameof(ThemeToggleIcon));
         [ObservableProperty] private string _appLogoSource = "pack://application:,,,/DriftliftApp;component/icon.ico";
         [ObservableProperty] private int _calibrationStep = 1;
         [ObservableProperty] private string _stepPromptText = "Push both sticks to the top-left corner, then release";
