@@ -3,8 +3,8 @@
 #define MyAppPublisher "arshiatxd"
 #define MyAppURL       "https://github.com/arshiatxd/Drift-Lift"
 #define MyAppExeName   "DriftliftApp.exe"
-#define SourceDir      "C:\Users\Parsian\Desktop\prj\312321\net10. released"
-#define IconFile       "C:\Users\Parsian\Desktop\prj\312321\DriftLift\icon.ico"
+#define SourceDir      "C:\Users\Parsian\Desktop\Drift-Lift\publish"
+#define IconFile       "C:\Users\Parsian\Desktop\Drift-Lift\icon.ico"
 
 [Setup]
 AppId={{D37F20B6-7E1A-4D3B-98F1-4A5C10852F9E}
@@ -35,8 +35,8 @@ InternalCompressLevel=ultra64
 WizardStyle=modern
 SetupIconFile={#IconFile}
 UninstallDisplayIcon={app}\{#MyAppExeName}
-WizardImageFile=C:\Users\Parsian\Desktop\prj\312321\DriftLift\Assets\WizImage.bmp
-WizardSmallImageFile=C:\Users\Parsian\Desktop\prj\312321\DriftLift\Assets\WizSmallImage.bmp
+WizardImageFile=C:\Users\Parsian\Desktop\Drift-Lift\Assets\WizImage.bmp
+WizardSmallImageFile=C:\Users\Parsian\Desktop\Drift-Lift\Assets\WizSmallImage.bmp
 WizardSizePercent=100
 
 PrivilegesRequired=admin
