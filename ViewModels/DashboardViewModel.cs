@@ -1419,7 +1419,13 @@ namespace DriftLift.ViewModels
         private void InitializeDefaultGameProfiles()
         {
             LoadGameProfilesFromDisk();
-            GameProfiles.CollectionChanged += (s, e) => SaveGameProfilesToDisk();
+            GameProfiles.CollectionChanged -= OnGameProfilesCollectionChanged;
+            GameProfiles.CollectionChanged += OnGameProfilesCollectionChanged;
+        }
+
+        private void OnGameProfilesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            SaveGameProfilesToDisk();
         }
 
         private void OnActiveGameChanged(string activeExe)
