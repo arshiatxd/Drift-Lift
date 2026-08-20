@@ -153,10 +153,13 @@ namespace DriftLift.Core.Input
             try
             {
                 var hidDevices = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d) && (PlayStationVendorIds.Contains(d.Attributes.VendorId) 
-                             || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase) 
-                                                         || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
-                                                         || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
+                    .Where(d => !IsVirtualDevice(d) 
+                             && IsGameController(d)
+                             && d.Capabilities.InputReportByteLength >= 64
+                             && (PlayStationVendorIds.Contains(d.Attributes.VendorId) 
+                              || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase) 
+                                                          || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
+                                                          || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
                 foreach (var dev in hidDevices)
                 {
                     try

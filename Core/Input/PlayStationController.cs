@@ -64,7 +64,7 @@ namespace DriftLift.Core.Input
                     return state;
 
                 byte[] data = report.Data;
-                if (data == null || data.Length < 8)
+                if (data == null || data.Length < 10)
                     return state;
 
                 int lxIdx, lyIdx, rxIdx, ryIdx, ltIdx, rtIdx, btn1Idx, btn2Idx, specialIdx;
@@ -149,7 +149,7 @@ namespace DriftLift.Core.Input
                 {
                     mask |= 0x00040000;
                 }
-                if ((specialBytes & 0x04) != 0)
+                if (Type == ControllerType.DualSense && (specialBytes & 0x04) != 0)
                 {
                     mask |= 0x00020000;
                 }
