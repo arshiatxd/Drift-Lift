@@ -20,6 +20,7 @@ namespace DriftLift.Models
         public double LeftTrigger { get; set; }
         public double RightTrigger { get; set; }
         public uint Buttons { get; set; }
+        public bool Touchpad { get; set; }
         public bool IsConnected { get; set; }
         public string DeviceName { get; set; } = "Generic Controller";
         public ControllerType Type { get; set; } = ControllerType.Generic;

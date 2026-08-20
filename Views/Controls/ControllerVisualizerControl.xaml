@@ -360,6 +360,22 @@
                     </Image.InputBindings>
                 </Image>
                 
+                <!-- Touchpad (Clean Click-Reactive Border) -->
+                <Border Width="145.0" Height="68.8" Canvas.Left="137.5" Canvas.Top="72.2" Background="#44FF1744" CornerRadius="4" Opacity="0" Tag="{Binding IsTouchpadPressed}" Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                    <Setter Property="Opacity" Value="0.8"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Border.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
+                    </Border.InputBindings>
+                </Border>
+                
                 <!-- Thumbsticks (Left & Right) -->
                 <Grid Canvas.Left="122.4" Canvas.Top="174.9" Width="45.2" Height="40.2">
                     <Grid.RenderTransform>
@@ -478,6 +494,22 @@
                         <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Mute" />
                     </Image.InputBindings>
                 </Image>
+                
+                <!-- Touchpad (Clean Click-Reactive Border) -->
+                <Border Width="130.0" Height="64.0" Canvas.Left="145.0" Canvas.Top="73.0" Background="#44FF1744" CornerRadius="4" Opacity="0" Tag="{Binding IsTouchpadPressed}" Cursor="Hand">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="True">
+                                    <Setter Property="Opacity" Value="0.8"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Border.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding RemapHotspotCommand}" CommandParameter="Touchpad" />
+                    </Border.InputBindings>
+                </Border>
                 
                 <!-- Thumbsticks (Left & Right) -->
                 <Grid Canvas.Left="118.3" Canvas.Top="171.8" Width="46.0" Height="46.0">

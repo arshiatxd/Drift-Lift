@@ -93,7 +93,6 @@ namespace DriftLift.Services
                 try { svc.IsAppListInverted = false; } catch { }
                 WhitelistCurrentProcess(svc);
 
-                // Clean up any non-HID or legacy invalid entries
                 try
                 {
                     var invalidEntries = svc.BlockedInstanceIds

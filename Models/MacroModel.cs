@@ -32,6 +32,7 @@ namespace DriftLift.Models
                 "DPADDOWN" or "DOWN" => 0x0002u,
                 "DPADLEFT" or "LEFT" => 0x0004u,
                 "DPADRIGHT" or "RIGHT" => 0x0008u,
+                "TOUCHPAD" or "TPAD" => 0x00010000u,
                 _ => 0u
             };
             if (bit != 0) ButtonMask = bit;
@@ -78,6 +79,7 @@ namespace DriftLift.Models
                     "DPADDOWN" or "DOWN" => 0x0002u,
                     "DPADLEFT" or "LEFT" => 0x0004u,
                     "DPADRIGHT" or "RIGHT" => 0x0008u,
+                    "TOUCHPAD" or "TPAD" => 0x00010000u,
                     _ => 0u
                 };
                 mask |= bit;
