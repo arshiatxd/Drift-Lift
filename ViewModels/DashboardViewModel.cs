@@ -924,7 +924,7 @@ namespace DriftLift.ViewModels
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
-                    IsTouchpadPressed = (b & 0x00010000) != 0 || rawState.Touchpad;
+                    IsTouchpadPressed = (b & 0x00010000) != 0;
                     RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
                     RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
                 }

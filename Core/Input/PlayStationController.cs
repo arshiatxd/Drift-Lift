@@ -67,19 +67,55 @@ namespace DriftLift.Core.Input
                 if (data == null || data.Length < 8)
                     return state;
 
-                int offset = _isBluetooth ? 2 : (data[0] == 0x01 ? 1 : 0);
+                int lxIdx, lyIdx, rxIdx, ryIdx, ltIdx, rtIdx, btn1Idx, btn2Idx, specialIdx;
 
-                if (data.Length < offset + 9)
+                if (Type == ControllerType.DualSense)
+                {
+                    if (data[0] == 0x31 && data.Length >= 12)
+                    {
+                        lxIdx = 2; lyIdx = 3; rxIdx = 4; ryIdx = 5;
+                        ltIdx = 6; rtIdx = 7;
+                        btn1Idx = 9; btn2Idx = 10; specialIdx = 11;
+                    }
+                    else
+                    {
+                        int offset = data[0] == 0x01 ? 1 : 0;
+                        lxIdx = offset + 0; lyIdx = offset + 1; rxIdx = offset + 2; ryIdx = offset + 3;
+                        ltIdx = offset + 4; rtIdx = offset + 5;
+                        btn1Idx = offset + 7; btn2Idx = offset + 8; specialIdx = offset + 9;
+                    }
+                }
+                else
+                {
+                    if (data[0] == 0x11 && data.Length >= 12)
+                    {
+                        lxIdx = 3; lyIdx = 4; rxIdx = 5; ryIdx = 6;
+                        btn1Idx = 7; btn2Idx = 8; specialIdx = 9;
+                        ltIdx = 10; rtIdx = 11;
+                    }
+                    else
+                    {
+                        int offset = data[0] == 0x01 ? 1 : 0;
+                        lxIdx = offset + 0; lyIdx = offset + 1; rxIdx = offset + 2; ryIdx = offset + 3;
+                        btn1Idx = offset + 4; btn2Idx = offset + 5; specialIdx = offset + 6;
+                        ltIdx = offset + 7; rtIdx = offset + 8;
+                    }
+                }
+
+                if (data.Length <= Math.Max(Math.Max(btn1Idx, btn2Idx), Math.Max(specialIdx, Math.Max(ltIdx, rtIdx))))
                     return state;
 
                 state.IsConnected = true;
-                state.LeftThumbX = (data[offset + 0] - 128) / 128.0;
-                state.LeftThumbY = (128 - data[offset + 1]) / 128.0;
-                state.RightThumbX = (data[offset + 2] - 128) / 128.0;
-                state.RightThumbY = (128 - data[offset + 3]) / 128.0;
+                state.LeftThumbX = (data[lxIdx] - 128) / 128.0;
+                state.LeftThumbY = (128 - data[lyIdx]) / 128.0;
+                state.RightThumbX = (data[rxIdx] - 128) / 128.0;
+                state.RightThumbY = (128 - data[ryIdx]) / 128.0;
+                state.LeftTrigger = data[ltIdx] / 255.0;
+                state.RightTrigger = data[rtIdx] / 255.0;
 
-                byte btn1 = data[offset + 4];
-                byte btn2 = data[offset + 5];
+                byte btn1 = data[btn1Idx];
+                byte btn2 = data[btn2Idx];
+                byte specialBytes = data[specialIdx];
                 uint mask = 0;
 
                 byte dpad = (byte)(btn1 & 0x0F);
@@ -109,37 +145,27 @@ namespace DriftLift.Core.Input
                 if ((btn2 & 0x40) != 0) mask |= 0x0040;
                 if ((btn2 & 0x80) != 0) mask |= 0x0080;
 
-                if (data.Length > offset + 6)
+                state.Touchpad = (specialBytes & 0x02) != 0;
+                if (state.Touchpad)
                 {
-                    byte specialBytes = data[offset + 6];
-                    state.Touchpad = (specialBytes & 0x02) != 0;
-                    if (state.Touchpad)
-                    {
-                        mask |= 0x00010000;
-                    }
-                    if ((specialBytes & 0x01) != 0)
-                    {
-                        mask |= 0x00040000;
-                    }
-                    if ((specialBytes & 0x04) != 0)
-                    {
-                        mask |= 0x00020000;
-                    }
+                    mask |= 0x00010000;
+                }
+                if ((specialBytes & 0x01) != 0)
+                {
+                    mask |= 0x00040000;
+                }
+                if ((specialBytes & 0x04) != 0)
+                {
+                    mask |= 0x00020000;
                 }
 
                 state.Buttons = mask;
-
-                if (data.Length > offset + 8)
-                {
-                    state.LeftTrigger = data[offset + 7] / 255.0;
-                    state.RightTrigger = data[offset + 8] / 255.0;
-                }
 
                 long now = Environment.TickCount64;
                 if (now - _lastBatteryCheckTicks > 500)
                 {
                     _lastBatteryCheckTicks = now;
-                    ParseBatteryReport(data, offset);
+                    ParseBatteryReport(data, data[0] == 0x01 ? 1 : 0);
                 }
             }
             catch
