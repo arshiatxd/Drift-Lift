@@ -259,7 +259,6 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private bool _isSelectPressed;
         [ObservableProperty] private bool _isOptionsPressed;
         [ObservableProperty] private bool _isSharePressed;
-        [ObservableProperty] private bool _isTouchpadPressed;
         [ObservableProperty] private bool _isMutePressed;
         [ObservableProperty] private bool _isGuidePressed;
         [ObservableProperty] private bool _isVibrating;
@@ -460,8 +459,7 @@ namespace DriftLift.ViewModels
                 "L3",
                 "R3",
                 isPs ? "Share" : "Back",
-                isPs ? "Options" : "Start",
-                "Touchpad"
+                isPs ? "Options" : "Start"
             };
 
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
@@ -483,7 +481,6 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
-            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x00010000, "Touchpad", options));
         }
         public void UpdateActiveMappingsTable()
         {
@@ -540,7 +537,6 @@ namespace DriftLift.ViewModels
             if (n == "R3") return 0x0080;
             if (n == "SHARE" || n == "BACK") return 0x0020;
             if (n == "OPTIONS" || n == "START") return 0x0010;
-            if (n.Contains("TOUCHPAD") || n.Contains("TPAD")) return 0x00010000;
             return 0;
         }
         private void OnDevicesChanged()
@@ -924,7 +920,6 @@ namespace DriftLift.ViewModels
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
-                    IsTouchpadPressed = (b & 0x00010000) != 0;
                     RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
                     RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
                 }
@@ -1753,7 +1748,6 @@ namespace DriftLift.ViewModels
                 "DPADDOWN" or "DOWN" => 0x0002,
                 "DPADLEFT" or "LEFT" => 0x0004,
                 "DPADRIGHT" or "RIGHT" => 0x0008,
-                "TOUCHPAD" or "TPAD" => 0x00010000,
                 _ => 0x1000
             };
             BeginRemap(bit.ToString());
@@ -1917,7 +1911,6 @@ namespace DriftLift.ViewModels
                 0x2000 => IsPlayStation ? "Circle" : "B",
                 0x4000 => IsPlayStation ? "Square" : "X",
                 0x8000 => IsPlayStation ? "Triangle" : "Y",
-                0x00010000 => "Touchpad",
                 _ => "Unknown"
             };
         }

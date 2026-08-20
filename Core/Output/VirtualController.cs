@@ -99,7 +99,7 @@ namespace DriftLift.Core.Output
                     _target.SetButtonState(Xbox360Button.LeftThumb, (b & 0x0040) != 0);
                     _target.SetButtonState(Xbox360Button.RightThumb, (b & 0x0080) != 0);
                     _target.SetButtonState(Xbox360Button.Start, (b & 0x0010) != 0);
-                    _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0 || (b & 0x00010000) != 0);
+                    _target.SetButtonState(Xbox360Button.Back, (b & 0x0020) != 0);
                     _target.SetButtonState(Xbox360Button.Guide, (b & 0x00040000) != 0);
 
                     _target.SubmitReport();

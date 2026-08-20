@@ -163,7 +163,6 @@ namespace DriftLift.Core.Input
                             LeftTrigger = (finalButtons & 0x0400) != 0 ? 1.0 : rawState.LeftTrigger,
                             RightTrigger = (finalButtons & 0x0800) != 0 ? 1.0 : rawState.RightTrigger,
                             Buttons = finalButtons,
-                            Touchpad = (finalButtons & 0x00010000) != 0,
                             IsConnected = true
                         };
 

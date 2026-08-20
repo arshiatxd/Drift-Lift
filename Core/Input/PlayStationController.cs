@@ -145,11 +145,6 @@ namespace DriftLift.Core.Input
                 if ((btn2 & 0x40) != 0) mask |= 0x0040;
                 if ((btn2 & 0x80) != 0) mask |= 0x0080;
 
-                state.Touchpad = (specialBytes & 0x02) != 0;
-                if (state.Touchpad)
-                {
-                    mask |= 0x00010000;
-                }
                 if ((specialBytes & 0x01) != 0)
                 {
                     mask |= 0x00040000;
