@@ -7,7 +7,7 @@
 
   <Identity
     Name="Arshiadxt.DriftLift"
-    Publisher="CN=69D94BDD-F72C-4CE0-89C2-3DBC02D7D95A"
+    Publisher="CN=Arshiadxt"
     Version="1.0.7.0" />
 
   <Properties>
