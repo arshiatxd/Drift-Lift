@@ -144,7 +144,45 @@ namespace DriftLift.Core.Input
 
         public static List<string> GetAllPlayStationDeviceInstanceIds() => GetAllPhysicalControllerInstanceIds();
 
-        public static List<IPhysicalController> GetConnectedControllers()
+        public static HashSet<string> GetConnectedDevicePaths()
+        {
+            var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var hidDevices = HidDevices.Enumerate()
+                    .Where(d => !IsVirtualDevice(d) 
+                             && IsGameController(d)
+                             && d.Capabilities.InputReportByteLength >= 64
+                             && (PlayStationVendorIds.Contains(d.Attributes.VendorId) 
+                              || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase) 
+                                                          || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
+                                                          || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
+                foreach (var dev in hidDevices)
+                {
+                    if (!string.IsNullOrEmpty(dev.DevicePath))
+                    {
+                        paths.Add(dev.DevicePath);
+                    }
+                }
+            }
+            catch { }
+
+            try
+            {
+                for (uint i = 0; i < 4; i++)
+                {
+                    if (XInput.GetState(i, out _))
+                    {
+                        paths.Add($"XINPUT_{i}");
+                    }
+                }
+            }
+            catch { }
+
+            return paths;
+        }
+
+        public static List<IPhysicalController> GetNewControllers(IReadOnlyCollection<string>? existingIds = null)
         {
             var result = new List<IPhysicalController>();
 
@@ -162,6 +200,9 @@ namespace DriftLift.Core.Input
                                                           || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
                 foreach (var dev in hidDevices)
                 {
+                    if (existingIds != null && existingIds.Contains(dev.DevicePath))
+                        continue;
+
                     try
                     {
                         var psCtrl = new PlayStationController(dev);
@@ -197,6 +238,10 @@ namespace DriftLift.Core.Input
                 int xboxAdded = 0;
                 for (uint i = 0; i < 4; i++)
                 {
+                    string xId = $"XINPUT_{i}";
+                    if (existingIds != null && existingIds.Contains(xId))
+                        continue;
+
                     if (XInput.GetState(i, out _))
                     {
                         if (realXboxHidCount == 0)
@@ -251,6 +296,8 @@ namespace DriftLift.Core.Input
 
             return result;
         }
+
+        public static List<IPhysicalController> GetConnectedControllers() => GetNewControllers(null);
     }
 }
 

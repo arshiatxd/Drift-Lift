@@ -9,6 +9,8 @@ namespace DriftLift.Core.Input
         // ##== Fields & Identity ==##
         private readonly HidDevice _device;
         private readonly bool _isBluetooth;
+        private readonly object _ioLock = new();
+        private volatile bool _isDisposed;
         private int _cachedBatteryLevel = -1;
         private long _lastBatteryCheckTicks;
 
@@ -17,7 +19,7 @@ namespace DriftLift.Core.Input
         public string InstanceId => DeviceEnumerator.ExtractInstanceId(_device.DevicePath);
         public string DeviceName { get; }
         public ControllerType Type { get; }
-        public bool IsConnected => _device.IsConnected;
+        public bool IsConnected => !_isDisposed && _device.IsConnected;
         public int VendorId => _device.Attributes.VendorId;
         public int ProductId => _device.Attributes.ProductId;
 
@@ -53,15 +55,28 @@ namespace DriftLift.Core.Input
 
             try
             {
-                if (!_device.IsConnected)
+                if (_isDisposed || !_device.IsConnected)
                 {
                     state.IsConnected = false;
                     return state;
                 }
 
-                var report = _device.ReadReport();
-                if (report.ReadStatus != HidDeviceData.ReadStatus.Success)
+                HidReport? report;
+                lock (_ioLock)
+                {
+                    if (_isDisposed || !_device.IsConnected)
+                    {
+                        state.IsConnected = false;
+                        return state;
+                    }
+                    report = _device.ReadReport();
+                }
+
+                if (report == null || report.ReadStatus != HidDeviceData.ReadStatus.Success)
+                {
+                    state.IsConnected = false;
                     return state;
+                }
 
                 byte[] data = report.Data;
                 if (data == null || data.Length < 10)
@@ -202,136 +217,144 @@ namespace DriftLift.Core.Input
         // ##== Output: Vibration & LED ==##
         public void SetVibration(double leftMotor, double rightMotor)
         {
-            if (!_device.IsConnected) return;
+            if (_isDisposed || !_device.IsConnected) return;
             byte left = (byte)(Math.Clamp(leftMotor, 0.0, 1.0) * 255);
             byte right = (byte)(Math.Clamp(rightMotor, 0.0, 1.0) * 255);
 
             try
             {
-                var hidReport = _device.CreateReport();
-
-                if (Type == ControllerType.DualShock4)
+                lock (_ioLock)
                 {
-                    if (_device.Capabilities.InputReportByteLength > 64)
-                    {
-                        hidReport.ReportId = 0x11;
-                        if (hidReport.Data.Length >= 10)
-                        {
-                            hidReport.Data[0] = 0xC0;
-                            hidReport.Data[1] = 0x20;
-                            hidReport.Data[2] = 0xF0;
-                            hidReport.Data[3] = 0x04;
-                            hidReport.Data[5] = right;
-                            hidReport.Data[6] = left;
-                        }
-                    }
-                    else
-                    {
-                        hidReport.ReportId = 0x05;
-                        if (hidReport.Data.Length >= 6)
-                        {
-                            hidReport.Data[0] = 0xFF;
-                            hidReport.Data[3] = right;
-                            hidReport.Data[4] = left;
-                        }
-                    }
-                }
-                else if (Type == ControllerType.DualSense)
-                {
-                    if (_device.Capabilities.InputReportByteLength > 64)
-                    {
-                        hidReport.ReportId = 0x31;
-                        if (hidReport.Data.Length >= 5)
-                        {
-                            hidReport.Data[0] = 0x02;
-                            hidReport.Data[1] = 0x03;
-                            hidReport.Data[2] = right;
-                            hidReport.Data[3] = left;
-                        }
-                    }
-                    else
-                    {
-                        hidReport.ReportId = 0x02;
-                        if (hidReport.Data.Length >= 5)
-                        {
-                            hidReport.Data[0] = 0xFF;
-                            hidReport.Data[1] = 0x03;
-                            hidReport.Data[2] = right;
-                            hidReport.Data[3] = left;
-                        }
-                    }
-                }
+                    if (_isDisposed || !_device.IsConnected) return;
+                    var hidReport = _device.CreateReport();
 
-                _device.WriteReport(hidReport);
+                    if (Type == ControllerType.DualShock4)
+                    {
+                        if (_device.Capabilities.InputReportByteLength > 64)
+                        {
+                            hidReport.ReportId = 0x11;
+                            if (hidReport.Data.Length >= 10)
+                            {
+                                hidReport.Data[0] = 0xC0;
+                                hidReport.Data[1] = 0x20;
+                                hidReport.Data[2] = 0xF0;
+                                hidReport.Data[3] = 0x04;
+                                hidReport.Data[5] = right;
+                                hidReport.Data[6] = left;
+                            }
+                        }
+                        else
+                        {
+                            hidReport.ReportId = 0x05;
+                            if (hidReport.Data.Length >= 6)
+                            {
+                                hidReport.Data[0] = 0xFF;
+                                hidReport.Data[3] = right;
+                                hidReport.Data[4] = left;
+                            }
+                        }
+                    }
+                    else if (Type == ControllerType.DualSense)
+                    {
+                        if (_device.Capabilities.InputReportByteLength > 64)
+                        {
+                            hidReport.ReportId = 0x31;
+                            if (hidReport.Data.Length >= 5)
+                            {
+                                hidReport.Data[0] = 0x02;
+                                hidReport.Data[1] = 0x03;
+                                hidReport.Data[2] = right;
+                                hidReport.Data[3] = left;
+                            }
+                        }
+                        else
+                        {
+                            hidReport.ReportId = 0x02;
+                            if (hidReport.Data.Length >= 5)
+                            {
+                                hidReport.Data[0] = 0xFF;
+                                hidReport.Data[1] = 0x03;
+                                hidReport.Data[2] = right;
+                                hidReport.Data[3] = left;
+                            }
+                        }
+                    }
+
+                    _device.WriteReport(hidReport);
+                }
             }
             catch { }
         }
 
         public void SetLedColor(byte r, byte g, byte b)
         {
-            if (!_device.IsConnected) return;
+            if (_isDisposed || !_device.IsConnected) return;
 
             try
             {
-                var hidReport = _device.CreateReport();
-
-                if (Type == ControllerType.DualShock4)
+                lock (_ioLock)
                 {
-                    if (_device.Capabilities.InputReportByteLength > 64)
-                    {
-                        hidReport.ReportId = 0x11;
-                        if (hidReport.Data.Length >= 10)
-                        {
-                            hidReport.Data[0] = 0xC0;
-                            hidReport.Data[1] = 0x20;
-                            hidReport.Data[2] = 0xF0;
-                            hidReport.Data[3] = 0x04;
-                            hidReport.Data[7] = r;
-                            hidReport.Data[8] = g;
-                            hidReport.Data[9] = b;
-                        }
-                    }
-                    else
-                    {
-                        hidReport.ReportId = 0x05;
-                        if (hidReport.Data.Length >= 8)
-                        {
-                            hidReport.Data[0] = 0xFF;
-                            hidReport.Data[5] = r;
-                            hidReport.Data[6] = g;
-                            hidReport.Data[7] = b;
-                        }
-                    }
-                }
-                else if (Type == ControllerType.DualSense)
-                {
-                    if (_device.Capabilities.InputReportByteLength > 64)
-                    {
-                        hidReport.ReportId = 0x31;
-                        if (hidReport.Data.Length >= 11)
-                        {
-                            hidReport.Data[0] = 0x02;
-                            hidReport.Data[1] = 0x02;
-                            hidReport.Data[8] = r;
-                            hidReport.Data[9] = g;
-                            hidReport.Data[10] = b;
-                        }
-                    }
-                    else
-                    {
-                        hidReport.ReportId = 0x02;
-                        if (hidReport.Data.Length >= 11)
-                        {
-                            hidReport.Data[0] = 0xFF;
-                            hidReport.Data[1] = 0x15;
-                            hidReport.Data[8] = r;
-                            hidReport.Data[9] = g;
-                            hidReport.Data[10] = b;
-                        }
-                    }
-                }
+                    if (_isDisposed || !_device.IsConnected) return;
+                    var hidReport = _device.CreateReport();
 
-                _device.WriteReport(hidReport);
+                    if (Type == ControllerType.DualShock4)
+                    {
+                        if (_device.Capabilities.InputReportByteLength > 64)
+                        {
+                            hidReport.ReportId = 0x11;
+                            if (hidReport.Data.Length >= 10)
+                            {
+                                hidReport.Data[0] = 0xC0;
+                                hidReport.Data[1] = 0x20;
+                                hidReport.Data[2] = 0xF0;
+                                hidReport.Data[3] = 0x04;
+                                hidReport.Data[7] = r;
+                                hidReport.Data[8] = g;
+                                hidReport.Data[9] = b;
+                            }
+                        }
+                        else
+                        {
+                            hidReport.ReportId = 0x05;
+                            if (hidReport.Data.Length >= 8)
+                            {
+                                hidReport.Data[0] = 0xFF;
+                                hidReport.Data[5] = r;
+                                hidReport.Data[6] = g;
+                                hidReport.Data[7] = b;
+                            }
+                        }
+                    }
+                    else if (Type == ControllerType.DualSense)
+                    {
+                        if (_device.Capabilities.InputReportByteLength > 64)
+                        {
+                            hidReport.ReportId = 0x31;
+                            if (hidReport.Data.Length >= 11)
+                            {
+                                hidReport.Data[0] = 0x02;
+                                hidReport.Data[1] = 0x02;
+                                hidReport.Data[8] = r;
+                                hidReport.Data[9] = g;
+                                hidReport.Data[10] = b;
+                            }
+                        }
+                        else
+                        {
+                            hidReport.ReportId = 0x02;
+                            if (hidReport.Data.Length >= 11)
+                            {
+                                hidReport.Data[0] = 0xFF;
+                                hidReport.Data[1] = 0x15;
+                                hidReport.Data[8] = r;
+                                hidReport.Data[9] = g;
+                                hidReport.Data[10] = b;
+                            }
+                        }
+                    }
+
+                    _device.WriteReport(hidReport);
+                }
             }
             catch { }
         }
@@ -339,7 +362,7 @@ namespace DriftLift.Core.Input
         // ##== Battery Info ==##
         public (string Text, double Percentage, bool IsWireless) GetBatteryInfo()
         {
-            if (!_device.IsConnected) return ("Disconnected", 0.0, false);
+            if (_isDisposed || !_device.IsConnected) return ("Disconnected", 0.0, false);
 
             if (!_isBluetooth)
                 return ("USB Power (Cable Connected)", 1.0, false);
@@ -350,7 +373,13 @@ namespace DriftLift.Core.Input
 
         public void Dispose()
         {
-            _device.CloseDevice();
+            if (_isDisposed) return;
+            _isDisposed = true;
+
+            lock (_ioLock)
+            {
+                try { _device.CloseDevice(); } catch { }
+            }
         }
     }
 }

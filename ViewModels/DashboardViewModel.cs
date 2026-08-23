@@ -546,8 +546,8 @@ namespace DriftLift.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     UpdateActiveProfile();
-                    SyncHidHideBlockedDevices();
                 });
+                Task.Run(() => SyncHidHideBlockedDevices());
             }
         }
         [ObservableProperty] private string _p1Label = "P1";

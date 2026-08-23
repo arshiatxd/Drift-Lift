@@ -80,7 +80,11 @@ namespace DriftLift.Core.Input
             var pairs = _activePairsCache;
             for (int i = 0; i < pairs.Length; i++)
             {
-                try { pairs[i]?.Physical?.SetVibration(left, right); } catch { }
+                var phys = pairs[i]?.Physical;
+                if (phys != null && phys.IsConnected)
+                {
+                    try { phys.SetVibration(left, right); } catch { }
+                }
             }
         }
 
@@ -221,22 +225,24 @@ namespace DriftLift.Core.Input
         {
             try
             {
-                var current = DeviceEnumerator.GetConnectedControllers();
+                var activeIds = new HashSet<string>(_devices.Keys, StringComparer.OrdinalIgnoreCase);
+                var connectedPaths = DeviceEnumerator.GetConnectedDevicePaths();
                 bool changed = false;
 
-                foreach (var id in _devices.Keys)
+                var removedIds = activeIds.Where(id => !connectedPaths.Contains(id)).ToList();
+                var removedPairs = new List<ControllerProfilePair>();
+
+                foreach (var id in removedIds)
                 {
-                    if (!current.Exists(c => c.DeviceId == id))
+                    if (_devices.TryRemove(id, out var pair))
                     {
-                        if (_devices.TryRemove(id, out var removedPair))
-                        {
-                            try { removedPair.Physical.Dispose(); } catch { }
-                        }
+                        removedPairs.Add(pair);
                         changed = true;
                     }
                 }
 
-                foreach (var phys in current)
+                var newControllers = DeviceEnumerator.GetNewControllers(activeIds);
+                foreach (var phys in newControllers)
                 {
                     if (!_devices.ContainsKey(phys.DeviceId))
                     {
@@ -258,7 +264,22 @@ namespace DriftLift.Core.Input
                 if (changed)
                 {
                     _activePairsCache = _devices.Values.ToArray();
+
+                    if (_activePairsCache.Length == 0 && _isVirtualOutputEnabled)
+                    {
+                        try
+                        {
+                            _persistentVirtualPad.SendState(new ControllerState());
+                        }
+                        catch { }
+                    }
+
                     DevicesChanged?.Invoke();
+                }
+
+                foreach (var rp in removedPairs)
+                {
+                    try { rp.Physical.Dispose(); } catch { }
                 }
             }
             catch { }

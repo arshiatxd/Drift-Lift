@@ -105,17 +105,22 @@ namespace DriftLift.Services
                 }
                 catch { }
 
+                var blockedSet = new HashSet<string>(svc.BlockedInstanceIds, StringComparer.OrdinalIgnoreCase);
                 var controllerIds = DeviceEnumerator.GetAllPhysicalControllerInstanceIds();
                 foreach (var id in controllerIds)
                 {
                     if (string.IsNullOrWhiteSpace(id) || !id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    try
+                    if (!blockedSet.Contains(id))
                     {
-                        svc.AddBlockedInstanceId(id);
+                        try
+                        {
+                            svc.AddBlockedInstanceId(id);
+                            blockedSet.Add(id);
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
                 return true;
             }
