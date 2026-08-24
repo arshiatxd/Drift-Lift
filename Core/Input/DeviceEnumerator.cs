@@ -142,8 +142,6 @@ namespace DriftLift.Core.Input
             return list;
         }
 
-        public static List<string> GetAllPlayStationDeviceInstanceIds() => GetAllPhysicalControllerInstanceIds();
-
         public static HashSet<string> GetConnectedDevicePaths()
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

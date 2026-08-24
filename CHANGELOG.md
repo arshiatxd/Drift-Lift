@@ -4,6 +4,35 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ---
 
+## [1.0.8] — 2026-08-25
+
+### Highlights & Major Improvements
+- **Input Engine & Virtual Output Stability**: Fixed virtual controller destruction issue where disabling virtual output permanently severed the ViGEm target; now safely zeroes outputs while preserving device state.
+- **Remapping & Button Disabling**: Full support for blank/disabled button mappings via the circled `✕` action button and proper persistence in profile save/load routines.
+- **Single-Click Clear All**: Instant wipe and disk synchronization for all active button mappings without state resurrection.
+- **Performance & UI Hot-Loop Optimization**: Removed 60Hz redundant mapping and turbo recalculations from the UI tick timer; consolidated all button state feeds directly from the corrected input state.
+- **HidHide Thread Safety**: Dispatched controller shielding and device synchronization to the UI dispatcher thread to prevent COM cross-thread exceptions.
+- **Codebase Clean-Up**: Removed dead wrapper methods, legacy aliases, and sanitized inline comments across all modules.
+
+---
+
+## [1.0.7] — 2026-08-24
+
+### Highlights & Major Improvements
+- **Xbox One & Series X/S Visualizer Alignment**: Pixel-exact positioning and scaling for all face buttons, D-Pad directions, bumpers, analog triggers, and system buttons.
+- **Circled Action Button Updates**: Configured circled `✕` buttons across all remap cards to disable physical button outputs.
+- **Controller Hot-Plug Crash Protection**: Robust disconnect/reconnect handling during active gameplay without freezing the application.
+
+---
+
+## [1.0.6] — 2026-08-20
+
+### Highlights & Major Improvements
+- **DualSense & DualShock Touchpad Filter**: Completely decoupled touchpad inputs from analog stick drift calculations and remapping triggers.
+- **Multi-Controller Profile Auto-Switching**: Enhanced game watcher engine to automatically activate per-game deadzone, sensitivity, and remapping profiles upon foreground window detection.
+
+---
+
 ## [1.0.5] — 2026-08-14
 
 ### Highlights & Major Improvements

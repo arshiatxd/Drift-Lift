@@ -376,10 +376,6 @@ namespace DriftLift.ViewModels
             }
             catch { }
         }
-        private static string ExtractInstanceId(string path)
-        {
-            return DeviceEnumerator.ExtractInstanceId(path);
-        }
         public void SyncHidHideBlockedDevices()
         {
             if (_hidHideService == null || !_hidHideService.IsInstalled) return;
@@ -483,6 +479,36 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
         }
+        public void SyncTurboButtons()
+        {
+            if (_inputLoop == null) return;
+            _inputLoop.TurboButtons.Clear();
+            foreach (var m in ActiveMappings)
+            {
+                uint bit = GetBitFromName(m.SourceButton);
+                if (bit != 0 && !string.IsNullOrEmpty(m.TurboMode) && m.TurboMode.Contains("Rapid", StringComparison.OrdinalIgnoreCase))
+                {
+                    _inputLoop.TurboButtons[bit] = true;
+                }
+            }
+        }
+        public void ApplyActiveMappingsToProfile()
+        {
+            if (_activeProfile != null)
+            {
+                _activeProfile.Remaps.Clear();
+                foreach (var map in ActiveMappings)
+                {
+                    uint src = GetBitFromName(map.SourceButton);
+                    uint tgt = GetBitFromName(map.TargetButton);
+                    if (src != 0)
+                    {
+                        _activeProfile.Remaps[src] = tgt;
+                    }
+                }
+            }
+            SyncTurboButtons();
+        }
         public void UpdateActiveMappingsTable()
         {
             if (_activeProfile != null)
@@ -498,6 +524,7 @@ namespace DriftLift.ViewModels
                 }
                 SaveUserMappingsAndMacros();
             }
+            SyncTurboButtons();
             foreach (var r in FaceButtonsRemap) r.RefreshTarget();
             foreach (var r in DPadRemap) r.RefreshTarget();
             foreach (var r in ShouldersRemap) r.RefreshTarget();
@@ -533,8 +560,8 @@ namespace DriftLift.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     UpdateActiveProfile();
+                    SyncHidHideBlockedDevices();
                 });
-                Task.Run(() => SyncHidHideBlockedDevices());
             }
         }
         [ObservableProperty] private string _p1Label = "P1";
@@ -708,7 +735,7 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.7";
+                DeviceFirmwareText = $"{connType} • v1.0.8";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
@@ -854,30 +881,6 @@ namespace DriftLift.ViewModels
 
                     _lastRawButtons = rawButtons;
 
-                    if (_inputLoop != null && ActiveMappings.Count > 0)
-                    {
-                        foreach (var m in ActiveMappings)
-                        {
-                            uint bit = GetBitFromName(m.SourceButton);
-                            if (bit != 0)
-                            {
-                                if (!string.IsNullOrEmpty(m.TurboMode) && m.TurboMode.Contains("Rapid", StringComparison.OrdinalIgnoreCase))
-                                    _inputLoop.TurboButtons[bit] = true;
-                                else
-                                    _inputLoop.TurboButtons.TryRemove(bit, out _);
-                            }
-                        }
-                    }
-
-                    uint mappedB = 0;
-                    foreach (var kvp in profile.Remaps)
-                    {
-                        if ((rawButtons & kvp.Key) != 0)
-                            mappedB |= kvp.Value;
-                    }
-                    uint mappedSources = 0;
-                    foreach (var k in profile.Remaps.Keys) mappedSources |= k;
-                    mappedB |= (uint)(rawButtons & ~mappedSources);
                     LeftGraphicTranslateX = CorrectedLeftX * 12.0;
                     LeftGraphicTranslateY = -CorrectedLeftY * 12.0;
                     RightGraphicTranslateX = CorrectedRightX * 12.0;
@@ -886,7 +889,7 @@ namespace DriftLift.ViewModels
                     PsLeftGraphicTranslateY = -CorrectedLeftY * 12.0;
                     PsRightGraphicTranslateX = CorrectedRightX * 12.0;
                     PsRightGraphicTranslateY = -CorrectedRightY * 12.0;
-                    uint b = mappedB;
+                    uint b = corrState.Buttons;
                     IsDpadUpPressed = (b & 0x0001) != 0;
                     IsDpadDownPressed = (b & 0x0002) != 0;
                     IsDpadLeftPressed = (b & 0x0004) != 0;
@@ -901,8 +904,8 @@ namespace DriftLift.ViewModels
                     IsL1Pressed = IsLbPressed;
                     IsRbPressed = (b & 0x0200) != 0;
                     IsR1Pressed = IsRbPressed;
-                    IsL2Pressed = (b & 0x0400) != 0 || TriggerL > 0.1;
-                    IsR2Pressed = (b & 0x0800) != 0 || TriggerR > 0.1;
+                    IsL2Pressed = (b & 0x0400) != 0 || corrState.LeftTrigger > 0.1;
+                    IsR2Pressed = (b & 0x0800) != 0 || corrState.RightTrigger > 0.1;
                     IsAPressed = (b & 0x1000) != 0;
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
@@ -1076,7 +1079,7 @@ namespace DriftLift.ViewModels
                             {
                                 uint src = GetBitFromName(map.SourceButton);
                                 uint tgt = GetBitFromName(map.TargetButton);
-                                if (src != 0 && tgt != 0)
+                                if (src != 0)
                                 {
                                     _activeProfile.Remaps[src] = tgt;
                                 }

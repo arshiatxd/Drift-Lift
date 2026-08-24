@@ -32,6 +32,10 @@ namespace DriftLift.Core.Output
                     _target = _client.CreateXbox360Controller();
                     _target.FeedbackReceived += Target_FeedbackReceived;
                     _target.Connect();
+                    _lastLx = _lastLy = _lastRx = _lastRy = 0;
+                    _lastLt = _lastRt = 0;
+                    _lastButtons = 0;
+                    _lastSubmitTicks = 0;
                     _isCreated = true;
                 }
                 catch (Exception ex)

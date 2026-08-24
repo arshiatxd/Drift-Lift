@@ -53,7 +53,7 @@ namespace DriftLift.Core.Input
                 _isVirtualOutputEnabled = value;
                 if (!value)
                 {
-                    try { _persistentVirtualPad.Dispose(); } catch { }
+                    try { _persistentVirtualPad.SendState(new ControllerState()); } catch { }
                 }
             }
         }
