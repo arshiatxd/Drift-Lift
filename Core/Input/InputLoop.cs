@@ -138,12 +138,15 @@ namespace DriftLift.Core.Input
 
                         foreach (var kvp in pair.Remaps)
                         {
-                            if ((rb & kvp.Key) != 0)
+                            if ((rb & kvp.Key) != 0 && kvp.Value != 0)
                                 finalButtons |= kvp.Value;
                             mappedSources |= kvp.Key;
                         }
 
                         finalButtons |= (uint)(rb & ~mappedSources);
+
+                        bool ltDisabled = pair.Remaps.TryGetValue(0x0400, out uint ltv) && ltv == 0;
+                        bool rtDisabled = pair.Remaps.TryGetValue(0x0800, out uint rtv) && rtv == 0;
 
                         if (!turboCycleOn && TurboButtons.Count > 0)
                         {
@@ -164,8 +167,8 @@ namespace DriftLift.Core.Input
                             LeftThumbY = cly,
                             RightThumbX = crx,
                             RightThumbY = cry,
-                            LeftTrigger = (finalButtons & 0x0400) != 0 ? 1.0 : rawState.LeftTrigger,
-                            RightTrigger = (finalButtons & 0x0800) != 0 ? 1.0 : rawState.RightTrigger,
+                            LeftTrigger = ltDisabled ? 0.0 : ((finalButtons & 0x0400) != 0 ? 1.0 : rawState.LeftTrigger),
+                            RightTrigger = rtDisabled ? 0.0 : ((finalButtons & 0x0800) != 0 ? 1.0 : rawState.RightTrigger),
                             Buttons = finalButtons,
                             IsConnected = true
                         };

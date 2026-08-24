@@ -444,6 +444,7 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Clear();
             List<string> options = new()
             {
+                "None (Disabled)",
                 isPs ? "Cross" : "A",
                 isPs ? "Circle" : "B",
                 isPs ? "Square" : "X",
@@ -491,10 +492,22 @@ namespace DriftLift.ViewModels
                     foreach (var map in ActiveMappings)
                     {
                         uint src = GetBitFromName(map.SourceButton);
-                        uint tgt = GetBitFromName(map.TargetButton);
-                        if (src != 0 && tgt != 0)
+                        if (src != 0)
                         {
-                            _activeProfile.Remaps[src] = tgt;
+                            if (map.TargetButton.Contains("Disabled", StringComparison.OrdinalIgnoreCase) ||
+                                map.TargetButton.Contains("None", StringComparison.OrdinalIgnoreCase) ||
+                                map.TargetButton.Contains("Unmapped", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _activeProfile.Remaps[src] = 0;
+                            }
+                            else
+                            {
+                                uint tgt = GetBitFromName(map.TargetButton);
+                                if (tgt != 0)
+                                {
+                                    _activeProfile.Remaps[src] = tgt;
+                                }
+                            }
                         }
                     }
                 }
@@ -521,6 +534,7 @@ namespace DriftLift.ViewModels
         {
             if (string.IsNullOrEmpty(name)) return 0;
             string n = name.Trim().ToUpperInvariant();
+            if (n.Contains("NONE") || n.Contains("DISABLE") || n.Contains("UNMAP")) return 0;
             if (n == "CROSS" || n == "A" || n.Contains("CROSS") || n.EndsWith(" A")) return 0x1000;
             if (n == "CIRCLE" || n == "B" || n.Contains("CIRCLE") || n.EndsWith(" B")) return 0x2000;
             if (n == "SQUARE" || n == "X" || n.Contains("SQUARE") || n.EndsWith(" X")) return 0x4000;
@@ -1893,6 +1907,7 @@ namespace DriftLift.ViewModels
         }
         public string GetButtonName(uint bit)
         {
+            if (bit == 0) return "None (Disabled)";
             return bit switch
             {
                 0x0001 => "D-Pad Up",
@@ -2026,16 +2041,25 @@ namespace DriftLift.ViewModels
             set
             {
                 if (string.IsNullOrEmpty(value)) return;
-                uint bit = _parent.GetBitFromName(value);
                 if (_parent.ActiveProfile != null)
                 {
-                    if (bit == SourceBit || bit == 0)
+                    if (value.Contains("Disabled", StringComparison.OrdinalIgnoreCase) ||
+                        value.Contains("None", StringComparison.OrdinalIgnoreCase) ||
+                        value.Contains("Unmap", StringComparison.OrdinalIgnoreCase))
                     {
-                        _parent.ActiveProfile.Remaps.TryRemove(SourceBit, out _);
+                        _parent.ActiveProfile.Remaps[SourceBit] = 0;
                     }
                     else
                     {
-                        _parent.ActiveProfile.Remaps[SourceBit] = bit;
+                        uint bit = _parent.GetBitFromName(value);
+                        if (bit == SourceBit)
+                        {
+                            _parent.ActiveProfile.Remaps.TryRemove(SourceBit, out _);
+                        }
+                        else if (bit != 0)
+                        {
+                            _parent.ActiveProfile.Remaps[SourceBit] = bit;
+                        }
                     }
                     _parent.UpdateActiveMappingsTable();
                     OnPropertyChanged(nameof(SelectedTarget));
@@ -2057,6 +2081,16 @@ namespace DriftLift.ViewModels
             if (_parent.ActiveProfile != null)
             {
                 _parent.ActiveProfile.Remaps.TryRemove(SourceBit, out _);
+                _parent.UpdateActiveMappingsTable();
+                OnPropertyChanged(nameof(SelectedTarget));
+            }
+        }
+        [RelayCommand]
+        private void Disable()
+        {
+            if (_parent.ActiveProfile != null)
+            {
+                _parent.ActiveProfile.Remaps[SourceBit] = 0;
                 _parent.UpdateActiveMappingsTable();
                 OnPropertyChanged(nameof(SelectedTarget));
             }
