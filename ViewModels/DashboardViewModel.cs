@@ -444,7 +444,7 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Clear();
             List<string> options = new()
             {
-                "None (Disabled)",
+                "",
                 isPs ? "Cross" : "A",
                 isPs ? "Circle" : "B",
                 isPs ? "Square" : "X",
@@ -487,43 +487,16 @@ namespace DriftLift.ViewModels
         {
             if (_activeProfile != null)
             {
-                if (_activeProfile.Remaps.Count == 0 && ActiveMappings.Count > 0)
+                ActiveMappings.Clear();
+                foreach (var kvp in _activeProfile.Remaps)
                 {
-                    foreach (var map in ActiveMappings)
+                    ActiveMappings.Add(new CustomMapping
                     {
-                        uint src = GetBitFromName(map.SourceButton);
-                        if (src != 0)
-                        {
-                            if (map.TargetButton.Contains("Disabled", StringComparison.OrdinalIgnoreCase) ||
-                                map.TargetButton.Contains("None", StringComparison.OrdinalIgnoreCase) ||
-                                map.TargetButton.Contains("Unmapped", StringComparison.OrdinalIgnoreCase))
-                            {
-                                _activeProfile.Remaps[src] = 0;
-                            }
-                            else
-                            {
-                                uint tgt = GetBitFromName(map.TargetButton);
-                                if (tgt != 0)
-                                {
-                                    _activeProfile.Remaps[src] = tgt;
-                                }
-                            }
-                        }
-                    }
+                        SourceButton = GetButtonName(kvp.Key),
+                        TargetButton = kvp.Value == 0 ? "DISABLED" : GetButtonName(kvp.Value)
+                    });
                 }
-                else
-                {
-                    ActiveMappings.Clear();
-                    foreach (var kvp in _activeProfile.Remaps)
-                    {
-                        ActiveMappings.Add(new CustomMapping
-                        {
-                            SourceButton = GetButtonName(kvp.Key),
-                            TargetButton = GetButtonName(kvp.Value)
-                        });
-                    }
-                    SaveUserMappingsAndMacros();
-                }
+                SaveUserMappingsAndMacros();
             }
             foreach (var r in FaceButtonsRemap) r.RefreshTarget();
             foreach (var r in DPadRemap) r.RefreshTarget();
@@ -1902,12 +1875,15 @@ namespace DriftLift.ViewModels
             if (_activeProfile != null)
             {
                 _activeProfile.Remaps.Clear();
-                UpdateMappingsForControllerType(IsPlayStation);
             }
+            ActiveMappings.Clear();
+            SaveUserMappingsAndMacros();
+            UpdateActiveMappingsTable();
+            DriftLift.Views.Windows.CustomMessageDialog.Show("All button mappings have been cleared.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         public string GetButtonName(uint bit)
         {
-            if (bit == 0) return "None (Disabled)";
+            if (bit == 0) return "";
             return bit switch
             {
                 0x0001 => "D-Pad Up",
@@ -2034,16 +2010,17 @@ namespace DriftLift.ViewModels
             {
                 if (_parent.ActiveProfile != null && _parent.ActiveProfile.Remaps.TryGetValue(SourceBit, out uint targetBit))
                 {
+                    if (targetBit == 0) return "";
                     return _parent.GetButtonName(targetBit);
                 }
                 return SourceButtonName;
             }
             set
             {
-                if (string.IsNullOrEmpty(value)) return;
                 if (_parent.ActiveProfile != null)
                 {
-                    if (value.Contains("Disabled", StringComparison.OrdinalIgnoreCase) ||
+                    if (string.IsNullOrWhiteSpace(value) ||
+                        value.Contains("Disabled", StringComparison.OrdinalIgnoreCase) ||
                         value.Contains("None", StringComparison.OrdinalIgnoreCase) ||
                         value.Contains("Unmap", StringComparison.OrdinalIgnoreCase))
                     {

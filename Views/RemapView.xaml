@@ -55,7 +55,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0">
-                            <TextBlock Text="✕" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -140,7 +140,9 @@
                                                 <Button Grid.Column="3" Style="{StaticResource ClearBtn}" Command="{Binding ListenCommand}" ToolTip="Scan physical button" Margin="4,0,0,0">
                                                     <TextBlock Text="🎯" FontSize="10"/>
                                                 </Button>
-                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding ResetCommand}" ToolTip="Reset mapping" Margin="4,0,0,0"/>
+                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding DisableCommand}" ToolTip="Remove button map (Disable button)" Margin="4,0,0,0">
+                                                    <TextBlock Text="✕" FontSize="10"/>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -170,7 +172,9 @@
                                                 <Button Grid.Column="3" Style="{StaticResource ClearBtn}" Command="{Binding ListenCommand}" ToolTip="Scan physical button" Margin="4,0,0,0">
                                                     <TextBlock Text="🎯" FontSize="10"/>
                                                 </Button>
-                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding ResetCommand}" ToolTip="Reset mapping" Margin="4,0,0,0"/>
+                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding DisableCommand}" ToolTip="Remove button map (Disable button)" Margin="4,0,0,0">
+                                                    <TextBlock Text="✕" FontSize="10"/>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -211,7 +215,9 @@
                                                 <Button Grid.Column="3" Style="{StaticResource ClearBtn}" Command="{Binding ListenCommand}" ToolTip="Scan physical button" Margin="4,0,0,0">
                                                     <TextBlock Text="🎯" FontSize="10"/>
                                                 </Button>
-                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding ResetCommand}" ToolTip="Reset mapping" Margin="4,0,0,0"/>
+                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding DisableCommand}" ToolTip="Remove button map (Disable button)" Margin="4,0,0,0">
+                                                    <TextBlock Text="✕" FontSize="10"/>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -241,7 +247,9 @@
                                                 <Button Grid.Column="3" Style="{StaticResource ClearBtn}" Command="{Binding ListenCommand}" ToolTip="Scan physical button" Margin="4,0,0,0">
                                                     <TextBlock Text="🎯" FontSize="10"/>
                                                 </Button>
-                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding ResetCommand}" ToolTip="Reset mapping" Margin="4,0,0,0"/>
+                                                <Button Grid.Column="4" Style="{StaticResource ClearBtn}" Command="{Binding DisableCommand}" ToolTip="Remove button map (Disable button)" Margin="4,0,0,0">
+                                                    <TextBlock Text="✕" FontSize="10"/>
+                                                </Button>
                                             </Grid>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -323,7 +331,9 @@
                                             </ComboBox>
                                             <Button Grid.Column="5" Style="{StaticResource ClearBtn}"
                                                     Command="{Binding DataContext.RemoveMappingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"/>
+                                                    CommandParameter="{Binding}" ToolTip="Remove mapping">
+                                                <TextBlock Text="✕" FontSize="10"/>
+                                            </Button>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
