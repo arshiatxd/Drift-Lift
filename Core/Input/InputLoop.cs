@@ -23,7 +23,6 @@ namespace DriftLift.Core.Input
 
     public class InputLoop
     {
-        // ##== Fields & Setup ==##
         [DllImport("winmm.dll", EntryPoint = "timeBeginPeriod", SetLastError = true)]
         private static extern uint TimeBeginPeriod(uint uMilliseconds);
 
@@ -104,7 +103,6 @@ namespace DriftLift.Core.Input
             _persistentVirtualPad.Dispose();
         }
 
-        // ##== High Precision Input Loop ==##
         private void Loop()
         {
             while (_running)
@@ -175,13 +173,13 @@ namespace DriftLift.Core.Input
 
                         pair.LatestCorrectedState = correctedState;
 
-                        if (outState == null)
+                        if (i == 0)
                         {
                             outState = correctedState;
                         }
                     }
 
-                    if (outState != null && _isVirtualOutputEnabled)
+                    if (outState != null && _isVirtualOutputEnabled && _devices.Count > 0)
                     {
                         _persistentVirtualPad.EnsureCreated();
                         _persistentVirtualPad.SendState(outState);
@@ -196,7 +194,6 @@ namespace DriftLift.Core.Input
             }
         }
 
-        // ##== Device Watcher Thread ==##
         private void DeviceWatcherLoop()
         {
             while (_running)
@@ -268,11 +265,19 @@ namespace DriftLift.Core.Input
                 {
                     _activePairsCache = _devices.Values.ToArray();
 
-                    if (_activePairsCache.Length == 0 && _isVirtualOutputEnabled)
+                    if (_activePairsCache.Length == 0)
                     {
                         try
                         {
-                            _persistentVirtualPad.SendState(new ControllerState());
+                            _persistentVirtualPad.Disconnect();
+                        }
+                        catch { }
+                    }
+                    else if (_isVirtualOutputEnabled)
+                    {
+                        try
+                        {
+                            _persistentVirtualPad.EnsureCreated();
                         }
                         catch { }
                     }

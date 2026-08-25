@@ -78,6 +78,16 @@ namespace DriftLift.Services
                     }
                 }
                 catch { }
+
+                try
+                {
+                    string localApp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DriftLift", "DriftliftApp.exe");
+                    if (File.Exists(localApp))
+                    {
+                        svc.AddApplicationPath(localApp);
+                    }
+                }
+                catch { }
             }
             catch { }
         }
@@ -96,7 +106,9 @@ namespace DriftLift.Services
                 try
                 {
                     var invalidEntries = svc.BlockedInstanceIds
-                        .Where(id => string.IsNullOrWhiteSpace(id) || !id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase))
+                        .Where(id => string.IsNullOrWhiteSpace(id) 
+                                  || !id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase)
+                                  || id.Contains("&IG_", StringComparison.OrdinalIgnoreCase))
                         .ToList();
                     foreach (var inv in invalidEntries)
                     {
@@ -197,7 +209,7 @@ namespace DriftLift.Services
                 {
                     svc.IsActive = true;
                     WhitelistCurrentProcess(svc);
-                    AutoShieldPlayStationControllers();
+                    AutoShieldAllControllers(svc);
                     return true;
                 }
             }

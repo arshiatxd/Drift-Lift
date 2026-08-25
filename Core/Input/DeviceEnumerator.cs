@@ -9,7 +9,6 @@ namespace DriftLift.Core.Input
 {
     public class DeviceEnumerator
     {
-        // ##== Vendor and Product IDs ==##
         public static readonly HashSet<int> PlayStationVendorIds = new() { 0x054C, 0x073A, 0x0F0D, 0x146B, 0x7359 };
         private static readonly HashSet<int> Xbox360ProductIds = new() { 0x028E, 0x028F, 0x0291, 0x02A1, 0x0719, 0x02A0 };
         private static readonly HashSet<int> Xbox360VendorIds = new() { 0x1BAD, 0x0738, 0x0E6F, 0x24C6, 0x1689 };
@@ -20,9 +19,11 @@ namespace DriftLift.Core.Input
             string path = (device.DevicePath ?? string.Empty).ToLowerInvariant();
             string desc = (device.Description ?? string.Empty).ToLowerInvariant();
 
-            if (path.Contains("root#system") || path.Contains(@"root\system") || path.Contains("vigem") 
-                || path.Contains("virtual") || path.Contains("nsoftware") || path.Contains("spaceport")
-                || path.Contains("amdxe") || path.Contains("rainway"))
+            if (path.Contains("&ig_") || path.Contains("&ig#") || path.Contains("root#system") 
+                || path.Contains(@"root\system") || path.Contains("vigem") || path.Contains("virtual") 
+                || path.Contains("nsoftware") || path.Contains("spaceport") || path.Contains("amdxe") 
+                || path.Contains("rainway") || path.Contains("vmulti") || path.Contains("vjoy") 
+                || path.Contains("parsec"))
             {
                 return true;
             }
@@ -86,6 +87,7 @@ namespace DriftLift.Core.Input
             if (dev == null || IsVirtualDevice(dev)) return false;
 
             int vid = dev.Attributes.VendorId;
+            int pid = dev.Attributes.ProductId;
             string desc = dev.Description ?? string.Empty;
 
             if (desc.Contains("System Controller", StringComparison.OrdinalIgnoreCase)
@@ -114,6 +116,11 @@ namespace DriftLift.Core.Input
 
             if (KnownPhysicalControllerVendorIds.Contains(vid)
                 && (desc.Contains("Controller", StringComparison.OrdinalIgnoreCase) || desc.Contains("Gamepad", StringComparison.OrdinalIgnoreCase) || desc.Contains("Joystick", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            if (Xbox360VendorIds.Contains(vid) || (vid == 0x045E && Xbox360ProductIds.Contains(pid)))
             {
                 return true;
             }
@@ -167,11 +174,21 @@ namespace DriftLift.Core.Input
 
             try
             {
-                for (uint i = 0; i < 4; i++)
+                var realXboxHids = HidDevices.Enumerate()
+                    .Where(d => !IsVirtualDevice(d)
+                             && IsGameController(d)
+                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
+                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
+                    .ToList();
+
+                if (realXboxHids.Count > 0)
                 {
-                    if (XInput.GetState(i, out _))
+                    for (uint i = 0; i < 4; i++)
                     {
-                        paths.Add($"XINPUT_{i}");
+                        if (XInput.GetState(i, out _))
+                        {
+                            paths.Add($"XINPUT_{i}");
+                        }
                     }
                 }
             }
@@ -184,7 +201,6 @@ namespace DriftLift.Core.Input
         {
             var result = new List<IPhysicalController>();
 
-            // ##== PlayStation Enumeration ==##
             var psDevices = new List<PlayStationController>();
             try
             {
@@ -219,21 +235,18 @@ namespace DriftLift.Core.Input
             catch { }
             result.AddRange(psDevices);
 
-            // ##== Xbox Enumeration ==##
             try
             {
-                var realXboxVendorIds = new HashSet<int> { 0x045E, 0x0738, 0x0F0D, 0x1532, 0x24C6, 0x1BAD, 0x046D, 0x0079, 0x0E6F };
-                var allHid = HidDevices.Enumerate().ToList();
-
-                var xboxHids = allHid
+                var xboxHids = HidDevices.Enumerate()
                     .Where(d => !IsVirtualDevice(d)
-                             && realXboxVendorIds.Contains(d.Attributes.VendorId)
-                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId))
+                             && IsGameController(d)
+                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
+                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
                     .ToList();
 
                 int realXboxHidCount = xboxHids.Count;
-
                 int xboxAdded = 0;
+
                 for (uint i = 0; i < 4; i++)
                 {
                     string xId = $"XINPUT_{i}";
@@ -242,11 +255,7 @@ namespace DriftLift.Core.Input
 
                     if (XInput.GetState(i, out _))
                     {
-                        if (realXboxHidCount == 0)
-                        {
-                            continue;
-                        }
-                        if (xboxAdded >= realXboxHidCount)
+                        if (realXboxHidCount == 0 || xboxAdded >= realXboxHidCount)
                         {
                             continue;
                         }
@@ -271,16 +280,6 @@ namespace DriftLift.Core.Input
                             else
                             {
                                 devName = $"Xbox Wireless Controller ({i + 1})";
-                            }
-                        }
-                        else
-                        {
-                            if (xboxHids.Any(h => Xbox360ProductIds.Contains(h.Attributes.ProductId) 
-                                               || Xbox360VendorIds.Contains(h.Attributes.VendorId) 
-                                               || (h.Description != null && h.Description.Contains("360", StringComparison.OrdinalIgnoreCase))))
-                            {
-                                is360 = true;
-                                devName = $"Xbox 360 Controller ({i + 1})";
                             }
                         }
 

@@ -8,7 +8,6 @@ namespace DriftLift.Core.Output
 {
     public class VirtualController : IDisposable
     {
-        // ##== Fields & State ==##
         private ViGEmClient? _client;
         private IXbox360Controller? _target;
         private readonly object _lock = new();
@@ -18,17 +17,16 @@ namespace DriftLift.Core.Output
         public bool IsActive => _isCreated && _target != null;
         public event Action<double, double>? FeedbackReceived;
 
-        // ##== Lifecycle ==##
         public void EnsureCreated()
         {
-            if (_isCreated) return;
+            if (_isCreated || _disposed) return;
 
             lock (_lock)
             {
-                if (_isCreated) return;
+                if (_isCreated || _disposed) return;
                 try
                 {
-                    _client = new ViGEmClient();
+                    _client ??= new ViGEmClient();
                     _target = _client.CreateXbox360Controller();
                     _target.FeedbackReceived += Target_FeedbackReceived;
                     _target.Connect();
@@ -46,6 +44,22 @@ namespace DriftLift.Core.Output
             }
         }
 
+        public void Disconnect()
+        {
+            lock (_lock)
+            {
+                if (!_isCreated || _target == null) return;
+                try
+                {
+                    _target.FeedbackReceived -= Target_FeedbackReceived;
+                    _target.Disconnect();
+                }
+                catch { }
+                _target = null;
+                _isCreated = false;
+            }
+        }
+
         private void Target_FeedbackReceived(object sender, Xbox360FeedbackReceivedEventArgs e)
         {
             FeedbackReceived?.Invoke(e.LargeMotor / 255.0, e.SmallMotor / 255.0);
@@ -56,7 +70,6 @@ namespace DriftLift.Core.Output
         private uint _lastButtons;
         private long _lastSubmitTicks;
 
-        // ##== State Submission ==##
         public void SendState(ControllerState state)
         {
             if (!_isCreated || _target == null) return;
@@ -112,7 +125,6 @@ namespace DriftLift.Core.Output
             catch { }
         }
 
-        // ##== Cleanup ==##
         public void Dispose()
         {
             lock (_lock)
@@ -122,7 +134,12 @@ namespace DriftLift.Core.Output
 
                 if (_target != null)
                 {
-                    try { _target.Disconnect(); } catch { }
+                    try
+                    {
+                        _target.FeedbackReceived -= Target_FeedbackReceived;
+                        _target.Disconnect();
+                    }
+                    catch { }
                     _target = null;
                 }
 
