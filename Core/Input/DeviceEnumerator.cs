@@ -19,8 +19,7 @@ namespace DriftLift.Core.Input
             string path = (device.DevicePath ?? string.Empty).ToLowerInvariant();
             string desc = (device.Description ?? string.Empty).ToLowerInvariant();
 
-            if (path.Contains("&ig_") || path.Contains("&ig#") || path.Contains("root#system") 
-                || path.Contains(@"root\system") || path.Contains("vigem") || path.Contains("virtual") 
+            if (path.Contains("root#system") || path.Contains(@"root\system") || path.Contains("vigem") 
                 || path.Contains("nsoftware") || path.Contains("spaceport") || path.Contains("amdxe") 
                 || path.Contains("rainway") || path.Contains("vmulti") || path.Contains("vjoy") 
                 || path.Contains("parsec"))
@@ -174,21 +173,11 @@ namespace DriftLift.Core.Input
 
             try
             {
-                var realXboxHids = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d)
-                             && IsGameController(d)
-                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
-                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
-                    .ToList();
-
-                if (realXboxHids.Count > 0)
+                for (uint i = 0; i < 4; i++)
                 {
-                    for (uint i = 0; i < 4; i++)
+                    if (XInput.GetState(i, out _))
                     {
-                        if (XInput.GetState(i, out _))
-                        {
-                            paths.Add($"XINPUT_{i}");
-                        }
+                        paths.Add($"XINPUT_{i}");
                     }
                 }
             }
@@ -255,7 +244,7 @@ namespace DriftLift.Core.Input
 
                     if (XInput.GetState(i, out _))
                     {
-                        if (realXboxHidCount == 0 || xboxAdded >= realXboxHidCount)
+                        if (realXboxHidCount > 0 && xboxAdded >= realXboxHidCount)
                         {
                             continue;
                         }
