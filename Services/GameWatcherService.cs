@@ -57,6 +57,8 @@ namespace DriftLift.Services
             _running = false;
         }
 
+        private IntPtr _lastHwnd = IntPtr.Zero;
+
         private void WatcherLoop()
         {
             while (_running)
@@ -65,25 +67,29 @@ namespace DriftLift.Services
                 {
                     try
                     {
-                        string currentExe = GetActiveForegroundProcessExe();
-                        if (!string.Equals(currentExe, _lastActiveExe, StringComparison.OrdinalIgnoreCase))
+                        IntPtr hwnd = GetForegroundWindow();
+                        if (hwnd != IntPtr.Zero && hwnd != _lastHwnd)
                         {
-                            _lastActiveExe = currentExe;
-                            ActiveGameChanged?.Invoke(currentExe);
+                            _lastHwnd = hwnd;
+                            string currentExe = GetActiveForegroundProcessExe(hwnd);
+                            if (!string.IsNullOrEmpty(currentExe) && !string.Equals(currentExe, _lastActiveExe, StringComparison.OrdinalIgnoreCase))
+                            {
+                                _lastActiveExe = currentExe;
+                                ActiveGameChanged?.Invoke(currentExe);
+                            }
                         }
                     }
                     catch { }
                 }
 
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
         }
 
-        private static string GetActiveForegroundProcessExe()
+        private static string GetActiveForegroundProcessExe(IntPtr hwnd)
         {
             try
             {
-                IntPtr hwnd = GetForegroundWindow();
                 if (hwnd == IntPtr.Zero) return string.Empty;
 
                 GetWindowThreadProcessId(hwnd, out uint pid);

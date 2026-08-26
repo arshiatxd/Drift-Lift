@@ -69,7 +69,7 @@ namespace DriftLift.Core.Input
                         state.IsConnected = false;
                         return state;
                     }
-                    report = _device.ReadReport();
+                    report = _device.ReadReport(50);
                 }
 
                 if (report == null || report.ReadStatus != HidDeviceData.ReadStatus.Success)

@@ -173,11 +173,24 @@ namespace DriftLift.Core.Input
 
             try
             {
+                var xboxHids = HidDevices.Enumerate()
+                    .Where(d => !IsVirtualDevice(d)
+                             && IsGameController(d)
+                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
+                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
+                    .ToList();
+
+                int maxXbox = xboxHids.Count;
+                int added = 0;
+
                 for (uint i = 0; i < 4; i++)
                 {
+                    if (added >= maxXbox) break;
+
                     if (XInput.GetState(i, out _))
                     {
                         paths.Add($"XINPUT_{i}");
+                        added++;
                     }
                 }
             }
@@ -236,45 +249,49 @@ namespace DriftLift.Core.Input
                 int realXboxHidCount = xboxHids.Count;
                 int xboxAdded = 0;
 
-                for (uint i = 0; i < 4; i++)
+                if (realXboxHidCount > 0)
                 {
-                    string xId = $"XINPUT_{i}";
-                    if (existingIds != null && existingIds.Contains(xId))
-                        continue;
-
-                    if (XInput.GetState(i, out _))
+                    for (uint i = 0; i < 4; i++)
                     {
-                        if (realXboxHidCount > 0 && xboxAdded >= realXboxHidCount)
+                        if (xboxAdded >= realXboxHidCount)
+                            break;
+
+                        string xId = $"XINPUT_{i}";
+                        if (existingIds != null && existingIds.Contains(xId))
                         {
+                            xboxAdded++;
                             continue;
                         }
 
-                        bool is360 = false;
-                        string devName = $"Xbox Controller ({i + 1})";
-
-                        if (xboxHids.Count > xboxAdded)
+                        if (XInput.GetState(i, out _))
                         {
-                            var matchingHid = xboxHids[xboxAdded];
-                            int vid = matchingHid.Attributes.VendorId;
-                            int pid = matchingHid.Attributes.ProductId;
-                            string desc = matchingHid.Description ?? string.Empty;
+                            bool is360 = false;
+                            string devName = $"Xbox Controller ({i + 1})";
 
-                            if (Xbox360VendorIds.Contains(vid) 
-                                || (vid == 0x045E && Xbox360ProductIds.Contains(pid))
-                                || desc.Contains("360", StringComparison.OrdinalIgnoreCase))
+                            if (xboxHids.Count > xboxAdded)
                             {
-                                is360 = true;
-                                devName = $"Xbox 360 Controller ({i + 1})";
+                                var matchingHid = xboxHids[xboxAdded];
+                                int vid = matchingHid.Attributes.VendorId;
+                                int pid = matchingHid.Attributes.ProductId;
+                                string desc = matchingHid.Description ?? string.Empty;
+
+                                if (Xbox360VendorIds.Contains(vid) 
+                                    || (vid == 0x045E && Xbox360ProductIds.Contains(pid))
+                                    || desc.Contains("360", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    is360 = true;
+                                    devName = $"Xbox 360 Controller ({i + 1})";
+                                }
+                                else
+                                {
+                                    devName = $"Xbox Wireless Controller ({i + 1})";
+                                }
                             }
-                            else
-                            {
-                                devName = $"Xbox Wireless Controller ({i + 1})";
-                            }
+
+                            var xc = new XboxController(i, is360 ? ControllerType.Xbox360 : ControllerType.Xbox, devName);
+                            result.Add(xc);
+                            xboxAdded++;
                         }
-
-                        var ctrlType = is360 ? ControllerType.Xbox360 : ControllerType.Xbox;
-                        result.Add(new XboxController(i, ctrlType, devName));
-                        xboxAdded++;
                     }
                 }
             }
