@@ -1297,8 +1297,10 @@ namespace DriftLift.ViewModels
                 {
                     appResources.Remove(oldTheme);
                 }
-                string targetUri = isDark ? "Themes/RedNeonTheme.xaml" : "Themes/LightTheme.xaml";
-                appResources.Add(new ResourceDictionary { Source = new Uri(targetUri, UriKind.Relative) });
+                string targetUri = isDark 
+                    ? "pack://application:,,,/DriftliftApp;component/Themes/RedNeonTheme.xaml" 
+                    : "pack://application:,,,/DriftliftApp;component/Themes/LightTheme.xaml";
+                appResources.Add(new ResourceDictionary { Source = new Uri(targetUri, UriKind.Absolute) });
                 AppLogoSource = isDark ? "pack://application:,,,/DriftliftApp;component/icon.ico" : "pack://application:,,,/DriftliftApp;component/Assets/logo_light.png";
                 UpdateMappingsForControllerType(IsPlayStation);
             }

@@ -66,7 +66,7 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel HorizontalAlignment="Center">
-                                <Path Data="{StaticResource IconControllerVector}" Fill="{DynamicResource RedNeon}" Width="36" Height="36" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                                <Path Data="{DynamicResource IconControllerVector}" Fill="{DynamicResource RedNeon}" Width="36" Height="36" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                                 <TextBlock Text="NO GAMES LINKED" FontWeight="Black" FontSize="12" Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Scan your PC to automatically detect installed games from Steam, EA, Epic, and other libraries." TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="10" Margin="0,6,0,14" MaxWidth="280"/>
                                 <Button Command="{Binding ScanInstalledGamesCommand}" Content="🔍 SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="14,7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
