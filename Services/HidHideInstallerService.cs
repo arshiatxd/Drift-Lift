@@ -12,7 +12,7 @@ namespace DriftLift.Services
 {
     public class HidHideInstallerService
     {
-        private const string HidHideDownloadUrl = "https://github.com/nefarius/HidHide/releases/download/v1.5.230.0/HidHide_1.5.230.0_x64.exe";
+        private const string HidHideDownloadUrl = "https://github.com/nefarius/HidHide/releases/download/v1.5.230.0/HidHide_1.5.230_x64.exe";
 
         public static bool IsHidHideInstalled()
         {

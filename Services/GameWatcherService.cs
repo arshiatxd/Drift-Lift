@@ -16,17 +16,7 @@ namespace DriftLift.Services
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, uint processId);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern bool QueryFullProcessImageName(IntPtr hProcess, int flags, StringBuilder lpExeName, ref int lpdwSize);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CloseHandle(IntPtr hObject);
-
-        private const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
 
         private readonly Thread _watcherThread;
         private volatile bool _running;
@@ -95,22 +85,21 @@ namespace DriftLift.Services
                 GetWindowThreadProcessId(hwnd, out uint pid);
                 if (pid == 0 || pid == (uint)Environment.ProcessId) return string.Empty;
 
-                IntPtr hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
-                if (hProcess == IntPtr.Zero) return string.Empty;
-
                 try
                 {
-                    var sb = new StringBuilder(1024);
-                    int size = sb.Capacity;
-                    if (QueryFullProcessImageName(hProcess, 0, sb, ref size))
+                    var allProcesses = Process.GetProcesses();
+                    foreach (var proc in allProcesses)
                     {
-                        return Path.GetFileName(sb.ToString()).ToLowerInvariant();
+                        if (proc.Id == (int)pid)
+                        {
+                            string name = proc.ProcessName.ToLowerInvariant() + ".exe";
+                            foreach (var p in allProcesses) p.Dispose();
+                            return name;
+                        }
                     }
+                    foreach (var p in allProcesses) p.Dispose();
                 }
-                finally
-                {
-                    CloseHandle(hProcess);
-                }
+                catch { }
             }
             catch { }
 
