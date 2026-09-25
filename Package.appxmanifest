@@ -8,7 +8,7 @@
   <Identity
     Name="Arshiadxt.DriftLift"
     Publisher="CN=Arshiadxt"
-    Version="1.0.8.1" />
+    Version="1.0.9.1" />
 
   <Properties>
     <DisplayName>Drift Lift - Gamepad Controller Suite</DisplayName>

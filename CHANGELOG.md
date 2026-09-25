@@ -4,7 +4,7 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ---
 
-## [1.0.8] — 2026-08-25
+## [1.0.9] — 2026-08-25
 
 ### Highlights & Major Improvements
 - **Input Engine & Virtual Output Stability**: Fixed virtual controller destruction issue where disabling virtual output permanently severed the ViGEm target; now safely zeroes outputs while preserving device state.

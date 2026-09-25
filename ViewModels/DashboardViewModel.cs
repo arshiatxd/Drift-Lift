@@ -735,7 +735,7 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.8";
+                DeviceFirmwareText = $"{connType} • v1.0.9";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
