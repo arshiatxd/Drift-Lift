@@ -15,6 +15,25 @@ namespace DriftLift.Core.Output
         private bool _disposed;
 
         public bool IsActive => _isCreated && _target != null;
+        public int? VirtualUserIndex
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_isCreated && _target != null && !_disposed)
+                    {
+                        try
+                        {
+                            int idx = _target.UserIndex;
+                            if (idx >= 0 && idx < 4) return idx;
+                        }
+                        catch { }
+                    }
+                    return null;
+                }
+            }
+        }
         public event Action<double, double>? FeedbackReceived;
 
         public void EnsureCreated()

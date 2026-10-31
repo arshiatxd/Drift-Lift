@@ -9,7 +9,6 @@ publish/
 # .NET
 *.dll
 *.exe
-!DriftliftApp.exe
 *.pdb
 *.cache
 
@@ -30,10 +29,33 @@ profiles/
 Thumbs.db
 desktop.ini
 
-# IDE
+# IDE & Editor
 .idea/
 *.swp
 *~
+.vscode/
 
-# Inno Setup output
-!DriftLift_Setup.exe
+# Packaging & Store artifacts
+*.msix
+*.appx
+*.msixbundle
+*.appxbundle
+*.msixupload
+*.appxupload
+Package.appxmanifest
+AppxManifest.xml
+AppxBlockMap.xml
+[Content_Types].xml
+
+# Internal / Development Tools
+GEMINI.md
+*.ai
+.gemini/
+.cursor/
+scripts/
+corpos/
+srcimg/
+tools/
+hidapi_ext/
+*.zip
+*.iss

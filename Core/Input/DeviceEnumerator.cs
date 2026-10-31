@@ -20,9 +20,9 @@ namespace DriftLift.Core.Input
             string desc = (device.Description ?? string.Empty).ToLowerInvariant();
 
             if (path.Contains("root#system") || path.Contains(@"root\system") || path.Contains("vigem") 
-                || path.Contains("nsoftware") || path.Contains("spaceport") || path.Contains("amdxe") 
+                || path.Contains("vigembus") || path.Contains("nsoftware") || path.Contains("spaceport") || path.Contains("amdxe") 
                 || path.Contains("rainway") || path.Contains("vmulti") || path.Contains("vjoy") 
-                || path.Contains("parsec"))
+                || path.Contains("parsec") || path.Contains("virtual"))
             {
                 return true;
             }
@@ -148,7 +148,7 @@ namespace DriftLift.Core.Input
             return list;
         }
 
-        public static HashSet<string> GetConnectedDevicePaths()
+        public static HashSet<string> GetConnectedDevicePaths(int? virtualUserIndex = null)
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             try
@@ -186,6 +186,7 @@ namespace DriftLift.Core.Input
                 for (uint i = 0; i < 4; i++)
                 {
                     if (added >= maxXbox) break;
+                    if (virtualUserIndex.HasValue && i == (uint)virtualUserIndex.Value) continue;
 
                     if (XInput.GetState(i, out _))
                     {
@@ -199,7 +200,7 @@ namespace DriftLift.Core.Input
             return paths;
         }
 
-        public static List<IPhysicalController> GetNewControllers(IReadOnlyCollection<string>? existingIds = null)
+        public static List<IPhysicalController> GetNewControllers(IReadOnlyCollection<string>? existingIds = null, int? virtualUserIndex = null)
         {
             var result = new List<IPhysicalController>();
 
@@ -255,6 +256,8 @@ namespace DriftLift.Core.Input
                     {
                         if (xboxAdded >= realXboxHidCount)
                             break;
+                        if (virtualUserIndex.HasValue && i == (uint)virtualUserIndex.Value)
+                            continue;
 
                         string xId = $"XINPUT_{i}";
                         if (existingIds != null && existingIds.Contains(xId))

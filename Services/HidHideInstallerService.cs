@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -13,6 +13,7 @@ namespace DriftLift.Services
     public class HidHideInstallerService
     {
         private const string HidHideDownloadUrl = "https://github.com/nefarius/HidHide/releases/download/v1.5.230.0/HidHide_1.5.230_x64.exe";
+        private const string HidHideExpectedSha256 = "F4BBBCB82E6258641B887C74BC81C4C5F66E4AA811808DFC304347687B7605F6";
 
         public static bool IsHidHideInstalled()
         {
@@ -99,8 +100,8 @@ namespace DriftLift.Services
                 var svc = existingSvc ?? new HidHideControlService();
                 if (!svc.IsInstalled) return false;
 
-                svc.IsActive = true;
-                try { svc.IsAppListInverted = false; } catch { }
+                if (!svc.IsActive) svc.IsActive = true;
+                try { if (svc.IsAppListInverted) svc.IsAppListInverted = false; } catch { }
                 WhitelistCurrentProcess(svc);
 
                 try
@@ -175,6 +176,19 @@ namespace DriftLift.Services
                     }
                 }
             }
+            statusCallback("Verifying package integrity (SHA-256)...");
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                using var fs = new FileStream(tempInstallerPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                byte[] hashBytes = await sha256.ComputeHashAsync(fs);
+                string actualHash = Convert.ToHexString(hashBytes);
+                if (!string.Equals(actualHash, HidHideExpectedSha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    fs.Dispose();
+                    try { File.Delete(tempInstallerPath); } catch { }
+                    throw new InvalidOperationException($"Package integrity check failed. Expected SHA-256 {HidHideExpectedSha256}, got {actualHash}.");
+                }
+            }
             statusCallback("Installing HidHide Driver (Please accept UAC prompt)...");
             var startInfo = new ProcessStartInfo
             {
@@ -187,6 +201,10 @@ namespace DriftLift.Services
             if (process != null)
             {
                 await process.WaitForExitAsync();
+                if (process.ExitCode != 0 && process.ExitCode != 3010 && process.ExitCode != 1641)
+                {
+                    throw new InvalidOperationException($"The HidHide installer did not complete (exit code {process.ExitCode}).");
+                }
             }
             statusCallback("Configuring HidHide Driver & Shielding Controllers...");
             ConfigureHidHide();
@@ -207,7 +225,7 @@ namespace DriftLift.Services
                 var svc = new HidHideControlService();
                 if (svc.IsInstalled)
                 {
-                    svc.IsActive = true;
+                    if (!svc.IsActive) svc.IsActive = true;
                     WhitelistCurrentProcess(svc);
                     AutoShieldAllControllers(svc);
                     return true;

@@ -2,7 +2,15 @@
 
 # Drift Lift
 
-**Gamepad controller calibration, stick drift correction, and remapping tool for Windows.**
+**Gamepad controller calibration, real-time stick drift elimination, and remapping suite for Windows.**
+
+<br/>
+
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows&logoColor=white)](https://github.com/arshiatxd/Drift-Lift)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Release](https://img.shields.io/badge/Release-v1.0.9%20(Beta)-00C853)](https://github.com/arshiatxd/Drift-Lift/releases)
+[![Website](https://img.shields.io/badge/Website-driftlift.netlify.app-00AD9F?logo=netlify&logoColor=white)](https://driftlift.netlify.app/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <br/>
 
@@ -10,7 +18,7 @@
 
 <br/>
 
-[Features](#key-features) · [Installation](#installation) · [Supported Controllers](#supported-controllers) · [Microsoft Store](#microsoft-store-support) · [Changelog](CHANGELOG.md) · [License](#license)
+[Overview](#overview) · [Key Features](#key-features) · [Supported Controllers](#supported-controllers) · [Installation](#installation) · [System Requirements](#system-requirements) · [Changelog](CHANGELOG.md) · [License](#license)
 
 </div>
 
@@ -24,14 +32,14 @@
 
 ## Key Features
 
-- **Anti-Drift Calibration**: Measures resting analog jitter and dynamically shifts the center point to eliminate phantom movement.
-- **Hardware-Accurate Visualizer**: Real-time visual feedback for stick deflection, trigger pulls, and button presses across Xbox 360, Xbox One/Series, DualShock 4, and DualSense controllers.
-- **Full Button Remapping**: Rebind any digital button, D-Pad direction, bumper, or trigger with customizable click actions.
-- **Dual-Controller Architecture**: Simultaneously connect multiple controllers with independent calibration profiles.
-- **HidHide Integration**: Automatically hides the physical controller to prevent double-input conflicts in modern games and emulators.
-- **PlayStation RGB Lightbar & Battery Telemetry**: Full control over LED brightness, color wheels, and real-time battery status reporting.
-- **Vibration Motor Testing**: Test rumble motors with pulse, burst, heavy, and light vibration routines.
-- **Modern AMOLED Theme**: Clean, responsive WPF interface designed for high legibility and minimal resource footprint.
+- **Real-Time Stick Drift Elimination**: Measures resting analog noise and dynamically shifts the center offset down to 0.001 precision without widening in-game deadzones.
+- **Hardware-Accurate Visualizers**: Dedicated, authentic layouts for Xbox 360, Xbox One, Xbox Series X/S, and PlayStation DualShock 4 / DualSense controllers with live deflection tracking.
+- **Full Button & Axis Remapping**: Rebind any digital button, D-Pad direction, bumper, or trigger with custom action mappings and instant button disabling.
+- **Dual-Controller Architecture**: Simultaneously connect multiple controllers with independent calibration metrics and auto-switching profiles.
+- **HidHide Double-Input Prevention**: Automatically hides physical gamepads from Windows and games, ensuring only the calibrated virtual device receives inputs.
+- **PlayStation RGB Lightbar & Battery Telemetry**: Persistent custom LED lighting, brightness control, and wireless battery reporting for DualShock 4 and DualSense controllers.
+- **Vibration Motor Testing**: Test rumble motors with Pulse, Burst, Heavy, and Light vibration patterns.
+- **AMOLED Dark Theme**: Lightweight, responsive WPF interface optimized for low CPU overhead and high legibility.
 
 ---
 
@@ -75,21 +83,10 @@ dotnet publish -c Release -o ./publish
 
 ---
 
-## Microsoft Store Support
-
-Drift Lift is built for seamless packaging and deployment to the Microsoft Store as a high-performance Win32 application. See [`STORE_RELEASE_GUIDE.md`](STORE_RELEASE_GUIDE.md) for full Partner Center submission instructions, privacy policy compliance, and automated silent arguments:
-
-```bash
-# Silent unattended installation
-DriftLift_Setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
-```
-
----
-
 ## Troubleshooting
 
 - **Double Input in Games**: Enable HidHide from the settings tab to hide the physical controller while allowing the virtual controller through.
-- **Logs & Crash Reports**: If an issue occurs, diagnostic logs are generated at:  
+- **Logs & Diagnostics**: If an issue occurs, diagnostic logs are generated locally at:  
   `%LOCALAPPDATA%\DriftLift\crash.log`
 
 ---

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json;
 using DriftLift.Models;
@@ -17,6 +17,7 @@ namespace DriftLift.Core
         public byte PsLedBlue { get; set; } = 0;
         public double PsLedBrightness { get; set; } = 1.0;
         public string ActiveProfileId { get; set; } = string.Empty;
+        public bool SuppressHidHidePrompt { get; set; } = false;
     }
     public class SettingsManager
     {
@@ -40,8 +41,9 @@ namespace DriftLift.Core
                     Settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                App.LogException(ex, "SettingsManager.Load");
                 Settings = new AppSettings();
             }
         }
@@ -50,9 +52,14 @@ namespace DriftLift.Core
             try
             {
                 string json = JsonSerializer.Serialize(Settings, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_settingsFilePath, json);
+                string tempPath = _settingsFilePath + ".tmp";
+                File.WriteAllText(tempPath, json);
+                File.Move(tempPath, _settingsFilePath, overwrite: true);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "SettingsManager.Save");
+            }
         }
     }
 }

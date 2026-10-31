@@ -7,6 +7,7 @@ namespace DriftLift.Views.Windows
     public partial class HidHidePromptWindow : Window
     {
         public bool InstalledAndConfigured { get; private set; }
+        public bool DontAskAgain => DontAskAgainCheckBox.IsChecked == true;
         public HidHidePromptWindow()
         {
             InitializeComponent();

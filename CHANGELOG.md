@@ -4,15 +4,20 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ---
 
-## [1.0.9] — 2026-08-25
+## [1.0.9] — 2026-10-31
 
 ### Highlights & Major Improvements
+- **Analog Baseline Calibration Preservation**: Retains calibrated baseline deadzones and stick sensitivity metrics across profile switches and device reconnects.
+- **Xbox 360 Physical/Virtual Collision Filter**: Excludes virtual ViGEm controller slots from physical XInput enumeration to eliminate feedback loops and double-input issues.
+- **Driver Security & Validation**: Added SHA-256 integrity verification before downloading and launching driver packages.
+- **Startup Customization**: Added setting and prompt toggle to configure driver detection on startup.
+- **Official Links**: Integrated direct links to the official website and GitHub repository in Settings.
+- **Codebase & Repository Cleanup**: Removed obsolete test scripts, raw asset packs, and development dumps.
 - **Input Engine & Virtual Output Stability**: Fixed virtual controller destruction issue where disabling virtual output permanently severed the ViGEm target; now safely zeroes outputs while preserving device state.
 - **Remapping & Button Disabling**: Full support for blank/disabled button mappings via the circled `✕` action button and proper persistence in profile save/load routines.
 - **Single-Click Clear All**: Instant wipe and disk synchronization for all active button mappings without state resurrection.
-- **Performance & UI Hot-Loop Optimization**: Removed 60Hz redundant mapping and turbo recalculations from the UI tick timer; consolidated all button state feeds directly from the corrected input state.
+- **Performance & UI Hot-Loop Optimization**: Consolidated all button state feeds directly from the corrected input state.
 - **HidHide Thread Safety**: Dispatched controller shielding and device synchronization to the UI dispatcher thread to prevent COM cross-thread exceptions.
-- **Codebase Clean-Up**: Removed dead wrapper methods, legacy aliases, and sanitized inline comments across all modules.
 
 ---
 
@@ -68,10 +73,6 @@ All notable changes to **Drift Lift** will be documented in this file.
 - Enhanced HID enumeration to automatically identify Xbox 360 controllers via Product IDs (`0x028E`, `0x028F`, `0x0291`, `0x02A1`, `0x0719`, `0x02A0`) and third-party vendor definitions.
 - Refined battery telemetry and polling pipeline for low-latency wireless and USB gameplay.
 
-#### 📦 Packaging & Installation
-- Updated Inno Setup installer wizard and standalone publish bundles to **v1.0.4**.
-- Prepared full Microsoft Store package artifacts, manifests, and silent deployment configurations.
-
 ---
 
 ## [1.0.3] — 2026-08-06
@@ -84,6 +85,4 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ## [1.0.2] — 2026-08-04
 
-- Initial multi-controller architecture with DualShock 4, DualSense, and Xbox controller support.
-- ViGEmBus virtual controller output and HidHide double-input prevention integration.
-- Real-time stick drift compensation engine and profile saving.
+- Initial stable release.

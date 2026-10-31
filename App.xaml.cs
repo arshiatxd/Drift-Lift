@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Threading;
 using DriftLift.Core;
@@ -11,6 +11,8 @@ namespace DriftLift
     public partial class App : Application
     {
         private InputLoop? _inputLoop;
+        private System.Threading.Mutex? _singleInstanceMutex;
+        private bool _ownsSingleInstanceMutex;
         public static SettingsManager SettingsManager { get; private set; } = null!;
 
         public static void LogException(Exception? ex, string source)
@@ -31,6 +33,16 @@ namespace DriftLift
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            _singleInstanceMutex = new System.Threading.Mutex(true, @"Local\DriftLift.SingleInstance", out bool createdNew);
+            _ownsSingleInstanceMutex = createdNew;
+            if (!createdNew)
+            {
+                MessageBox.Show("Drift Lift is already running. Check the system tray.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
+
             System.Windows.Media.Animation.Timeline.DesiredFrameRateProperty.OverrideMetadata(
                 typeof(System.Windows.Media.Animation.Timeline),
                 new FrameworkPropertyMetadata(60));
@@ -65,12 +77,22 @@ namespace DriftLift
             {
                 LogException(ex, "OnStartup");
                 MessageBox.Show($"Drift-Lift failed to start:\n\n{ex.Message}\n\nCheck crash.log for details.", "Drift-Lift Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown(-1);
             }
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
             _inputLoop?.Stop();
+            if (_singleInstanceMutex != null)
+            {
+                try
+                {
+                    if (_ownsSingleInstanceMutex) _singleInstanceMutex.ReleaseMutex();
+                }
+                catch (ApplicationException) { }
+                _singleInstanceMutex.Dispose();
+            }
             base.OnExit(e);
         }
 

@@ -48,8 +48,20 @@ namespace DriftLift
             {
                 if (!DriftLift.Services.HidHideInstallerService.IsHidHideInstalled())
                 {
+                    if (App.SettingsManager?.Settings != null && App.SettingsManager.Settings.SuppressHidHidePrompt)
+                    {
+                        return;
+                    }
+
                     var prompt = new DriftLift.Views.Windows.HidHidePromptWindow { Owner = this };
                     prompt.ShowDialog();
+
+                    if (prompt.DontAskAgain && App.SettingsManager != null)
+                    {
+                        App.SettingsManager.Settings.SuppressHidHidePrompt = true;
+                        App.SettingsManager.Save();
+                    }
+
                     if (DataContext is DashboardViewModel vm)
                     {
                         vm.CheckHidHide();

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +19,7 @@ namespace DriftLift.Core.Input
         public ConcurrentDictionary<uint, uint> Remaps { get; } = new();
         public ControllerState LatestRawState { get; set; } = new();
         public ControllerState LatestCorrectedState { get; set; } = new();
+        public bool RemapsInitialized { get; set; }
     }
 
     public class InputLoop
@@ -37,6 +38,8 @@ namespace DriftLift.Core.Input
         private volatile bool _isVirtualOutputEnabled = true;
         private volatile uint _injectedMacroButtons = 0;
         private readonly VirtualController _persistentVirtualPad = new();
+        private readonly object _refreshLock = new();
+        private int _forceRefreshQueued;
 
         public ConcurrentDictionary<uint, bool> TurboButtons { get; } = new();
         public void SetInjectedMacroButtons(uint buttons) => _injectedMacroButtons = buttons;
@@ -145,17 +148,32 @@ namespace DriftLift.Core.Input
 
                         bool ltDisabled = pair.Remaps.TryGetValue(0x0400, out uint ltv) && ltv == 0;
                         bool rtDisabled = pair.Remaps.TryGetValue(0x0800, out uint rtv) && rtv == 0;
+                        bool ltRemappedAway = (mappedSources & 0x0400) != 0;
+                        bool rtRemappedAway = (mappedSources & 0x0800) != 0;
+                        bool ltTurboOff = false;
+                        bool rtTurboOff = false;
 
                         if (!turboCycleOn && TurboButtons.Count > 0)
                         {
                             foreach (var tb in TurboButtons)
                             {
                                 if (tb.Value)
+                                {
                                     finalButtons &= ~tb.Key;
+                                    if (tb.Key == 0x0400) ltTurboOff = true;
+                                    else if (tb.Key == 0x0800) rtTurboOff = true;
+                                }
                             }
                         }
 
                         finalButtons |= _injectedMacroButtons;
+
+                        double leftTrigger = ltDisabled || ltTurboOff ? 0.0
+                            : (finalButtons & 0x0400) != 0 ? 1.0
+                            : ltRemappedAway ? 0.0 : rawState.LeftTrigger;
+                        double rightTrigger = rtDisabled || rtTurboOff ? 0.0
+                            : (finalButtons & 0x0800) != 0 ? 1.0
+                            : rtRemappedAway ? 0.0 : rawState.RightTrigger;
 
                         var correctedState = new ControllerState
                         {
@@ -165,18 +183,15 @@ namespace DriftLift.Core.Input
                             LeftThumbY = cly,
                             RightThumbX = crx,
                             RightThumbY = cry,
-                            LeftTrigger = ltDisabled ? 0.0 : ((finalButtons & 0x0400) != 0 ? 1.0 : rawState.LeftTrigger),
-                            RightTrigger = rtDisabled ? 0.0 : ((finalButtons & 0x0800) != 0 ? 1.0 : rawState.RightTrigger),
+                            LeftTrigger = leftTrigger,
+                            RightTrigger = rightTrigger,
                             Buttons = finalButtons,
                             IsConnected = true
                         };
 
                         pair.LatestCorrectedState = correctedState;
 
-                        if (i == 0)
-                        {
-                            outState = correctedState;
-                        }
+                        outState ??= correctedState;
                     }
 
                     if (outState != null && _isVirtualOutputEnabled && _devices.Count > 0)
@@ -205,7 +220,12 @@ namespace DriftLift.Core.Input
 
         public void ForceRefreshDevices()
         {
-            Task.Run(() => RefreshDevices());
+            if (Interlocked.Exchange(ref _forceRefreshQueued, 1) == 1) return;
+            Task.Run(() =>
+            {
+                Interlocked.Exchange(ref _forceRefreshQueued, 0);
+                RefreshDevices();
+            });
         }
 
         public void SendSimulatedState(ControllerState state)
@@ -223,10 +243,19 @@ namespace DriftLift.Core.Input
 
         private void RefreshDevices()
         {
+            lock (_refreshLock)
+            {
+                RefreshDevicesCore();
+            }
+        }
+
+        private void RefreshDevicesCore()
+        {
             try
             {
                 var activeIds = new HashSet<string>(_devices.Keys, StringComparer.OrdinalIgnoreCase);
-                var connectedPaths = DeviceEnumerator.GetConnectedDevicePaths();
+                int? virtualSlot = _persistentVirtualPad.VirtualUserIndex;
+                var connectedPaths = DeviceEnumerator.GetConnectedDevicePaths(virtualSlot);
                 bool changed = false;
 
                 var removedIds = activeIds.Where(id => !connectedPaths.Contains(id)).ToList();
@@ -241,7 +270,7 @@ namespace DriftLift.Core.Input
                     }
                 }
 
-                var newControllers = DeviceEnumerator.GetNewControllers(activeIds);
+                var newControllers = DeviceEnumerator.GetNewControllers(activeIds, virtualSlot);
                 foreach (var phys in newControllers)
                 {
                     if (!_devices.ContainsKey(phys.DeviceId))

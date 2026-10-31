@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HidLibrary;
 using DriftLift.Models;
 
@@ -13,6 +13,7 @@ namespace DriftLift.Core.Input
         private volatile bool _isDisposed;
         private int _cachedBatteryLevel = -1;
         private long _lastBatteryCheckTicks;
+        private ControllerState? _lastGoodState;
 
         public HidDevice RawDevice => _device;
         public string DeviceId => _device.DevicePath;
@@ -70,6 +71,14 @@ namespace DriftLift.Core.Input
                         return state;
                     }
                     report = _device.ReadReport(50);
+                }
+
+                if (report != null
+                    && (report.ReadStatus == HidDeviceData.ReadStatus.WaitTimedOut || report.ReadStatus == HidDeviceData.ReadStatus.NoDataRead))
+                {
+                    ControllerState? held = _lastGoodState;
+                    if (held != null)
+                        return CloneState(held);
                 }
 
                 if (report == null || report.ReadStatus != HidDeviceData.ReadStatus.Success)
@@ -177,6 +186,8 @@ namespace DriftLift.Core.Input
                     _lastBatteryCheckTicks = now;
                     ParseBatteryReport(data, data[0] == 0x01 ? 1 : 0);
                 }
+
+                _lastGoodState = CloneState(state);
             }
             catch
             {
@@ -185,6 +196,20 @@ namespace DriftLift.Core.Input
 
             return state;
         }
+
+        private static ControllerState CloneState(ControllerState s) => new()
+        {
+            LeftThumbX = s.LeftThumbX,
+            LeftThumbY = s.LeftThumbY,
+            RightThumbX = s.RightThumbX,
+            RightThumbY = s.RightThumbY,
+            LeftTrigger = s.LeftTrigger,
+            RightTrigger = s.RightTrigger,
+            Buttons = s.Buttons,
+            IsConnected = s.IsConnected,
+            DeviceName = s.DeviceName,
+            Type = s.Type
+        };
 
         private void ParseBatteryReport(byte[] data, int offset)
         {

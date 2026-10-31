@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -109,7 +109,7 @@ namespace DriftLift.ViewModels
             }
         }
         [ObservableProperty] private bool _isDarkTheme = true;
-        public string ThemeToggleIcon => IsDarkTheme ? "🌙" : "☀️";
+        public string ThemeToggleIcon => IsDarkTheme ? "ًںŒ™" : "âک€ï¸ڈ";
         partial void OnIsDarkThemeChanged(bool value) => OnPropertyChanged(nameof(ThemeToggleIcon));
         [ObservableProperty] private string _appLogoSource = "pack://application:,,,/DriftliftApp;component/icon.ico";
         [ObservableProperty] private int _calibrationStep = 1;
@@ -202,7 +202,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private MacroItem? _activeMacro;
         [ObservableProperty] private bool _isRecordingMacro;
         [ObservableProperty] private bool _isMacroPlaying;
-        [ObservableProperty] private string _recordingStatusText = "▶ RECORD MACRO";
+        [ObservableProperty] private string _recordingStatusText = "â–¶ RECORD MACRO";
         [ObservableProperty] private string _macroStatusText = "IDLE";
         private int _lastRecordTick = 0;
         [ObservableProperty] private double _macroDeadzone = 0.05;
@@ -237,7 +237,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private double _rightAvgCircularity;
         [ObservableProperty] private double _leftNoiseVariance;
         [ObservableProperty] private double _rightNoiseVariance;
-        [ObservableProperty] private string _controllerConnectionIcon = "❌ NONE";
+        [ObservableProperty] private string _controllerConnectionIcon = "â‌Œ NONE";
         [ObservableProperty] private string _macroErrorNotifier = "";
         [ObservableProperty] private bool _isAPressed;
         [ObservableProperty] private bool _isBPressed;
@@ -307,6 +307,7 @@ namespace DriftLift.ViewModels
         {
             _inputLoop = inputLoop;
             _settingsManager = settingsManager;
+            AttachMappingsTracking(ActiveMappings);
             _inputLoop.DevicesChanged += OnDevicesChanged;
             _uiTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             _uiTimer.Tick += UiTimer_Tick;
@@ -365,14 +366,6 @@ namespace DriftLift.ViewModels
             try
             {
                 _inputLoop.ForceRefreshDevices();
-                if (Application.Current != null)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        UpdateActiveProfile();
-                        SyncHidHideBlockedDevices();
-                    });
-                }
             }
             catch { }
         }
@@ -381,8 +374,8 @@ namespace DriftLift.ViewModels
             if (_hidHideService == null || !_hidHideService.IsInstalled) return;
             try
             {
-                _hidHideService.IsActive = IsHidHideEnabled;
-                try { _hidHideService.IsAppListInverted = false; } catch { }
+                if (_hidHideService.IsActive != IsHidHideEnabled) _hidHideService.IsActive = IsHidHideEnabled;
+                try { if (_hidHideService.IsAppListInverted) _hidHideService.IsAppListInverted = false; } catch { }
                 if (!IsHidHideEnabled) return;
 
                 HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
@@ -409,10 +402,10 @@ namespace DriftLift.ViewModels
         public ObservableCollection<RemapRowViewModel> SpecialSticksRemap { get; } = new();
         private void UpdateMappingsForControllerType(bool isPs)
         {
-            BtnLabelCrossOrA = isPs ? "✕" : "A";
-            BtnLabelCircleOrB = isPs ? "◯" : "B";
-            BtnLabelSquareOrX = isPs ? "▢" : "X";
-            BtnLabelTriangleOrY = isPs ? "△" : "Y";
+            BtnLabelCrossOrA = isPs ? "âœ•" : "A";
+            BtnLabelCircleOrB = isPs ? "â—¯" : "B";
+            BtnLabelSquareOrX = isPs ? "â–¢" : "X";
+            BtnLabelTriangleOrY = isPs ? "â–³" : "Y";
             BtnLabelShareOrBack = isPs ? "SHARE" : "BACK";
             BtnLabelOptionsOrStart = isPs ? "OPTIONS" : "START";
             BtnLabelL1OrLB = isPs ? "L1" : "LB";
@@ -479,6 +472,60 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
         }
+        // ##== Mapping Row Change Tracking ==##
+        partial void OnActiveMappingsChanged(ObservableCollection<CustomMapping>? oldValue, ObservableCollection<CustomMapping> newValue)
+        {
+            if (oldValue != null)
+            {
+                oldValue.CollectionChanged -= OnActiveMappingsCollectionChanged;
+                foreach (var m in oldValue) m.PropertyChanged -= OnMappingPropertyChanged;
+            }
+            AttachMappingsTracking(newValue);
+        }
+        private void AttachMappingsTracking(ObservableCollection<CustomMapping> mappings)
+        {
+            mappings.CollectionChanged -= OnActiveMappingsCollectionChanged;
+            mappings.CollectionChanged += OnActiveMappingsCollectionChanged;
+            foreach (var m in mappings)
+            {
+                m.PropertyChanged -= OnMappingPropertyChanged;
+                m.PropertyChanged += OnMappingPropertyChanged;
+            }
+        }
+        private void OnActiveMappingsCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (CustomMapping m in e.OldItems) m.PropertyChanged -= OnMappingPropertyChanged;
+            }
+            if (e.NewItems != null)
+            {
+                foreach (CustomMapping m in e.NewItems)
+                {
+                    m.PropertyChanged -= OnMappingPropertyChanged;
+                    m.PropertyChanged += OnMappingPropertyChanged;
+                }
+            }
+        }
+        private void OnMappingPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CustomMapping.TurboMode))
+            {
+                SyncTurboButtons();
+                SaveUserMappingsAndMacros();
+            }
+        }
+        private void SeedRemapsFromSavedMappings(ControllerProfilePair pair)
+        {
+            if (pair.RemapsInitialized) return;
+            pair.RemapsInitialized = true;
+            foreach (var map in ActiveMappings)
+            {
+                uint src = GetBitFromName(map.SourceButton);
+                if (src == 0) continue;
+                pair.Remaps[src] = GetBitFromName(map.TargetButton);
+            }
+        }
         public void SyncTurboButtons()
         {
             if (_inputLoop == null) return;
@@ -513,14 +560,27 @@ namespace DriftLift.ViewModels
         {
             if (_activeProfile != null)
             {
+                var previousRows = new Dictionary<uint, CustomMapping>();
+                foreach (var row in ActiveMappings)
+                {
+                    uint rowBit = GetBitFromName(row.SourceButton);
+                    if (rowBit != 0) previousRows[rowBit] = row;
+                }
                 ActiveMappings.Clear();
                 foreach (var kvp in _activeProfile.Remaps)
                 {
-                    ActiveMappings.Add(new CustomMapping
+                    var mapping = new CustomMapping
                     {
                         SourceButton = GetButtonName(kvp.Key),
                         TargetButton = kvp.Value == 0 ? "DISABLED" : GetButtonName(kvp.Value)
-                    });
+                    };
+                    if (previousRows.TryGetValue(kvp.Key, out var previous))
+                    {
+                        mapping.MappingType = previous.MappingType;
+                        mapping.TurboMode = previous.TurboMode;
+                        mapping.MacroName = previous.MacroName;
+                    }
+                    ActiveMappings.Add(mapping);
                 }
                 SaveUserMappingsAndMacros();
             }
@@ -673,6 +733,7 @@ namespace DriftLift.ViewModels
         private void UpdateActiveProfile()
         {
             var devs = _inputLoop.Devices.Values.ToList();
+            foreach (var seeded in devs) SeedRemapsFromSavedMappings(seeded);
             IsP1Connected = devs.Count > 0;
             IsP2Connected = devs.Count > 1;
             IsP3Connected = devs.Count > 2;
@@ -735,11 +796,29 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} • v1.0.9";
+                DeviceFirmwareText = $"{connType} â€¢ v1.0.9";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
                 ActiveControllerImagePath = IsPlayStation ? "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png" : "pack://application:,,,/DriftliftApp;component/Assets/xbox_placeholder.png";
+
+                var activeGameProfile = GameProfiles.FirstOrDefault(p => p.IsActive);
+                if (activeGameProfile != null)
+                {
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = activeGameProfile.LeftStickDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = activeGameProfile.RightStickDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = activeGameProfile.StickSensitivity;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = activeGameProfile.StickSensitivity;
+                }
+                else
+                {
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = LeftInnerDeadzone;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = RightInnerDeadzone;
+                    _activeProfile.Drift.Profile.LeftStick.OuterDeadzone = LeftOuterDeadzone;
+                    _activeProfile.Drift.Profile.RightStick.OuterDeadzone = RightOuterDeadzone;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = StickSensitivity;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = StickSensitivity;
+                }
 
                 if (IsPlayStation)
                 {
@@ -1175,7 +1254,7 @@ namespace DriftLift.ViewModels
             {
                 MacroErrorNotifier = "Connect your controller first.";
                 IsRecordingMacro = false;
-                RecordingStatusText = "▶ RECORD MACRO";
+                RecordingStatusText = "â–¶ RECORD MACRO";
                 return;
             }
 
@@ -1184,7 +1263,7 @@ namespace DriftLift.ViewModels
             if (IsRecordingMacro)
             {
                 _lastRecordTick = Environment.TickCount;
-                RecordingStatusText = "⏹ STOP RECORDING";
+                RecordingStatusText = "âڈ¹ STOP RECORDING";
                 if (ActiveMacro == null)
                 {
                     CreateNewMacro();
@@ -1192,14 +1271,14 @@ namespace DriftLift.ViewModels
             }
             else
             {
-                RecordingStatusText = "▶ RECORD MACRO";
+                RecordingStatusText = "â–¶ RECORD MACRO";
             }
         }
         [RelayCommand]
         private async Task PlayMacro(MacroItem? macro)
         {
             var target = macro ?? ActiveMacro;
-            if (target == null || target.Steps.Count == 0) return;
+            if (target == null || target.Steps.Count == 0 || IsMacroPlaying) return;
             IsMacroPlaying = true;
             MacroStatusText = $"PLAYING '{target.Name.ToUpper()}'...";
 
@@ -1446,8 +1525,19 @@ namespace DriftLift.ViewModels
             });
         }
 
+        private double _savedBaseLeftDeadzone = 5.0;
+        private double _savedBaseRightDeadzone = 5.0;
+        private double _savedBaseStickSensitivity = 1.0;
+
         private void ApplyGameProfile(GameProfileModel profile)
         {
+            if (!GameProfiles.Any(p => p.IsActive))
+            {
+                _savedBaseLeftDeadzone = LeftStickDeadzone;
+                _savedBaseRightDeadzone = RightStickDeadzone;
+                _savedBaseStickSensitivity = StickSensitivity;
+            }
+
             foreach (var p in GameProfiles) p.IsActive = (p == profile);
 
             LeftStickDeadzone = profile.LeftStickDeadzone;
@@ -1462,7 +1552,7 @@ namespace DriftLift.ViewModels
                 _activeProfile.Drift.Profile.RightStick.Sensitivity = profile.StickSensitivity;
             }
 
-            NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {profile.GameName} profile auto-activated");
+            NotificationRequested?.Invoke("Drift Lift Game Profile", $"ًںژ® {profile.GameName} profile auto-activated");
         }
 
         private void RevertToDefaultProfile()
@@ -1476,15 +1566,15 @@ namespace DriftLift.ViewModels
 
             if (hadActive)
             {
-                LeftStickDeadzone = 5.0;
-                RightStickDeadzone = 5.0;
-                StickSensitivity = 1.0;
+                LeftStickDeadzone = _savedBaseLeftDeadzone;
+                RightStickDeadzone = _savedBaseRightDeadzone;
+                StickSensitivity = _savedBaseStickSensitivity;
                 if (_activeProfile != null)
                 {
-                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = 0.05;
-                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = 0.05;
-                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = 1.0;
-                    _activeProfile.Drift.Profile.RightStick.Sensitivity = 1.0;
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = _savedBaseLeftDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = _savedBaseRightDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = _savedBaseStickSensitivity;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = _savedBaseStickSensitivity;
                 }
             }
         }
@@ -1511,7 +1601,7 @@ namespace DriftLift.ViewModels
             {
                 SelectedGameProfile.IsActive = false;
                 RevertToDefaultProfile();
-                NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {SelectedGameProfile.GameName} profile deactivated");
+                NotificationRequested?.Invoke("Drift Lift Game Profile", $"ًںژ® {SelectedGameProfile.GameName} profile deactivated");
             }
         }
 
@@ -1543,7 +1633,7 @@ namespace DriftLift.ViewModels
                         GameName = g.Title,
                         ExecutableName = g.ExecutableName,
                         Category = g.Category,
-                        IconGlyph = "🎮",
+                        IconGlyph = "ًںژ®",
                         GameIcon = g.Icon,
                         FullExecutablePath = g.ExecutablePath,
                         LeftStickDeadzone = g.Category.Contains("FPS") ? 3.0 : (g.Category.Contains("Racing") ? 2.0 : 4.0),
@@ -1568,7 +1658,7 @@ namespace DriftLift.ViewModels
                 GameName = "Custom Game",
                 ExecutableName = "game.exe",
                 Category = "Custom",
-                IconGlyph = "🎮",
+                IconGlyph = "ًںژ®",
                 LeftStickDeadzone = 5.0,
                 RightStickDeadzone = 5.0,
                 StickSensitivity = 1.0,
@@ -1954,6 +2044,54 @@ namespace DriftLift.ViewModels
                 InstallHidHide();
             }
         }
+        public bool PromptHidHideOnStartup
+        {
+            get => _settingsManager?.Settings == null || !_settingsManager.Settings.SuppressHidHidePrompt;
+            set
+            {
+                if (_settingsManager?.Settings != null)
+                {
+                    _settingsManager.Settings.SuppressHidHidePrompt = !value;
+                    _settingsManager.Save();
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void OpenWebsite()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://driftlift.netlify.app/",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "OpenWebsite");
+            }
+        }
+
+        [RelayCommand]
+        private void OpenGitHub()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/arshiatxd/Drift-Lift",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "OpenGitHub");
+            }
+        }
+
         [RelayCommand]
         private void InstallHidHide()
         {
