@@ -2305,6 +2305,23 @@ namespace DriftLift.ViewModels
         }
 
         [RelayCommand]
+        private void OpenMicrosoftStore()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://apps.microsoft.com/detail/9ndwh1kngw2t",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                App.LogException(ex, "OpenMicrosoftStore");
+            }
+        }
+
+        [RelayCommand]
         private void OpenGitHub()
         {
             try

@@ -7,6 +7,7 @@
 <br/>
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows&logoColor=white)](https://github.com/arshiatxd/Drift-Lift)
+[![Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Download-0078D6?logo=microsoft&logoColor=white)](https://apps.microsoft.com/detail/9ndwh1kngw2t)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Release](https://img.shields.io/badge/Release-v1.1.0%20(Beta)-00C853)](https://github.com/arshiatxd/Drift-Lift/releases)
 [![Website](https://img.shields.io/badge/Website-driftlift.netlify.app-00AD9F?logo=netlify&logoColor=white)](https://driftlift.netlify.app/)
@@ -32,10 +33,11 @@
 
 ## Key Features
 
-- **Real-Time Stick Drift Elimination**: Measures resting analog noise and dynamically shifts the center offset down to 0.001 precision without widening in-game deadzones.
+- **Real-Time Stick Drift Elimination**: Measures resting analog noise and dynamically shifts the center offset down to 0.001 precision with asymmetric cardinal span normalization and velocity-adaptive micro-jitter smoothing.
+- **One-Click Auto Fix**: Instantly captures resting stick drift offsets, locks optimal inner/outer deadzones, and persists calibration across sessions and game profiles.
 - **Hardware-Accurate Visualizers**: Dedicated, authentic layouts for Xbox 360, Xbox One, Xbox Series X/S, and PlayStation DualShock 4 / DualSense controllers with live deflection tracking.
-- **Full Button & Axis Remapping**: Rebind any digital button, D-Pad direction, bumper, or trigger with custom action mappings and instant button disabling.
-- **Dual-Controller Architecture**: Simultaneously connect multiple controllers with independent calibration metrics and auto-switching profiles.
+- **Full Button & Axis Remapping**: Rebind any digital button, D-Pad direction, bumper, or trigger with custom action mappings, Rapid-Fire Turbo, and instant button disabling.
+- **Dual-Controller Architecture**: Simultaneously connect multiple controllers with independent calibration metrics and auto-switching game profiles.
 - **HidHide Double-Input Prevention**: Automatically hides physical gamepads from Windows and games, ensuring only the calibrated virtual device receives inputs.
 - **PlayStation RGB Lightbar & Battery Telemetry**: Persistent custom LED lighting, brightness control, and wireless battery reporting for DualShock 4 and DualSense controllers.
 - **Vibration Motor Testing**: Test rumble motors with Pulse, Burst, Heavy, and Light vibration patterns.
@@ -53,12 +55,16 @@
 
 ## Installation
 
-### Option 1 — Setup Installer (Recommended)
+### Option 1 — Microsoft Store (Recommended)
+1. Get **Drift Lift** from the official [Microsoft Store page](https://apps.microsoft.com/detail/9ndwh1kngw2t).
+2. Click **Get** / **Install** to install and receive automatic updates.
+
+### Option 2 — Setup Installer
 1. Download the latest **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
 2. Run the installer and follow the guided wizard.
 3. Launch Drift Lift from the Start Menu or Desktop shortcut.
 
-### Option 2 — Build from Source
+### Option 3 — Build from Source
 **Prerequisites:**
 - Windows 10 (x64) or Windows 11
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)

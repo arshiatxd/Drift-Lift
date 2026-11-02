@@ -164,6 +164,17 @@
                             </StackPanel>
                             <Button Grid.Column="1" Command="{Binding OpenWebsiteCommand}" Content="VISIT WEBSITE" Style="{DynamicResource RedNeonBtn}" Height="30" Padding="14,0" FontSize="10" FontWeight="Bold" Cursor="Hand"/>
                         </Grid>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="MICROSOFT STORE" Foreground="{DynamicResource TextMuted}" FontSize="10" FontWeight="Bold"/>
+                                <TextBlock Text="https://apps.microsoft.com/detail/9ndwh1kngw2t" Foreground="{DynamicResource TextPrimary}" FontSize="11" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding OpenMicrosoftStoreCommand}" Content="OPEN STORE" Style="{DynamicResource DefaultButtonStyle}" Height="30" Padding="14,0" FontSize="10" FontWeight="Bold" Cursor="Hand"/>
+                        </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
