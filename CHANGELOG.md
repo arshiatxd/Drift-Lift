@@ -4,6 +4,16 @@ All notable changes to **Drift Lift** will be documented in this file.
 
 ---
 
+## [1.1.0] — 2026-11-03
+
+### Highlights & Major Improvements
+- **Upgraded Stick Drift Elimination Engine**: Implemented 64-sample ring-buffer statistical noise analysis (mean, peak radial deviation, and standard deviation), asymmetric cardinal span normalization (`[-1.0, +1.0]` full travel preservation after center offset subtraction), and velocity-adaptive low-pass micro-jitter smoothing with zero input lag on fast movements.
+- **Instant Auto Fix & Persistent Calibration**: Upgraded **Auto Fix** (`AutoFixStickDrift`) across the Dashboard, Calibration Wizard, and TitleBar to immediately zero resting stick drift, synchronize active game profiles, and persist center offsets and inner/outer deadzones to disk (`settings.json` and preset files).
+- **Pixel-Perfect Controller Visualizers**: Calibrated all button, bumper, trigger, D-Pad, system button, and thumbstick overlays across PS5 DualSense, PS4 DualShock 4, Xbox One / Series X|S, and Xbox 360 visualizers, and fixed hotspot click-remapping bitmasks for `View`/`Share`/`Create`, `Menu`/`Options`, `Guide`/`Home`, and `Mute`.
+- **Asynchronous HID Output & Anti-Cheat Safe Runtime**: Offloaded PlayStation rumble and RGB lightbar HID writes to coalesced background worker threads, eliminated 60Hz UI brush allocations, fixed Turbo + Remap ordering in the 1000Hz input loop, and guaranteed deterministic `Process` handle disposal during passive foreground game detection.
+
+---
+
 ## [1.0.9] — 2026-10-31
 
 ### Highlights & Major Improvements

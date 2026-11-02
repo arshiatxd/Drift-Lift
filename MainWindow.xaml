@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:DriftLift"
         xmlns:views="clr-namespace:DriftLift.Views"
         mc:Ignorable="d"
-        Title="Drift Lift (Beta Test) v1.0.9" Height="780" Width="1260"
+        Title="Drift Lift (Beta Test) v1.1.0" Height="780" Width="1260"
         WindowStartupLocation="CenterScreen" WindowStyle="None"
         AllowsTransparency="True" Background="Transparent">
     <Window.Resources>
@@ -117,7 +117,7 @@
                                     <TextBlock Text="BETA TEST" FontSize="8" FontWeight="Black" Foreground="#FFFFFF"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="v1.0.9 (Beta Test)  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                            <TextBlock Text="v1.1.0 (Beta Test)  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
                         </StackPanel>
                     </StackPanel>
                     <Grid Grid.Column="1"/>

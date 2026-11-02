@@ -8,7 +8,7 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows&logoColor=white)](https://github.com/arshiatxd/Drift-Lift)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
-[![Release](https://img.shields.io/badge/Release-v1.0.9%20(Beta)-00C853)](https://github.com/arshiatxd/Drift-Lift/releases)
+[![Release](https://img.shields.io/badge/Release-v1.1.0%20(Beta)-00C853)](https://github.com/arshiatxd/Drift-Lift/releases)
 [![Website](https://img.shields.io/badge/Website-driftlift.netlify.app-00AD9F?logo=netlify&logoColor=white)](https://driftlift.netlify.app/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
