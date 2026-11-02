@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading;
 using HidLibrary;
 using DriftLift.Models;
 
@@ -14,6 +15,14 @@ namespace DriftLift.Core.Input
         private int _cachedBatteryLevel = -1;
         private long _lastBatteryCheckTicks;
         private ControllerState? _lastGoodState;
+
+        private byte _pendingLedR = 255;
+        private byte _pendingLedG = 0;
+        private byte _pendingLedB = 0;
+        private byte _pendingMotorLeft = 0;
+        private byte _pendingMotorRight = 0;
+        private int _ledWriteQueued;
+        private int _vibWriteQueued;
 
         public HidDevice RawDevice => _device;
         public string DeviceId => _device.DevicePath;
@@ -70,7 +79,7 @@ namespace DriftLift.Core.Input
                         state.IsConnected = false;
                         return state;
                     }
-                    report = _device.ReadReport(50);
+                    report = _device.ReadReport(15);
                 }
 
                 if (report != null
@@ -243,9 +252,24 @@ namespace DriftLift.Core.Input
         public void SetVibration(double leftMotor, double rightMotor)
         {
             if (_isDisposed || !_device.IsConnected) return;
-            byte left = (byte)(Math.Clamp(leftMotor, 0.0, 1.0) * 255);
-            byte right = (byte)(Math.Clamp(rightMotor, 0.0, 1.0) * 255);
+            _pendingMotorLeft = (byte)(Math.Clamp(leftMotor, 0.0, 1.0) * 255);
+            _pendingMotorRight = (byte)(Math.Clamp(rightMotor, 0.0, 1.0) * 255);
 
+            if (Interlocked.Exchange(ref _vibWriteQueued, 1) == 1) return;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    Interlocked.Exchange(ref _vibWriteQueued, 0);
+                    WriteVibrationCore(_pendingMotorLeft, _pendingMotorRight);
+                }
+                catch { }
+            });
+        }
+
+        private void WriteVibrationCore(byte left, byte right)
+        {
+            if (_isDisposed || !_device.IsConnected) return;
             try
             {
                 lock (_ioLock)
@@ -314,7 +338,25 @@ namespace DriftLift.Core.Input
         public void SetLedColor(byte r, byte g, byte b)
         {
             if (_isDisposed || !_device.IsConnected) return;
+            _pendingLedR = r;
+            _pendingLedG = g;
+            _pendingLedB = b;
 
+            if (Interlocked.Exchange(ref _ledWriteQueued, 1) == 1) return;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    Interlocked.Exchange(ref _ledWriteQueued, 0);
+                    WriteLedColorCore(_pendingLedR, _pendingLedG, _pendingLedB);
+                }
+                catch { }
+            });
+        }
+
+        private void WriteLedColorCore(byte r, byte g, byte b)
+        {
+            if (_isDisposed || !_device.IsConnected) return;
             try
             {
                 lock (_ioLock)

@@ -22,6 +22,7 @@ namespace DriftLift.Views.Windows
 
         public static bool Show(string message, string title = "DRIFT-LIFT NOTIFICATION", bool isConfirm = false)
         {
+            if (Application.Current == null || Application.Current.MainWindow == null || !Application.Current.MainWindow.IsVisible) return true;
             var dlg = new CustomMessageDialog(message, title, isConfirm);
             if (Application.Current != null && Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
             {

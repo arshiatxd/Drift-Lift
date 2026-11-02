@@ -306,10 +306,13 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0">
-                        <TextBlock Text="◎  Analog Sticks" Foreground="#2ECC71" FontSize="12" FontWeight="Bold"/>
-                        <TextBlock Text="Linearity, Drift &amp; Circularity" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
-                    </StackPanel>
+                    <Grid Grid.Row="0">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="◎  Analog Sticks" Foreground="#2ECC71" FontSize="12" FontWeight="Bold"/>
+                            <TextBlock Text="Linearity, Drift &amp; Circularity" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                        </StackPanel>
+                        <Button Command="{Binding AutoFixStickDriftCommand}" Content="⚡ AUTO FIX" Style="{DynamicResource RedNeonBtn}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="10,4" FontSize="9" FontWeight="Black" Cursor="Hand" ToolTip="Capture resting stick drift offset &amp; lock optimal deadzone"/>
+                    </Grid>
                     <Border Grid.Row="1" Height="1" Background="{DynamicResource BorderBrush}" Margin="0,5,0,8"/>
                     <Grid Grid.Row="2" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>

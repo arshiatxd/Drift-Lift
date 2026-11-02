@@ -1,10 +1,7 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DriftLift.Services
 {
@@ -16,11 +13,10 @@ namespace DriftLift.Services
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-
-
         private readonly Thread _watcherThread;
         private volatile bool _running;
         private string _lastActiveExe = string.Empty;
+        private IntPtr _lastHwnd = IntPtr.Zero;
 
         public event Action<string>? ActiveGameChanged;
         public bool IsEnabled { get; set; } = true;
@@ -46,8 +42,6 @@ namespace DriftLift.Services
         {
             _running = false;
         }
-
-        private IntPtr _lastHwnd = IntPtr.Zero;
 
         private void WatcherLoop()
         {
@@ -85,21 +79,33 @@ namespace DriftLift.Services
                 GetWindowThreadProcessId(hwnd, out uint pid);
                 if (pid == 0 || pid == (uint)Environment.ProcessId) return string.Empty;
 
+                Process[]? allProcesses = null;
                 try
                 {
-                    var allProcesses = Process.GetProcesses();
+                    allProcesses = Process.GetProcesses();
                     foreach (var proc in allProcesses)
                     {
-                        if (proc.Id == (int)pid)
+                        try
                         {
-                            string name = proc.ProcessName.ToLowerInvariant() + ".exe";
-                            foreach (var p in allProcesses) p.Dispose();
-                            return name;
+                            if (proc.Id == (int)pid)
+                            {
+                                return proc.ProcessName.ToLowerInvariant() + ".exe";
+                            }
                         }
+                        catch { }
                     }
-                    foreach (var p in allProcesses) p.Dispose();
                 }
                 catch { }
+                finally
+                {
+                    if (allProcesses != null)
+                    {
+                        foreach (var p in allProcesses)
+                        {
+                            try { p.Dispose(); } catch { }
+                        }
+                    }
+                }
             }
             catch { }
 

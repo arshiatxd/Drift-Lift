@@ -25,6 +25,9 @@ namespace DriftLift.Core.Calibration
         private double _leftBucketSumErr = 0;
         private double _rightBucketSumErr = 0;
 
+        private double _filteredLeftX, _filteredLeftY;
+        private double _filteredRightX, _filteredRightY;
+
         public CalibrationProfile Profile { get; set; } = new CalibrationProfile();
         public StickDriftMetrics LeftMetrics { get; } = new StickDriftMetrics();
         public StickDriftMetrics RightMetrics { get; } = new StickDriftMetrics();
@@ -69,34 +72,15 @@ namespace DriftLift.Core.Calibration
         // ##== Auto Calibration & Calculation ==##
         public (double lx, double ly, double lDeadzone, double rx, double ry, double rDeadzone) AutoCalibrateBoth(double currentLx, double currentLy, double currentRx, double currentRy)
         {
-            double leftX = currentLx;
-            double leftY = currentLy;
-            double rightX = currentRx;
-            double rightY = currentRy;
+            AnalyzeRingAndCurrent(_leftRing, _leftCount, _leftSumX, _leftSumY, _leftLock,
+                currentLx + SimulatedLeftOffsetX, currentLy + SimulatedLeftOffsetY,
+                Profile.LeftStick.MaxDriftThreshold,
+                out double leftX, out double leftY, out double lDz, out double leftVar);
 
-            lock (_leftLock)
-            {
-                if (_leftCount > 10)
-                {
-                    leftX = _leftSumX / _leftCount;
-                    leftY = _leftSumY / _leftCount;
-                }
-            }
-
-            lock (_rightLock)
-            {
-                if (_rightCount > 10)
-                {
-                    rightX = _rightSumX / _rightCount;
-                    rightY = _rightSumY / _rightCount;
-                }
-            }
-
-            double leftResidual = Math.Sqrt((currentLx - leftX) * (currentLx - leftX) + (currentLy - leftY) * (currentLy - leftY));
-            double rightResidual = Math.Sqrt((currentRx - rightX) * (currentRx - rightX) + (currentRy - rightY) * (currentRy - rightY));
-
-            double lDz = Math.Clamp(Math.Round(Math.Max(0.04, leftResidual + 0.03), 2), 0.04, 0.25);
-            double rDz = Math.Clamp(Math.Round(Math.Max(0.04, rightResidual + 0.03), 2), 0.04, 0.25);
+            AnalyzeRingAndCurrent(_rightRing, _rightCount, _rightSumX, _rightSumY, _rightLock,
+                currentRx + SimulatedRightOffsetX, currentRy + SimulatedRightOffsetY,
+                Profile.RightStick.MaxDriftThreshold,
+                out double rightX, out double rightY, out double rDz, out double rightVar);
 
             Profile.LeftStick.CenterOffsetX = Math.Round(leftX, 4);
             Profile.LeftStick.CenterOffsetY = Math.Round(leftY, 4);
@@ -108,11 +92,84 @@ namespace DriftLift.Core.Calibration
 
             LeftMetrics.CenterOffsetX = Profile.LeftStick.CenterOffsetX;
             LeftMetrics.CenterOffsetY = Profile.LeftStick.CenterOffsetY;
+            LeftMetrics.RestingNoiseVariance = leftVar;
+
             RightMetrics.CenterOffsetX = Profile.RightStick.CenterOffsetX;
             RightMetrics.CenterOffsetY = Profile.RightStick.CenterOffsetY;
+            RightMetrics.RestingNoiseVariance = rightVar;
+
+            _filteredLeftX = 0;
+            _filteredLeftY = 0;
+            _filteredRightX = 0;
+            _filteredRightY = 0;
 
             return (Profile.LeftStick.CenterOffsetX, Profile.LeftStick.CenterOffsetY, Profile.LeftStick.DeadzoneRadius,
                     Profile.RightStick.CenterOffsetX, Profile.RightStick.CenterOffsetY, Profile.RightStick.DeadzoneRadius);
+        }
+
+        private static void AnalyzeRingAndCurrent(
+            (double x, double y)[] ring,
+            int count,
+            double sumX,
+            double sumY,
+            object lockObj,
+            double currentX,
+            double currentY,
+            double maxDriftThreshold,
+            out double centerX,
+            out double centerY,
+            out double recommendedDeadzone,
+            out double variance)
+        {
+            double clampedCurX = Math.Clamp(currentX, -1.0, 1.0);
+            double clampedCurY = Math.Clamp(currentY, -1.0, 1.0);
+            double meanX = clampedCurX;
+            double meanY = clampedCurY;
+            double maxRadialDeviation = 0;
+            variance = 0;
+
+            lock (lockObj)
+            {
+                if (count > 5)
+                {
+                    meanX = sumX / count;
+                    meanY = sumY / count;
+                    double varSum = 0;
+                    for (int i = 0; i < count; i++)
+                    {
+                        double dx = ring[i].x - meanX;
+                        double dy = ring[i].y - meanY;
+                        double distSq = dx * dx + dy * dy;
+                        varSum += distSq;
+                        double dist = Math.Sqrt(distSq);
+                        if (dist > maxRadialDeviation)
+                            maxRadialDeviation = dist;
+                    }
+                    variance = varSum / count;
+                }
+            }
+
+            double instantResidual = Math.Sqrt((clampedCurX - meanX) * (clampedCurX - meanX) + (clampedCurY - meanY) * (clampedCurY - meanY));
+            if (instantResidual > maxRadialDeviation)
+                maxRadialDeviation = instantResidual;
+
+            double limit = Math.Clamp(maxDriftThreshold, 0.15, 0.45);
+            double centerMag = Math.Sqrt(meanX * meanX + meanY * meanY);
+            if (centerMag > limit && centerMag > 0)
+            {
+                double scale = limit / centerMag;
+                meanX *= scale;
+                meanY *= scale;
+                centerMag = limit;
+            }
+
+            centerX = meanX;
+            centerY = meanY;
+
+            double stdDev = Math.Sqrt(variance);
+            double hysteresisMargin = 0.03 + (centerMag * 0.10);
+            double rawDz = maxRadialDeviation + (2.0 * stdDev) + hysteresisMargin;
+            recommendedDeadzone = Math.Clamp(Math.Round(Math.Max(0.04, rawDz), 2), 0.04, 0.25);
         }
 
         // ##== Drift Processing Pipeline ==##
@@ -132,11 +189,18 @@ namespace DriftLift.Core.Calibration
             {
                 if (IsStationaryRing(_leftRing, _leftCount, _leftSumX, _leftSumY, _leftLock, Profile.LeftStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
-                    Profile.LeftStick.CenterOffsetX = cx;
-                    Profile.LeftStick.CenterOffsetY = cy;
-                    LeftMetrics.CenterOffsetX = cx;
-                    LeftMetrics.CenterOffsetY = cy;
                     LeftMetrics.RestingNoiseVariance = noise;
+                    double driftFromCalibrated = Math.Sqrt(
+                        (cx - Profile.LeftStick.CenterOffsetX) * (cx - Profile.LeftStick.CenterOffsetX) +
+                        (cy - Profile.LeftStick.CenterOffsetY) * (cy - Profile.LeftStick.CenterOffsetY));
+                    double allowBand = Math.Max(0.08, Profile.LeftStick.DeadzoneRadius * 1.25);
+                    if (driftFromCalibrated <= allowBand || (Profile.LeftStick.CenterOffsetX == 0 && Profile.LeftStick.CenterOffsetY == 0))
+                    {
+                        Profile.LeftStick.CenterOffsetX = cx;
+                        Profile.LeftStick.CenterOffsetY = cy;
+                        LeftMetrics.CenterOffsetX = cx;
+                        LeftMetrics.CenterOffsetY = cy;
+                    }
                 }
             }
 
@@ -144,19 +208,60 @@ namespace DriftLift.Core.Calibration
             {
                 if (IsStationaryRing(_rightRing, _rightCount, _rightSumX, _rightSumY, _rightLock, Profile.RightStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
-                    Profile.RightStick.CenterOffsetX = cx;
-                    Profile.RightStick.CenterOffsetY = cy;
-                    RightMetrics.CenterOffsetX = cx;
-                    RightMetrics.CenterOffsetY = cy;
                     RightMetrics.RestingNoiseVariance = noise;
+                    double driftFromCalibrated = Math.Sqrt(
+                        (cx - Profile.RightStick.CenterOffsetX) * (cx - Profile.RightStick.CenterOffsetX) +
+                        (cy - Profile.RightStick.CenterOffsetY) * (cy - Profile.RightStick.CenterOffsetY));
+                    double allowBand = Math.Max(0.08, Profile.RightStick.DeadzoneRadius * 1.25);
+                    if (driftFromCalibrated <= allowBand || (Profile.RightStick.CenterOffsetX == 0 && Profile.RightStick.CenterOffsetY == 0))
+                    {
+                        Profile.RightStick.CenterOffsetX = cx;
+                        Profile.RightStick.CenterOffsetY = cy;
+                        RightMetrics.CenterOffsetX = cx;
+                        RightMetrics.CenterOffsetY = cy;
+                    }
                 }
             }
 
             UpdateCircularityMetrics(rxLeftX, rxLeftY, _leftMaxRadiusBuckets, ref _leftBucketCount, ref _leftBucketSumErr, LeftMetrics);
             UpdateCircularityMetrics(rxRightX, rxRightY, _rightMaxRadiusBuckets, ref _rightBucketCount, ref _rightBucketSumErr, RightMetrics);
 
-            ApplyCorrection(rxLeftX, rxLeftY, Profile.LeftStick, out outLeftX, out outLeftY);
-            ApplyCorrection(rxRightX, rxRightY, Profile.RightStick, out outRightX, out outRightY);
+            ApplyCorrection(rxLeftX, rxLeftY, Profile.LeftStick, out double rawOutLx, out double rawOutLy);
+            ApplyCorrection(rxRightX, rxRightY, Profile.RightStick, out double rawOutRx, out double rawOutRy);
+
+            ApplyAdaptiveSmoothing(rawOutLx, rawOutLy, ref _filteredLeftX, ref _filteredLeftY, out outLeftX, out outLeftY);
+            ApplyAdaptiveSmoothing(rawOutRx, rawOutRy, ref _filteredRightX, ref _filteredRightY, out outRightX, out outRightY);
+        }
+
+        private static void ApplyAdaptiveSmoothing(double targetX, double targetY, ref double stateX, ref double stateY, out double outX, out double outY)
+        {
+            if (targetX == 0 && targetY == 0)
+            {
+                stateX = 0;
+                stateY = 0;
+                outX = 0;
+                outY = 0;
+                return;
+            }
+
+            double dx = targetX - stateX;
+            double dy = targetY - stateY;
+            double delta = Math.Sqrt(dx * dx + dy * dy);
+
+            if (delta >= 0.04 || (stateX == 0 && stateY == 0))
+            {
+                stateX = targetX;
+                stateY = targetY;
+            }
+            else
+            {
+                double alpha = Math.Clamp(0.35 + (delta * 16.0), 0.35, 1.0);
+                stateX += dx * alpha;
+                stateY += dy * alpha;
+            }
+
+            outX = Math.Clamp(stateX, -1.0, 1.0);
+            outY = Math.Clamp(stateY, -1.0, 1.0);
         }
 
         private void UpdateHistoryRing((double x, double y)[] ring, ref int head, ref int count, ref double sumX, ref double sumY, object lockObj, double x, double y)
@@ -260,8 +365,18 @@ namespace DriftLift.Core.Calibration
 
         private static void ApplyCorrection(double inX, double inY, AxisSettings settings, out double outX, out double outY)
         {
-            double x = inX - settings.CenterOffsetX;
-            double y = inY - settings.CenterOffsetY;
+            double rawX = inX - settings.CenterOffsetX;
+            double rawY = inY - settings.CenterOffsetY;
+
+            double spanX = rawX >= 0
+                ? Math.Max(0.25, 1.0 - settings.CenterOffsetX)
+                : Math.Max(0.25, 1.0 + settings.CenterOffsetX);
+            double spanY = rawY >= 0
+                ? Math.Max(0.25, 1.0 - settings.CenterOffsetY)
+                : Math.Max(0.25, 1.0 + settings.CenterOffsetY);
+
+            double x = Math.Clamp(rawX / spanX, -1.0, 1.0);
+            double y = Math.Clamp(rawY / spanY, -1.0, 1.0);
 
             double axialX = Math.Clamp(settings.AxialDeadzoneX, 0.0, 0.99);
             double axialY = Math.Clamp(settings.AxialDeadzoneY, 0.0, 0.99);

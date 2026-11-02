@@ -20,6 +20,17 @@ namespace DriftLift.ViewModels
     public partial class DashboardViewModel : ObservableObject
     {
         // ##== Service & State Fields ==##
+        private static readonly SolidColorBrush BrushGreen = CreateFrozenBrush(46, 204, 113);
+        private static readonly SolidColorBrush BrushRed = CreateFrozenBrush(255, 23, 68);
+        private static readonly SolidColorBrush BrushYellow = CreateFrozenBrush(255, 193, 7);
+
+        private static SolidColorBrush CreateFrozenBrush(byte r, byte g, byte b)
+        {
+            var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+            brush.Freeze();
+            return brush;
+        }
+
         private readonly InputLoop _inputLoop = null!;
         private readonly SettingsManager _settingsManager = null!;
         private readonly DispatcherTimer _uiTimer = null!;
@@ -27,6 +38,10 @@ namespace DriftLift.ViewModels
         private readonly GameWatcherService _gameWatcher = null!;
         private ControllerProfilePair? _activeProfile;
         private HidHideControlService? _hidHideService;
+        private double _leftCenterOffsetX;
+        private double _leftCenterOffsetY;
+        private double _rightCenterOffsetX;
+        private double _rightCenterOffsetY;
         public event Action<string, string>? NotificationRequested;
         // ##== Observable Properties ==##
         [ObservableProperty]
@@ -109,7 +124,7 @@ namespace DriftLift.ViewModels
             }
         }
         [ObservableProperty] private bool _isDarkTheme = true;
-        public string ThemeToggleIcon => IsDarkTheme ? "ًںŒ™" : "âک€ï¸ڈ";
+        public string ThemeToggleIcon => IsDarkTheme ? "🌙" : "☀️";
         partial void OnIsDarkThemeChanged(bool value) => OnPropertyChanged(nameof(ThemeToggleIcon));
         [ObservableProperty] private string _appLogoSource = "pack://application:,,,/DriftliftApp;component/icon.ico";
         [ObservableProperty] private int _calibrationStep = 1;
@@ -129,27 +144,44 @@ namespace DriftLift.ViewModels
                 _activeProfile.Drift.Profile.LeftStick.Sensitivity = value;
                 _activeProfile.Drift.Profile.RightStick.Sensitivity = value;
             }
+            if (_settingsManager != null && !GameProfiles.Any(p => p.IsActive))
+            {
+                _settingsManager.Settings.StickSensitivity = value;
+                _settingsManager.Save();
+            }
         }
         partial void OnLeftStickDeadzoneChanged(double value)
         {
+            double dz = Math.Clamp(value / 100.0, 0.0, 0.99);
             if (_activeProfile != null && _activeProfile.Drift != null && _activeProfile.Drift.Profile != null)
             {
-                _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = value / 100.0;
+                _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = dz;
             }
-            if (Math.Abs(LeftInnerDeadzone - value / 100.0) > 0.001)
+            if (Math.Abs(LeftInnerDeadzone - dz) > 0.001)
             {
-                LeftInnerDeadzone = value / 100.0;
+                LeftInnerDeadzone = dz;
+            }
+            if (_settingsManager != null && !GameProfiles.Any(p => p.IsActive))
+            {
+                _settingsManager.Settings.LeftInnerDeadzone = dz;
+                _settingsManager.Save();
             }
         }
         partial void OnRightStickDeadzoneChanged(double value)
         {
+            double dz = Math.Clamp(value / 100.0, 0.0, 0.99);
             if (_activeProfile != null && _activeProfile.Drift != null && _activeProfile.Drift.Profile != null)
             {
-                _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = value / 100.0;
+                _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = dz;
             }
-            if (Math.Abs(RightInnerDeadzone - value / 100.0) > 0.001)
+            if (Math.Abs(RightInnerDeadzone - dz) > 0.001)
             {
-                RightInnerDeadzone = value / 100.0;
+                RightInnerDeadzone = dz;
+            }
+            if (_settingsManager != null && !GameProfiles.Any(p => p.IsActive))
+            {
+                _settingsManager.Settings.RightInnerDeadzone = dz;
+                _settingsManager.Save();
             }
         }
         partial void OnMinimizeToTrayOnCloseChanged(bool value)
@@ -202,7 +234,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private MacroItem? _activeMacro;
         [ObservableProperty] private bool _isRecordingMacro;
         [ObservableProperty] private bool _isMacroPlaying;
-        [ObservableProperty] private string _recordingStatusText = "â–¶ RECORD MACRO";
+        [ObservableProperty] private string _recordingStatusText = "▶ RECORD MACRO";
         [ObservableProperty] private string _macroStatusText = "IDLE";
         private int _lastRecordTick = 0;
         [ObservableProperty] private double _macroDeadzone = 0.05;
@@ -237,7 +269,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private double _rightAvgCircularity;
         [ObservableProperty] private double _leftNoiseVariance;
         [ObservableProperty] private double _rightNoiseVariance;
-        [ObservableProperty] private string _controllerConnectionIcon = "â‌Œ NONE";
+        [ObservableProperty] private string _controllerConnectionIcon = "❌ NONE";
         [ObservableProperty] private string _macroErrorNotifier = "";
         [ObservableProperty] private bool _isAPressed;
         [ObservableProperty] private bool _isBPressed;
@@ -266,7 +298,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private string _selectedVibrationMode = "Heavy";
         [ObservableProperty] private string _selectedVibrationDuration = "5";
         [ObservableProperty] private string _connectionStatusText = "DISCONNECTED";
-        [ObservableProperty] private Brush _connectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+        [ObservableProperty] private Brush _connectionStatusColor = BrushRed;
         [ObservableProperty] private string _activeControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
         [ObservableProperty] private bool _isPlayStation = true;
         [ObservableProperty] private bool _isPs4 = true;
@@ -281,7 +313,7 @@ namespace DriftLift.ViewModels
         [ObservableProperty] private string _batteryPercentageShortText = "--%";
         [ObservableProperty] private double _batteryLevelWidth = 0.0;
         [ObservableProperty] private double _batteryLevelHeight = 0.0;
-        [ObservableProperty] private Brush _batteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+        [ObservableProperty] private Brush _batteryFillColor = BrushGreen;
         [ObservableProperty] private int _activePlayerIndex = 0;
         [ObservableProperty] private bool _isP1Active = true;
         [ObservableProperty] private bool _isP2Active;
@@ -336,6 +368,20 @@ namespace DriftLift.ViewModels
                 MinimizeToTrayOnClose = _settingsManager.Settings.MinimizeToTrayOnClose;
                 StartWithWindows = _settingsManager.Settings.StartWithWindows;
                 StartMinimized = _settingsManager.Settings.StartMinimized;
+                LeftInnerDeadzone = Math.Clamp(_settingsManager.Settings.LeftInnerDeadzone, 0.0, 0.50);
+                RightInnerDeadzone = Math.Clamp(_settingsManager.Settings.RightInnerDeadzone, 0.0, 0.50);
+                LeftOuterDeadzone = Math.Clamp(_settingsManager.Settings.LeftOuterDeadzone, 0.50, 1.0);
+                RightOuterDeadzone = Math.Clamp(_settingsManager.Settings.RightOuterDeadzone, 0.50, 1.0);
+                _leftCenterOffsetX = Math.Clamp(_settingsManager.Settings.LeftCenterOffsetX, -0.45, 0.45);
+                _leftCenterOffsetY = Math.Clamp(_settingsManager.Settings.LeftCenterOffsetY, -0.45, 0.45);
+                _rightCenterOffsetX = Math.Clamp(_settingsManager.Settings.RightCenterOffsetX, -0.45, 0.45);
+                _rightCenterOffsetY = Math.Clamp(_settingsManager.Settings.RightCenterOffsetY, -0.45, 0.45);
+                StickSensitivity = Math.Clamp(_settingsManager.Settings.StickSensitivity, 0.5, 2.0);
+                LeftStickDeadzone = Math.Round(LeftInnerDeadzone * 100.0, 0);
+                RightStickDeadzone = Math.Round(RightInnerDeadzone * 100.0, 0);
+                _savedBaseLeftDeadzone = LeftStickDeadzone;
+                _savedBaseRightDeadzone = RightStickDeadzone;
+                _savedBaseStickSensitivity = StickSensitivity;
             }
             else
             {
@@ -402,10 +448,10 @@ namespace DriftLift.ViewModels
         public ObservableCollection<RemapRowViewModel> SpecialSticksRemap { get; } = new();
         private void UpdateMappingsForControllerType(bool isPs)
         {
-            BtnLabelCrossOrA = isPs ? "âœ•" : "A";
-            BtnLabelCircleOrB = isPs ? "â—¯" : "B";
-            BtnLabelSquareOrX = isPs ? "â–¢" : "X";
-            BtnLabelTriangleOrY = isPs ? "â–³" : "Y";
+            BtnLabelCrossOrA = isPs ? "✕" : "A";
+            BtnLabelCircleOrB = isPs ? "◯" : "B";
+            BtnLabelSquareOrX = isPs ? "▢" : "X";
+            BtnLabelTriangleOrY = isPs ? "△" : "Y";
             BtnLabelShareOrBack = isPs ? "SHARE" : "BACK";
             BtnLabelOptionsOrStart = isPs ? "OPTIONS" : "START";
             BtnLabelL1OrLB = isPs ? "L1" : "LB";
@@ -449,8 +495,13 @@ namespace DriftLift.ViewModels
                 "L3",
                 "R3",
                 isPs ? "Share" : "Back",
-                isPs ? "Options" : "Start"
+                isPs ? "Options" : "Start",
+                isPs ? "PS Button" : "Guide"
             };
+            if (IsPs5)
+            {
+                options.Add("Mute");
+            }
 
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x1000, isPs ? "Cross" : "A", options));
             FaceButtonsRemap.Add(new RemapRowViewModel(this, 0x2000, isPs ? "Circle" : "B", options));
@@ -471,6 +522,11 @@ namespace DriftLift.ViewModels
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0080, "R3", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0020, isPs ? "Share" : "Back", options));
             SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x0010, isPs ? "Options" : "Start", options));
+            SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x00040000, isPs ? "PS Button" : "Guide", options));
+            if (IsPs5)
+            {
+                SpecialSticksRemap.Add(new RemapRowViewModel(this, 0x00020000, "Mute", options));
+            }
         }
         // ##== Mapping Row Change Tracking ==##
         partial void OnActiveMappingsChanged(ObservableCollection<CustomMapping>? oldValue, ObservableCollection<CustomMapping> newValue)
@@ -607,10 +663,12 @@ namespace DriftLift.ViewModels
             if (n.Contains("DOWN")) return 0x0002;
             if (n.Contains("LEFT")) return 0x0004;
             if (n.Contains("RIGHT")) return 0x0008;
-            if (n == "L3") return 0x0040;
-            if (n == "R3") return 0x0080;
-            if (n == "SHARE" || n == "BACK") return 0x0020;
-            if (n == "OPTIONS" || n == "START") return 0x0010;
+            if (n == "L3" || n == "LEFTTHUMB") return 0x0040;
+            if (n == "R3" || n == "RIGHTTHUMB") return 0x0080;
+            if (n == "SHARE" || n == "BACK" || n == "SELECT" || n == "VIEW" || n == "CREATE") return 0x0020;
+            if (n == "OPTIONS" || n == "OPTION" || n == "START" || n == "MENU") return 0x0010;
+            if (n == "GUIDE" || n == "HOME" || n == "PS" || n == "PS BUTTON" || n == "PSBUTTON") return 0x00040000;
+            if (n == "MUTE") return 0x00020000;
             return 0;
         }
         private void OnDevicesChanged()
@@ -703,7 +761,7 @@ namespace DriftLift.ViewModels
                 {
                     BatteryPercentageText = "USB Cable (Direct Power)";
                     BatteryPercentageShortText = "CABLE";
-                    BatteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                    BatteryFillColor = BrushGreen;
                     BatteryLevelWidth = 110.0;
                     BatteryLevelHeight = 19.0;
                 }
@@ -714,15 +772,15 @@ namespace DriftLift.ViewModels
 
                     if (pct <= 0.20)
                     {
-                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                        BatteryFillColor = BrushRed;
                     }
                     else if (pct <= 0.50)
                     {
-                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 193, 7));
+                        BatteryFillColor = BrushYellow;
                     }
                     else
                     {
-                        BatteryFillColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                        BatteryFillColor = BrushGreen;
                     }
                     BatteryLevelWidth = Math.Max(5.0, pct * 110.0);
                     BatteryLevelHeight = Math.Max(3.0, pct * 19.0);
@@ -756,7 +814,7 @@ namespace DriftLift.ViewModels
             if (_activeProfile != null)
             {
                 ConnectionStatusText = $"CONNECTED: {_activeProfile.Physical.DeviceName.ToUpper()}";
-                ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                ConnectionStatusColor = BrushGreen;
                 bool isPs5 = _activeProfile.Physical.Type == ControllerType.DualSense;
                 bool isPs4 = _activeProfile.Physical.Type == ControllerType.DualShock4;
                 bool is360 = _activeProfile.Physical.Type == ControllerType.Xbox360;
@@ -796,11 +854,20 @@ namespace DriftLift.ViewModels
                 }
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
-                DeviceFirmwareText = $"{connType} â€¢ v1.0.9";
+                DeviceFirmwareText = $"{connType} • v1.0.9";
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
                 ActiveControllerImagePath = IsPlayStation ? "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png" : "pack://application:,,,/DriftliftApp;component/Assets/xbox_placeholder.png";
+
+                _activeProfile.Drift.Profile.LeftStick.CenterOffsetX = _leftCenterOffsetX;
+                _activeProfile.Drift.Profile.LeftStick.CenterOffsetY = _leftCenterOffsetY;
+                _activeProfile.Drift.Profile.RightStick.CenterOffsetX = _rightCenterOffsetX;
+                _activeProfile.Drift.Profile.RightStick.CenterOffsetY = _rightCenterOffsetY;
+                _activeProfile.Drift.LeftMetrics.CenterOffsetX = _leftCenterOffsetX;
+                _activeProfile.Drift.LeftMetrics.CenterOffsetY = _leftCenterOffsetY;
+                _activeProfile.Drift.RightMetrics.CenterOffsetX = _rightCenterOffsetX;
+                _activeProfile.Drift.RightMetrics.CenterOffsetY = _rightCenterOffsetY;
 
                 var activeGameProfile = GameProfiles.FirstOrDefault(p => p.IsActive);
                 if (activeGameProfile != null)
@@ -831,7 +898,7 @@ namespace DriftLift.ViewModels
             else
             {
                 ConnectionStatusText = "DISCONNECTED";
-                ConnectionStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                ConnectionStatusColor = BrushRed;
                 IsPlayStation = false;
                 IsPs4 = false;
                 IsPs5 = false;
@@ -845,7 +912,7 @@ namespace DriftLift.ViewModels
                 BatteryPercentageShortText = "--%";
                 BatteryLevelWidth = 0.0;
                 BatteryLevelHeight = 0.0;
-                BatteryFillColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                BatteryFillColor = BrushRed;
                 ActiveControllerImagePath = "pack://application:,,,/DriftliftApp;component/Assets/ps4_placeholder.png";
                 UpdateMappingsForControllerType(true);
             }
@@ -989,6 +1056,8 @@ namespace DriftLift.ViewModels
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
+                    IsGuidePressed = (b & 0x00040000) != 0;
+                    IsMutePressed = (b & 0x00020000) != 0;
                     RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
                     RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
                 }
@@ -1254,7 +1323,7 @@ namespace DriftLift.ViewModels
             {
                 MacroErrorNotifier = "Connect your controller first.";
                 IsRecordingMacro = false;
-                RecordingStatusText = "â–¶ RECORD MACRO";
+                RecordingStatusText = "▶ RECORD MACRO";
                 return;
             }
 
@@ -1263,7 +1332,7 @@ namespace DriftLift.ViewModels
             if (IsRecordingMacro)
             {
                 _lastRecordTick = Environment.TickCount;
-                RecordingStatusText = "âڈ¹ STOP RECORDING";
+                RecordingStatusText = "⏹ STOP RECORDING";
                 if (ActiveMacro == null)
                 {
                     CreateNewMacro();
@@ -1271,7 +1340,7 @@ namespace DriftLift.ViewModels
             }
             else
             {
-                RecordingStatusText = "â–¶ RECORD MACRO";
+                RecordingStatusText = "▶ RECORD MACRO";
             }
         }
         [RelayCommand]
@@ -1339,11 +1408,6 @@ namespace DriftLift.ViewModels
                 ActiveMappings.Remove(mapping);
                 UpdateMappingsForControllerType(IsPlayStation);
             }
-        }
-        [RelayCommand]
-        private void SwitchRemapTab(string tabName)
-        {
-            DriftLift.Views.Windows.CustomMessageDialog.Show($"Switched to {tabName} configuration (Coming Soon)", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         // ##== Theme & Navigation Controls ==##
         [RelayCommand]
@@ -1552,7 +1616,7 @@ namespace DriftLift.ViewModels
                 _activeProfile.Drift.Profile.RightStick.Sensitivity = profile.StickSensitivity;
             }
 
-            NotificationRequested?.Invoke("Drift Lift Game Profile", $"ًںژ® {profile.GameName} profile auto-activated");
+            NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {profile.GameName} profile auto-activated");
         }
 
         private void RevertToDefaultProfile()
@@ -1601,7 +1665,7 @@ namespace DriftLift.ViewModels
             {
                 SelectedGameProfile.IsActive = false;
                 RevertToDefaultProfile();
-                NotificationRequested?.Invoke("Drift Lift Game Profile", $"ًںژ® {SelectedGameProfile.GameName} profile deactivated");
+                NotificationRequested?.Invoke("Drift Lift Game Profile", $"🎮 {SelectedGameProfile.GameName} profile deactivated");
             }
         }
 
@@ -1633,7 +1697,7 @@ namespace DriftLift.ViewModels
                         GameName = g.Title,
                         ExecutableName = g.ExecutableName,
                         Category = g.Category,
-                        IconGlyph = "ًںژ®",
+                        IconGlyph = "🎮",
                         GameIcon = g.Icon,
                         FullExecutablePath = g.ExecutablePath,
                         LeftStickDeadzone = g.Category.Contains("FPS") ? 3.0 : (g.Category.Contains("Racing") ? 2.0 : 4.0),
@@ -1658,7 +1722,7 @@ namespace DriftLift.ViewModels
                 GameName = "Custom Game",
                 ExecutableName = "game.exe",
                 Category = "Custom",
-                IconGlyph = "ًںژ®",
+                IconGlyph = "🎮",
                 LeftStickDeadzone = 5.0,
                 RightStickDeadzone = 5.0,
                 StickSensitivity = 1.0,
@@ -1752,6 +1816,21 @@ namespace DriftLift.ViewModels
             }
         }
         // ##== Calibration & Auto-Fix Engine ==##
+        private void SaveCalibrationToSettings()
+        {
+            if (_settingsManager == null) return;
+            _settingsManager.Settings.LeftInnerDeadzone = LeftInnerDeadzone;
+            _settingsManager.Settings.RightInnerDeadzone = RightInnerDeadzone;
+            _settingsManager.Settings.LeftOuterDeadzone = LeftOuterDeadzone;
+            _settingsManager.Settings.RightOuterDeadzone = RightOuterDeadzone;
+            _settingsManager.Settings.LeftCenterOffsetX = _leftCenterOffsetX;
+            _settingsManager.Settings.LeftCenterOffsetY = _leftCenterOffsetY;
+            _settingsManager.Settings.RightCenterOffsetX = _rightCenterOffsetX;
+            _settingsManager.Settings.RightCenterOffsetY = _rightCenterOffsetY;
+            _settingsManager.Settings.StickSensitivity = StickSensitivity;
+            _settingsManager.Save();
+        }
+
         [RelayCommand]
         private void NextCalibrationStep()
         {
@@ -1763,7 +1842,11 @@ namespace DriftLift.ViewModels
                     case 2:
                         if (_activeProfile != null)
                         {
-                            _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
+                            var (lx, ly, lDz, rx, ry, rDz) = _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
+                            _leftCenterOffsetX = lx;
+                            _leftCenterOffsetY = ly;
+                            _rightCenterOffsetX = rx;
+                            _rightCenterOffsetY = ry;
                             _activeProfile.Drift.ResetMetrics();
                         }
                         StepPromptText = "Rotate both sticks 6 to 7 times in full circles (clockwise & counter-clockwise)";
@@ -1780,7 +1863,10 @@ namespace DriftLift.ViewModels
                             RightInnerDeadzone = _activeProfile.Drift.Profile.RightStick.DeadzoneRadius;
                             LeftStickDeadzone = Math.Round(LeftInnerDeadzone * 100.0, 0);
                             RightStickDeadzone = Math.Round(RightInnerDeadzone * 100.0, 0);
+                            _savedBaseLeftDeadzone = LeftStickDeadzone;
+                            _savedBaseRightDeadzone = RightStickDeadzone;
                         }
+                        SaveCalibrationToSettings();
                         StepPromptText = "Save permanent calibration data to controller profile";
                         StepSubPromptText = "Calibration complete!";
                         break;
@@ -1791,27 +1877,114 @@ namespace DriftLift.ViewModels
                 CalibrationStep = 1;
                 StepPromptText = "Push both sticks to the top-left corner, then release";
                 StepSubPromptText = "Release the sticks completely, then press Next";
+                SaveCalibrationToSettings();
                 SaveConfigPreset();
                 DriftLift.Views.Windows.CustomMessageDialog.Show("Calibration profile successfully saved and locked!", "Calibration Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
+
         [RelayCommand]
         private void AutoFixStickDrift()
         {
+            double lx, ly, lDz, rx, ry, rDz;
+
             if (_activeProfile != null)
             {
-                var (lx, ly, lDz, rx, ry, rDz) = _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
-                LeftInnerDeadzone = lDz;
-                RightInnerDeadzone = rDz;
-                LeftStickDeadzone = Math.Round(lDz * 100.0, 0);
-                RightStickDeadzone = Math.Round(rDz * 100.0, 0);
+                (lx, ly, lDz, rx, ry, rDz) = _activeProfile.Drift.AutoCalibrateBoth(RawLeftX, RawLeftY, RawRightX, RawRightY);
+
+                var rawState = _activeProfile.LatestRawState ?? new ControllerState
+                {
+                    LeftThumbX = RawLeftX,
+                    LeftThumbY = RawLeftY,
+                    RightThumbX = RawRightX,
+                    RightThumbY = RawRightY,
+                    LeftTrigger = TriggerL,
+                    RightTrigger = TriggerR,
+                    IsConnected = true
+                };
+                _activeProfile.Drift.Process(rawState, out double clx, out double cly, out double crx, out double cry);
+                if (_activeProfile.LatestCorrectedState != null)
+                {
+                    _activeProfile.LatestCorrectedState.LeftThumbX = clx;
+                    _activeProfile.LatestCorrectedState.LeftThumbY = cly;
+                    _activeProfile.LatestCorrectedState.RightThumbX = crx;
+                    _activeProfile.LatestCorrectedState.RightThumbY = cry;
+                }
+                CorrectedLeftX = clx;
+                CorrectedLeftY = cly;
+                CorrectedRightX = crx;
+                CorrectedRightY = cry;
             }
-            DriftLift.Views.Windows.CustomMessageDialog.Show("Quick Auto Calibrate completed! Center offset & deadzones locked.", "DriftLift Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
+            else
+            {
+                lx = Math.Round(Math.Clamp(RawLeftX, -0.40, 0.40), 4);
+                ly = Math.Round(Math.Clamp(RawLeftY, -0.40, 0.40), 4);
+                rx = Math.Round(Math.Clamp(RawRightX, -0.40, 0.40), 4);
+                ry = Math.Round(Math.Clamp(RawRightY, -0.40, 0.40), 4);
+                double lMag = Math.Sqrt(lx * lx + ly * ly);
+                double rMag = Math.Sqrt(rx * rx + ry * ry);
+                lDz = Math.Clamp(Math.Round(Math.Max(0.04, 0.03 + lMag * 0.12), 2), 0.04, 0.25);
+                rDz = Math.Clamp(Math.Round(Math.Max(0.04, 0.03 + rMag * 0.12), 2), 0.04, 0.25);
+                CorrectedLeftX = 0;
+                CorrectedLeftY = 0;
+                CorrectedRightX = 0;
+                CorrectedRightY = 0;
+            }
+
+            _leftCenterOffsetX = lx;
+            _leftCenterOffsetY = ly;
+            _rightCenterOffsetX = rx;
+            _rightCenterOffsetY = ry;
+
+            LeftInnerDeadzone = lDz;
+            RightInnerDeadzone = rDz;
+            LeftStickDeadzone = Math.Round(lDz * 100.0, 0);
+            RightStickDeadzone = Math.Round(rDz * 100.0, 0);
+            _savedBaseLeftDeadzone = LeftStickDeadzone;
+            _savedBaseRightDeadzone = RightStickDeadzone;
+
+            LeftGraphicTranslateX = CorrectedLeftX * 12.0;
+            LeftGraphicTranslateY = -CorrectedLeftY * 12.0;
+            RightGraphicTranslateX = CorrectedRightX * 12.0;
+            RightGraphicTranslateY = -CorrectedRightY * 12.0;
+            PsLeftGraphicTranslateX = CorrectedLeftX * 12.0;
+            PsLeftGraphicTranslateY = -CorrectedLeftY * 12.0;
+            PsRightGraphicTranslateX = CorrectedRightX * 12.0;
+            PsRightGraphicTranslateY = -CorrectedRightY * 12.0;
+            LeftStickTextX = $"X: {(int)(CorrectedLeftX * 100)}%";
+            LeftStickTextY = $"Y: {(int)(CorrectedLeftY * 100)}%";
+            RightStickTextX = $"X: {(int)(CorrectedRightX * 100)}%";
+            RightStickTextY = $"Y: {(int)(CorrectedRightY * 100)}%";
+            LeftStickValX = Math.Clamp((CorrectedLeftX + 1.0) / 2.0 * 100.0, 0, 100);
+            LeftStickValY = Math.Clamp((CorrectedLeftY + 1.0) / 2.0 * 100.0, 0, 100);
+            RightStickValX = Math.Clamp((CorrectedRightX + 1.0) / 2.0 * 100.0, 0, 100);
+            RightStickValY = Math.Clamp((CorrectedRightY + 1.0) / 2.0 * 100.0, 0, 100);
+
+            var activeGame = GameProfiles.FirstOrDefault(p => p.IsActive);
+            if (activeGame != null)
+            {
+                activeGame.LeftStickDeadzone = LeftStickDeadzone;
+                activeGame.RightStickDeadzone = RightStickDeadzone;
+                SaveGameProfilesToDisk();
+            }
+
+            SaveCalibrationToSettings();
+
+            StepPromptText = $"Auto Fix applied — L: ({lx:+0.00;-0.00}, {ly:+0.00;-0.00}) {LeftStickDeadzone:F0}% | R: ({rx:+0.00;-0.00}, {ry:+0.00;-0.00}) {RightStickDeadzone:F0}%";
+            StepSubPromptText = "Center offsets, asymmetric span normalization, and deadzones are locked and saved.";
+
+            if (Application.Current?.MainWindow?.IsVisible == true)
+            {
+                DriftLift.Views.Windows.CustomMessageDialog.Show(
+                    $"Auto Fix completed and saved!\n\nLeft Stick: Offset ({lx:+0.000;-0.000}, {ly:+0.000;-0.000}) • Deadzone {LeftStickDeadzone:F0}%\nRight Stick: Offset ({rx:+0.000;-0.000}, {ry:+0.000;-0.000}) • Deadzone {RightStickDeadzone:F0}%\n\nAsymmetric range normalization and anti-jitter filtering are active.",
+                    "DriftLift Auto Fix", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
+
         [RelayCommand]
         private void RemapHotspot(string buttonName)
         {
-            string norm = (buttonName ?? "").ToUpper().Replace(" ", "").Replace("-", "").Replace("_", "");
+            string norm = (buttonName ?? "").ToUpperInvariant().Replace(" ", "").Replace("-", "").Replace("_", "");
             uint bit = norm switch
             {
                 "CROSS" or "A" => 0x1000,
@@ -1822,18 +1995,21 @@ namespace DriftLift.ViewModels
                 "R1" or "RB" => 0x0200,
                 "L2" or "LT" => 0x0400,
                 "R2" or "RT" => 0x0800,
-                "SHARE" or "BACK" or "SELECT" => 0x0020,
-                "OPTIONS" or "START" => 0x0010,
+                "SHARE" or "BACK" or "SELECT" or "VIEW" or "CREATE" => 0x0020,
+                "OPTIONS" or "OPTION" or "START" or "MENU" => 0x0010,
                 "L3" or "LEFTTHUMB" => 0x0040,
                 "R3" or "RIGHTTHUMB" => 0x0080,
                 "DPADUP" or "UP" => 0x0001,
                 "DPADDOWN" or "DOWN" => 0x0002,
                 "DPADLEFT" or "LEFT" => 0x0004,
                 "DPADRIGHT" or "RIGHT" => 0x0008,
+                "GUIDE" or "HOME" or "PS" or "PSBUTTON" => 0x00040000,
+                "MUTE" => 0x00020000,
                 _ => 0x1000
             };
             BeginRemap(bit.ToString());
         }
+
         [RelayCommand]
         private void SaveConfigPreset()
         {
@@ -1842,7 +2018,19 @@ namespace DriftLift.ViewModels
                 string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Configs");
                 Directory.CreateDirectory(folder);
                 string file = Path.Combine(folder, $"Calibration_{DateTime.Now:yyyyMMdd_HHmmss}.json");
-                var data = new { DeviceModelText, LeftInnerDeadzone, LeftOuterDeadzone, RightInnerDeadzone, RightOuterDeadzone, StickSensitivity };
+                var data = new
+                {
+                    DeviceModelText,
+                    LeftInnerDeadzone,
+                    LeftOuterDeadzone,
+                    RightInnerDeadzone,
+                    RightOuterDeadzone,
+                    LeftCenterOffsetX = _leftCenterOffsetX,
+                    LeftCenterOffsetY = _leftCenterOffsetY,
+                    RightCenterOffsetX = _rightCenterOffsetX,
+                    RightCenterOffsetY = _rightCenterOffsetY,
+                    StickSensitivity
+                };
                 File.WriteAllText(file, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
                 RefreshSavedConfigFiles();
                 DriftLift.Views.Windows.CustomMessageDialog.Show($"Configuration saved to {Path.GetFileName(file)}!", "DriftLift Config Manager", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1913,18 +2101,32 @@ namespace DriftLift.ViewModels
                     if (root.TryGetProperty("RightInnerDeadzone", out var rid)) RightInnerDeadzone = rid.GetDouble();
                     if (root.TryGetProperty("LeftOuterDeadzone", out var lod)) LeftOuterDeadzone = lod.GetDouble();
                     if (root.TryGetProperty("RightOuterDeadzone", out var rod)) RightOuterDeadzone = rod.GetDouble();
+                    if (root.TryGetProperty("LeftCenterOffsetX", out var lcx)) _leftCenterOffsetX = lcx.GetDouble();
+                    if (root.TryGetProperty("LeftCenterOffsetY", out var lcy)) _leftCenterOffsetY = lcy.GetDouble();
+                    if (root.TryGetProperty("RightCenterOffsetX", out var rcx)) _rightCenterOffsetX = rcx.GetDouble();
+                    if (root.TryGetProperty("RightCenterOffsetY", out var rcy)) _rightCenterOffsetY = rcy.GetDouble();
                     if (root.TryGetProperty("StickSensitivity", out var ss)) StickSensitivity = ss.GetDouble();
 
                     LeftStickDeadzone = Math.Round(LeftInnerDeadzone * 100.0, 0);
                     RightStickDeadzone = Math.Round(RightInnerDeadzone * 100.0, 0);
+                    _savedBaseLeftDeadzone = LeftStickDeadzone;
+                    _savedBaseRightDeadzone = RightStickDeadzone;
+                    _savedBaseStickSensitivity = StickSensitivity;
 
                     if (_activeProfile != null)
                     {
                         _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = LeftInnerDeadzone;
                         _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = RightInnerDeadzone;
+                        _activeProfile.Drift.Profile.LeftStick.OuterDeadzone = LeftOuterDeadzone;
+                        _activeProfile.Drift.Profile.RightStick.OuterDeadzone = RightOuterDeadzone;
+                        _activeProfile.Drift.Profile.LeftStick.CenterOffsetX = _leftCenterOffsetX;
+                        _activeProfile.Drift.Profile.LeftStick.CenterOffsetY = _leftCenterOffsetY;
+                        _activeProfile.Drift.Profile.RightStick.CenterOffsetX = _rightCenterOffsetX;
+                        _activeProfile.Drift.Profile.RightStick.CenterOffsetY = _rightCenterOffsetY;
                         _activeProfile.Drift.Profile.LeftStick.Sensitivity = StickSensitivity;
                         _activeProfile.Drift.Profile.RightStick.Sensitivity = StickSensitivity;
                     }
+                    SaveCalibrationToSettings();
                     DriftLift.Views.Windows.CustomMessageDialog.Show($"Preset '{fileName}' loaded successfully!", "Calibration Preset Loaded", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -1941,8 +2143,33 @@ namespace DriftLift.ViewModels
                 "RESET CONFIGURATION", true);
             if (confirm)
             {
+                _leftCenterOffsetX = 0.0;
+                _leftCenterOffsetY = 0.0;
+                _rightCenterOffsetX = 0.0;
+                _rightCenterOffsetY = 0.0;
                 LeftInnerDeadzone = 0.05; LeftOuterDeadzone = 0.98;
                 RightInnerDeadzone = 0.05; RightOuterDeadzone = 0.98;
+                LeftStickDeadzone = 5.0;
+                RightStickDeadzone = 5.0;
+                StickSensitivity = 1.0;
+                _savedBaseLeftDeadzone = 5.0;
+                _savedBaseRightDeadzone = 5.0;
+                _savedBaseStickSensitivity = 1.0;
+                if (_activeProfile != null)
+                {
+                    _activeProfile.Drift.Profile.LeftStick.CenterOffsetX = 0.0;
+                    _activeProfile.Drift.Profile.LeftStick.CenterOffsetY = 0.0;
+                    _activeProfile.Drift.Profile.RightStick.CenterOffsetX = 0.0;
+                    _activeProfile.Drift.Profile.RightStick.CenterOffsetY = 0.0;
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = 0.05;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = 0.05;
+                    _activeProfile.Drift.Profile.LeftStick.OuterDeadzone = 0.98;
+                    _activeProfile.Drift.Profile.RightStick.OuterDeadzone = 0.98;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = 1.0;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = 1.0;
+                    _activeProfile.Drift.ResetMetrics();
+                }
+                SaveCalibrationToSettings();
                 CalibrationStep = 1;
                 StepPromptText = "Push both sticks to the top-left corner, then release";
                 StepSubPromptText = "Release the sticks completely, then press Next";
@@ -1997,6 +2224,8 @@ namespace DriftLift.ViewModels
                 0x2000 => IsPlayStation ? "Circle" : "B",
                 0x4000 => IsPlayStation ? "Square" : "X",
                 0x8000 => IsPlayStation ? "Triangle" : "Y",
+                0x00020000 => "Mute",
+                0x00040000 => IsPlayStation ? "PS Button" : "Guide",
                 _ => "Unknown"
             };
         }
@@ -2008,13 +2237,13 @@ namespace DriftLift.ViewModels
             if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
                 HidHideStatusText = "SHIELD ACTIVE";
-                HidHideStatusColor = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                HidHideStatusColor = BrushGreen;
                 HidHideButtonText = "Shield Controllers";
             }
             else
             {
                 HidHideStatusText = "NOT INSTALLED";
-                HidHideStatusColor = new SolidColorBrush(Color.FromRgb(255, 23, 68));
+                HidHideStatusColor = BrushRed;
                 HidHideButtonText = "Download HidHide";
             }
         }

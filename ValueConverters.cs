@@ -2,6 +2,8 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
+
 namespace DriftLift
 {
     public class BoolToVisibilityConverter : IValueConverter
@@ -12,11 +14,13 @@ namespace DriftLift
                 return b ? Visibility.Visible : Visibility.Collapsed;
             return Visibility.Collapsed;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return value is Visibility v && v == Visibility.Visible;
         }
     }
+
     public class InverseBoolToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -25,11 +29,13 @@ namespace DriftLift
                 return b ? Visibility.Collapsed : Visibility.Visible;
             return Visibility.Visible;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return value is Visibility v && v != Visibility.Visible;
         }
     }
+
     public class IntToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -43,11 +49,13 @@ namespace DriftLift
             }
             return Visibility.Collapsed;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class AxisToPixelXConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -59,11 +67,13 @@ namespace DriftLift
             }
             return 0.0;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class AxisToBarWidthConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -75,11 +85,13 @@ namespace DriftLift
             }
             return 0.0;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class AxisToPixelYConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -91,11 +103,13 @@ namespace DriftLift
             }
             return 0.0;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class TriggerHeightConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -106,11 +120,13 @@ namespace DriftLift
             }
             return 0.0;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class BoolToOpacityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -119,19 +135,32 @@ namespace DriftLift
                 return 1.0;
             return 0.2;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
     }
+
     public class BoolToColorConverter : IValueConverter
     {
+        private static readonly SolidColorBrush ActiveBrush = CreateFrozenBrush(255, 23, 68);
+        private static readonly SolidColorBrush InactiveBrush = CreateFrozenBrush(51, 51, 51);
+
+        private static SolidColorBrush CreateFrozenBrush(byte r, byte g, byte b)
+        {
+            var brush = new SolidColorBrush(Color.FromRgb(r, g, b));
+            brush.Freeze();
+            return brush;
+        }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool b && b)
-                return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(255, 23, 68)); 
-            return new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 51, 51)); 
+                return ActiveBrush;
+            return InactiveBrush;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();

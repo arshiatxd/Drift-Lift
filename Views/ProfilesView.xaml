@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="DriftLift.Views.ProfilesView"
+<UserControl x:Class="DriftLift.Views.ProfilesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -22,9 +22,9 @@
                     <TextBlock Text="Drift Lift dynamically activates game-specific deadzones and curves the exact millisecond your game window gains focus" Foreground="{DynamicResource TextSecondary}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding ScanInstalledGamesCommand}" Content="ًں”چ SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="14,7" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"/>
+                    <Button Command="{Binding ScanInstalledGamesCommand}" Content="🔍 SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="14,7" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"/>
                     <Button Command="{Binding AddCustomGameCommand}" Content="+ ADD CUSTOM" Style="{DynamicResource DefaultButtonStyle}" Padding="12,7" FontSize="10" Margin="0,0,6,0"/>
-                    <Button Command="{Binding ResetGameProfilesCommand}" Content="â†؛ CLEAR" Style="{DynamicResource DefaultButtonStyle}" Padding="10,7" FontSize="10"/>
+                    <Button Command="{Binding ResetGameProfilesCommand}" Content="↻ CLEAR" Style="{DynamicResource DefaultButtonStyle}" Padding="10,7" FontSize="10"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -65,7 +65,7 @@
                                 <Path Data="{DynamicResource IconControllerVector}" Fill="{DynamicResource RedNeon}" Width="36" Height="36" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                                 <TextBlock Text="NO GAMES LINKED" FontWeight="Black" FontSize="12" Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center"/>
                                 <TextBlock Text="Scan your PC to automatically detect installed games from Steam, EA, Epic, and other libraries." TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextSecondary}" FontSize="10" Margin="0,6,0,14" MaxWidth="280"/>
-                                <Button Command="{Binding ScanInstalledGamesCommand}" Content="ًں”چ SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="14,7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                <Button Command="{Binding ScanInstalledGamesCommand}" Content="🔍 SCAN INSTALLED GAMES" Style="{DynamicResource RedNeonBtn}" Padding="14,7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,8"/>
                                 <Button Command="{Binding AddCustomGameCommand}" Content="+ ADD MANUALLY" Style="{DynamicResource DefaultButtonStyle}" Padding="12,6" FontSize="10" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Border>
@@ -157,7 +157,7 @@
                                                                 <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                        <Setter Property="Text" Value="â—ڈ ACTIVE"/>
+                                                                        <Setter Property="Text" Value="● ACTIVE"/>
                                                                         <Setter Property="Foreground" Value="White"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
@@ -245,7 +245,7 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <Button Command="{Binding ActivateSelectedGameProfileCommand}" Content="âڑ، ACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
+                                    <Button Command="{Binding ActivateSelectedGameProfileCommand}" Content="⚡ ACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource RedNeonBtn}">
                                                 <Style.Triggers>
@@ -256,7 +256,7 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                    <Button Command="{Binding DeactivateSelectedGameProfileCommand}" Content="âڈ¹ DEACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
+                                    <Button Command="{Binding DeactivateSelectedGameProfileCommand}" Content="⏹ DEACTIVATE" Padding="14,6" FontSize="11" Margin="0,0,6,0">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -268,7 +268,7 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                    <Button Command="{Binding DeleteSelectedGameProfileCommand}" Content="ًں—‘ DELETE" Style="{DynamicResource DefaultButtonStyle}" Padding="10,6" FontSize="11"/>
+                                    <Button Command="{Binding DeleteSelectedGameProfileCommand}" Content="🗑 DELETE" Style="{DynamicResource DefaultButtonStyle}" Padding="10,6" FontSize="11"/>
                                 </StackPanel>
                             </Grid>
 

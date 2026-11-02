@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 using DriftLift.Models;
+
 namespace DriftLift.Core
 {
     public class AppSettings
@@ -18,11 +19,22 @@ namespace DriftLift.Core
         public double PsLedBrightness { get; set; } = 1.0;
         public string ActiveProfileId { get; set; } = string.Empty;
         public bool SuppressHidHidePrompt { get; set; } = false;
+        public double LeftInnerDeadzone { get; set; } = 0.05;
+        public double RightInnerDeadzone { get; set; } = 0.05;
+        public double LeftOuterDeadzone { get; set; } = 0.99;
+        public double RightOuterDeadzone { get; set; } = 0.99;
+        public double LeftCenterOffsetX { get; set; } = 0.0;
+        public double LeftCenterOffsetY { get; set; } = 0.0;
+        public double RightCenterOffsetX { get; set; } = 0.0;
+        public double RightCenterOffsetY { get; set; } = 0.0;
+        public double StickSensitivity { get; set; } = 1.0;
     }
+
     public class SettingsManager
     {
         private readonly string _settingsFilePath;
         public AppSettings Settings { get; private set; } = new AppSettings();
+
         public SettingsManager()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -31,6 +43,7 @@ namespace DriftLift.Core
             _settingsFilePath = Path.Combine(folder, "settings.json");
             Load();
         }
+
         public void Load()
         {
             try
@@ -47,6 +60,7 @@ namespace DriftLift.Core
                 Settings = new AppSettings();
             }
         }
+
         public void Save()
         {
             try

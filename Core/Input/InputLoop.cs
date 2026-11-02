@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -134,6 +134,22 @@ namespace DriftLift.Core.Input
                         pair.Drift.Process(rawState, out double clx, out double cly, out double crx, out double cry);
 
                         uint rb = rawState.Buttons;
+                        bool ltTurboOff = false;
+                        bool rtTurboOff = false;
+
+                        if (!turboCycleOn && TurboButtons.Count > 0)
+                        {
+                            foreach (var tb in TurboButtons)
+                            {
+                                if (tb.Value)
+                                {
+                                    rb &= ~tb.Key;
+                                    if (tb.Key == 0x0400) ltTurboOff = true;
+                                    else if (tb.Key == 0x0800) rtTurboOff = true;
+                                }
+                            }
+                        }
+
                         uint mappedSources = 0;
                         uint finalButtons = 0;
 
@@ -150,21 +166,6 @@ namespace DriftLift.Core.Input
                         bool rtDisabled = pair.Remaps.TryGetValue(0x0800, out uint rtv) && rtv == 0;
                         bool ltRemappedAway = (mappedSources & 0x0400) != 0;
                         bool rtRemappedAway = (mappedSources & 0x0800) != 0;
-                        bool ltTurboOff = false;
-                        bool rtTurboOff = false;
-
-                        if (!turboCycleOn && TurboButtons.Count > 0)
-                        {
-                            foreach (var tb in TurboButtons)
-                            {
-                                if (tb.Value)
-                                {
-                                    finalButtons &= ~tb.Key;
-                                    if (tb.Key == 0x0400) ltTurboOff = true;
-                                    else if (tb.Key == 0x0800) rtTurboOff = true;
-                                }
-                            }
-                        }
 
                         finalButtons |= _injectedMacroButtons;
 

@@ -117,19 +117,19 @@
                                     <TextBlock Text="BETA TEST" FontSize="8" FontWeight="Black" Foreground="#FFFFFF"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="v1.0.9 (Beta Test)  آ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
+                            <TextBlock Text="v1.0.9 (Beta Test)  ·  Controller Suite" Foreground="{DynamicResource TextMuted}" FontSize="9"/>
                         </StackPanel>
                     </StackPanel>
                     <Grid Grid.Column="1"/>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <Button Style="{DynamicResource RedNeonBtn}" Command="{Binding AutoFixStickDriftCommand}" ToolTip="Quick Auto Fix Stick Drift &amp; Calibrate Deadzones" Margin="0,0,8,0" Padding="12,4" Height="26" Cursor="Hand">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="âڑ،" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="⚡" FontSize="11" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="AUTO FIX DRIFT" FontSize="10" FontWeight="Black" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding OpenPsLedSettingsCommand}" ToolTip="RGB Controller LED Configuration" Margin="0,0,4,0">
-                            <TextBlock Text="ًں’،" FontSize="12"/>
+                            <TextBlock Text="💡" FontSize="12"/>
                         </Button>
                         <Button Style="{DynamicResource TitleBarBtn}" Command="{Binding ToggleThemeCommand}" ToolTip="Toggle Dark / Light Theme" Margin="0,0,4,0">
                             <TextBlock Text="{Binding ThemeToggleIcon}" FontSize="12"/>
@@ -137,13 +137,13 @@
                     </StackPanel>
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Style="{DynamicResource TitleBarBtn}" Click="MinimizeBtn_Click" ToolTip="Minimize">
-                            <TextBlock Text="â”€" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock Text="─" FontSize="11" FontWeight="Bold"/>
                         </Button>
                         <Button Style="{DynamicResource TitleBarBtn}" Click="MaximizeBtn_Click" ToolTip="Maximize / Restore">
-                            <TextBlock Text="â–¢" FontSize="11"/>
+                            <TextBlock Text="▢" FontSize="11"/>
                         </Button>
                         <Button Style="{DynamicResource TitleBarCloseBtn}" Click="CloseBtn_Click" ToolTip="Close">
-                            <TextBlock Text="âœ•" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock Text="✕" FontSize="11" FontWeight="Bold"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -171,7 +171,7 @@
                                 Height="42"
                                 Margin="0,0,0,4">
                             <Grid Width="200" HorizontalAlignment="Left">
-                                <TextBlock Text="âک°" FontSize="15" Foreground="{DynamicResource RedNeon}" VerticalAlignment="Center" Width="64" TextAlignment="Center" HorizontalAlignment="Left"/>
+                                <TextBlock Text="☰" FontSize="15" Foreground="{DynamicResource RedNeon}" VerticalAlignment="Center" Width="64" TextAlignment="Center" HorizontalAlignment="Left"/>
                             </Grid>
                         </Button>
                         <StackPanel Grid.Row="1">
@@ -181,7 +181,7 @@
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
-                                    <TextBlock Text="âŒ‚" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="⌂" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                     <TextBlock x:Name="NavHomeLbl" Text="HOME" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </Grid>
                             </RadioButton>
@@ -190,7 +190,7 @@
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
-                                    <TextBlock Text="ًںژ®" FontSize="14" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="🎮" FontSize="14" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                     <TextBlock x:Name="NavProfilesLbl" Text="GAMES" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </Grid>
                             </RadioButton>
@@ -208,7 +208,7 @@
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
-                                    <TextBlock Text="â—ژ" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="◎" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                     <TextBlock x:Name="NavCalibrateLbl" Text="CALIBRATE" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </Grid>
                             </RadioButton>
@@ -217,7 +217,7 @@
                                          Style="{DynamicResource NavButtonStyle}"
                                          Click="NavBtn_Click">
                                 <Grid Width="180" HorizontalAlignment="Left">
-                                    <TextBlock Text="âڑ™" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                    <TextBlock Text="⚙" FontSize="16" Width="28" TextAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                     <TextBlock x:Name="NavMacrosLbl" Text="MACROS" VerticalAlignment="Center" Margin="48,0,0,0" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
                                 </Grid>
                             </RadioButton>
@@ -271,7 +271,7 @@
                                             <ColumnDefinition Width="22"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="ًں”‹" FontSize="14" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                        <TextBlock Grid.Column="0" Text="🔋" FontSize="14" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0">
                                             <TextBlock Text="{Binding BatteryPercentageText}" Foreground="{DynamicResource TextPrimary}" FontSize="10" FontWeight="Bold"/>
                                             <Border Height="4" Background="{DynamicResource CardBg}" CornerRadius="0" Margin="0,3,0,0" HorizontalAlignment="Stretch">
