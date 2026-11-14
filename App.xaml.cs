@@ -34,6 +34,13 @@ namespace DriftLift
         {
             base.OnStartup(e);
 
+            if (e.Args != null && Array.Exists(e.Args, a => string.Equals(a, "--configure-hidhide", StringComparison.OrdinalIgnoreCase)))
+            {
+                bool configured = DriftLift.Services.HidHideInstallerService.ConfigureHidHide();
+                Shutdown(configured ? 0 : 1);
+                return;
+            }
+
             _singleInstanceMutex = new System.Threading.Mutex(true, @"Local\DriftLift.SingleInstance", out bool createdNew);
             _ownsSingleInstanceMutex = createdNew;
             if (!createdNew)

@@ -234,6 +234,48 @@ namespace DriftLift.Services
             catch { }
             return false;
         }
+
+        public static bool TryConfigureHidHideWithElevation(HidHideControlService? existingSvc = null)
+        {
+            if (!IsHidHideInstalled()) return false;
+            if (AutoShieldAllControllers(existingSvc)) return true;
+
+            try
+            {
+                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                if (principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator))
+                {
+                    return false;
+                }
+            }
+            catch { }
+
+            string? exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath)) return false;
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = "--configure-hidhide",
+                    UseShellExecute = true,
+                    Verb = "runas",
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    if (proc.WaitForExit(10000))
+                    {
+                        return proc.ExitCode == 0;
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
     }
 }
 

@@ -12,28 +12,7 @@ namespace DriftLift.Models
 
         partial void OnButtonNameChanged(string value)
         {
-            if (string.IsNullOrWhiteSpace(value)) return;
-            string norm = value.Trim().ToUpperInvariant();
-            uint bit = norm switch
-            {
-                "CROSS" or "A" => 0x1000u,
-                "CIRCLE" or "B" => 0x2000u,
-                "SQUARE" or "X" => 0x4000u,
-                "TRIANGLE" or "Y" => 0x8000u,
-                "L1" or "LB" => 0x0100u,
-                "R1" or "RB" => 0x0200u,
-                "L2" or "LT" => 0x0400u,
-                "R2" or "RT" => 0x0800u,
-                "SHARE" or "BACK" or "SELECT" => 0x0020u,
-                "OPTIONS" or "START" => 0x0010u,
-                "L3" or "LEFTTHUMB" => 0x0040u,
-                "R3" or "RIGHTTHUMB" => 0x0080u,
-                "DPADUP" or "UP" => 0x0001u,
-                "DPADDOWN" or "DOWN" => 0x0002u,
-                "DPADLEFT" or "LEFT" => 0x0004u,
-                "DPADRIGHT" or "RIGHT" => 0x0008u,
-                _ => 0u
-            };
+            uint bit = MacroButtonParser.ResolveButtonBit(value);
             if (bit != 0) ButtonMask = bit;
         }
     }
@@ -56,36 +35,46 @@ namespace DriftLift.Models
             }
 
             uint mask = 0;
-            string[] parts = value.Split(new[] { '+', ',', '&', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = value.Split(new[] { '+', ',', '&', ';' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (var part in parts)
             {
-                string norm = part.Trim().ToUpperInvariant();
-                uint bit = norm switch
-                {
-                    "CROSS" or "A" => 0x1000u,
-                    "CIRCLE" or "B" => 0x2000u,
-                    "SQUARE" or "X" => 0x4000u,
-                    "TRIANGLE" or "Y" => 0x8000u,
-                    "L1" or "LB" => 0x0100u,
-                    "R1" or "RB" => 0x0200u,
-                    "L2" or "LT" => 0x0400u,
-                    "R2" or "RT" => 0x0800u,
-                    "SHARE" or "BACK" or "SELECT" => 0x0020u,
-                    "OPTIONS" or "START" => 0x0010u,
-                    "L3" or "LEFTTHUMB" => 0x0040u,
-                    "R3" or "RIGHTTHUMB" => 0x0080u,
-                    "DPADUP" or "UP" => 0x0001u,
-                    "DPADDOWN" or "DOWN" => 0x0002u,
-                    "DPADLEFT" or "LEFT" => 0x0004u,
-                    "DPADRIGHT" or "RIGHT" => 0x0008u,
-                    _ => 0u
-                };
-                mask |= bit;
+                mask |= MacroButtonParser.ResolveButtonBit(part);
             }
             if (mask != 0)
             {
                 TriggerMask = mask;
             }
+        }
+    }
+
+    internal static class MacroButtonParser
+    {
+        public static uint ResolveButtonBit(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return 0u;
+            string norm = name.Trim().Replace("-", "").Replace("_", "").Replace(" ", "").ToUpperInvariant();
+            return norm switch
+            {
+                "CROSS" or "A" => 0x1000u,
+                "CIRCLE" or "B" => 0x2000u,
+                "SQUARE" or "X" => 0x4000u,
+                "TRIANGLE" or "Y" => 0x8000u,
+                "L1" or "LB" => 0x0100u,
+                "R1" or "RB" => 0x0200u,
+                "L2" or "LT" => 0x0400u,
+                "R2" or "RT" => 0x0800u,
+                "SHARE" or "BACK" or "SELECT" or "VIEW" or "CREATE" => 0x0020u,
+                "OPTIONS" or "OPTION" or "START" or "MENU" => 0x0010u,
+                "L3" or "LEFTTHUMB" => 0x0040u,
+                "R3" or "RIGHTTHUMB" => 0x0080u,
+                "DPADUP" or "UP" => 0x0001u,
+                "DPADDOWN" or "DOWN" => 0x0002u,
+                "DPADLEFT" or "LEFT" => 0x0004u,
+                "DPADRIGHT" or "RIGHT" => 0x0008u,
+                "GUIDE" or "HOME" or "PS" or "PSBUTTON" => 0x00040000u,
+                "MUTE" => 0x00020000u,
+                _ => 0u
+            };
         }
     }
 }

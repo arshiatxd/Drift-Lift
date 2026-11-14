@@ -13,6 +13,9 @@ namespace DriftLift.Core.Input
 {
     public class ControllerProfilePair
     {
+        private readonly ControllerState[] _correctedBuffers = { new(), new() };
+        private int _correctedBufIdx;
+
         public IPhysicalController Physical { get; set; } = null!;
         public DriftProcessor Drift { get; set; } = null!;
         public VirtualController Virtual { get; set; } = null!;
@@ -20,6 +23,12 @@ namespace DriftLift.Core.Input
         public ControllerState LatestRawState { get; set; } = new();
         public ControllerState LatestCorrectedState { get; set; } = new();
         public bool RemapsInitialized { get; set; }
+
+        public ControllerState NextCorrectedBuffer()
+        {
+            _correctedBufIdx ^= 1;
+            return _correctedBuffers[_correctedBufIdx];
+        }
     }
 
     public class InputLoop
@@ -176,19 +185,17 @@ namespace DriftLift.Core.Input
                             : (finalButtons & 0x0800) != 0 ? 1.0
                             : rtRemappedAway ? 0.0 : rawState.RightTrigger;
 
-                        var correctedState = new ControllerState
-                        {
-                            DeviceName = rawState.DeviceName,
-                            Type = rawState.Type,
-                            LeftThumbX = clx,
-                            LeftThumbY = cly,
-                            RightThumbX = crx,
-                            RightThumbY = cry,
-                            LeftTrigger = leftTrigger,
-                            RightTrigger = rightTrigger,
-                            Buttons = finalButtons,
-                            IsConnected = true
-                        };
+                        var correctedState = pair.NextCorrectedBuffer();
+                        correctedState.DeviceName = rawState.DeviceName;
+                        correctedState.Type = rawState.Type;
+                        correctedState.LeftThumbX = clx;
+                        correctedState.LeftThumbY = cly;
+                        correctedState.RightThumbX = crx;
+                        correctedState.RightThumbY = cry;
+                        correctedState.LeftTrigger = leftTrigger;
+                        correctedState.RightTrigger = rightTrigger;
+                        correctedState.Buttons = finalButtons;
+                        correctedState.IsConnected = true;
 
                         pair.LatestCorrectedState = correctedState;
 
@@ -256,7 +263,8 @@ namespace DriftLift.Core.Input
             {
                 var activeIds = new HashSet<string>(_devices.Keys, StringComparer.OrdinalIgnoreCase);
                 int? virtualSlot = _persistentVirtualPad.VirtualUserIndex;
-                var connectedPaths = DeviceEnumerator.GetConnectedDevicePaths(virtualSlot);
+                var hidSnapshot = DeviceEnumerator.EnumerateCandidateDevices();
+                var connectedPaths = DeviceEnumerator.GetConnectedDevicePaths(virtualSlot, hidSnapshot);
                 bool changed = false;
 
                 var removedIds = activeIds.Where(id => !connectedPaths.Contains(id)).ToList();
@@ -271,7 +279,7 @@ namespace DriftLift.Core.Input
                     }
                 }
 
-                var newControllers = DeviceEnumerator.GetNewControllers(activeIds, virtualSlot);
+                var newControllers = DeviceEnumerator.GetNewControllers(activeIds, virtualSlot, hidSnapshot);
                 foreach (var phys in newControllers)
                 {
                     if (!_devices.ContainsKey(phys.DeviceId))

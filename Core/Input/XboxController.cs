@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Vortice.XInput;
 using DriftLift.Models;
 
@@ -8,10 +9,29 @@ namespace DriftLift.Core.Input
     {
         // ##== Fields & Identity ==##
         private readonly uint _userIndex;
+        private volatile bool _isConnected = true;
+        private long _lastCheckTicks;
+        private long _lastBatteryCheckTicks;
+        private (string Text, double Percentage, bool IsWireless) _cachedBatteryInfo = ("USB Power (Cable Connected)", 1.0, false);
+        private readonly ControllerState[] _stateBuffers = { new(), new() };
+        private int _stateBufferIndex;
+
         public string DeviceId => $"XINPUT_{_userIndex}";
         public string DeviceName { get; }
         public ControllerType Type { get; }
-        public bool IsConnected => XInput.GetState(_userIndex, out _);
+        public bool IsConnected
+        {
+            get
+            {
+                long now = Environment.TickCount64;
+                if (now - Volatile.Read(ref _lastCheckTicks) > 50)
+                {
+                    _isConnected = XInput.GetState(_userIndex, out _);
+                    Volatile.Write(ref _lastCheckTicks, now);
+                }
+                return _isConnected;
+            }
+        }
 
         public XboxController(uint userIndex, ControllerType type = ControllerType.Xbox, string? customName = null)
         {
@@ -27,18 +47,27 @@ namespace DriftLift.Core.Input
                     ? $"Xbox 360 Controller ({userIndex + 1})" 
                     : $"Xbox Wireless Controller ({userIndex + 1})";
             }
+
+            for (int i = 0; i < _stateBuffers.Length; i++)
+            {
+                _stateBuffers[i].DeviceName = DeviceName;
+                _stateBuffers[i].Type = Type;
+            }
         }
 
         // ##== Input Reading ==##
         public ControllerState GetCurrentState()
         {
-            var state = new ControllerState
-            {
-                DeviceName = DeviceName,
-                Type = Type
-            };
+            _stateBufferIndex ^= 1;
+            var state = _stateBuffers[_stateBufferIndex];
+            state.DeviceName = DeviceName;
+            state.Type = Type;
 
-            if (XInput.GetState(_userIndex, out var xState))
+            bool connected = XInput.GetState(_userIndex, out var xState);
+            _isConnected = connected;
+            Volatile.Write(ref _lastCheckTicks, Environment.TickCount64);
+
+            if (connected)
             {
                 state.IsConnected = true;
                 var gamepad = xState.Gamepad;
@@ -95,11 +124,19 @@ namespace DriftLift.Core.Input
         // ##== Battery Info ==##
         public (string Text, double Percentage, bool IsWireless) GetBatteryInfo()
         {
+            long now = Environment.TickCount64;
+            if (_lastBatteryCheckTicks != 0 && (now - _lastBatteryCheckTicks) < 5000)
+            {
+                return _cachedBatteryInfo;
+            }
+
+            _lastBatteryCheckTicks = now;
             if (XInput.GetBatteryInformation(_userIndex, BatteryDeviceType.Gamepad, out var batteryInfo))
             {
                 if (batteryInfo.BatteryType == BatteryType.Disconnected || batteryInfo.BatteryType == BatteryType.Wired || batteryInfo.BatteryType == BatteryType.Unknown)
                 {
-                    return ("USB Power (Cable Connected)", 1.0, false);
+                    _cachedBatteryInfo = ("USB Power (Cable Connected)", 1.0, false);
+                    return _cachedBatteryInfo;
                 }
                 double pct = batteryInfo.BatteryLevel switch
                 {
@@ -110,9 +147,11 @@ namespace DriftLift.Core.Input
                     _ => 1.0
                 };
                 int pInt = (int)(pct * 100);
-                return ($"Battery: {pInt}%", pct, true);
+                _cachedBatteryInfo = ($"Battery: {pInt}%", pct, true);
+                return _cachedBatteryInfo;
             }
-            return ("USB Power (Cable Connected)", 1.0, false);
+            _cachedBatteryInfo = ("USB Power (Cable Connected)", 1.0, false);
+            return _cachedBatteryInfo;
         }
 
         public void Dispose() { }

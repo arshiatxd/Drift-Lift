@@ -17,6 +17,7 @@ namespace DriftLift.Services
         private volatile bool _running;
         private string _lastActiveExe = string.Empty;
         private IntPtr _lastHwnd = IntPtr.Zero;
+        private uint _lastPid;
 
         public event Action<string>? ActiveGameChanged;
         public bool IsEnabled { get; set; } = true;
@@ -55,11 +56,16 @@ namespace DriftLift.Services
                         if (hwnd != IntPtr.Zero && hwnd != _lastHwnd)
                         {
                             _lastHwnd = hwnd;
-                            string currentExe = GetActiveForegroundProcessExe(hwnd);
-                            if (!string.IsNullOrEmpty(currentExe) && !string.Equals(currentExe, _lastActiveExe, StringComparison.OrdinalIgnoreCase))
+                            GetWindowThreadProcessId(hwnd, out uint pid);
+                            if (pid != 0 && pid != _lastPid && pid != (uint)Environment.ProcessId)
                             {
-                                _lastActiveExe = currentExe;
-                                ActiveGameChanged?.Invoke(currentExe);
+                                _lastPid = pid;
+                                string currentExe = GetProcessExeByPid(pid);
+                                if (!string.IsNullOrEmpty(currentExe) && !string.Equals(currentExe, _lastActiveExe, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    _lastActiveExe = currentExe;
+                                    ActiveGameChanged?.Invoke(currentExe);
+                                }
                             }
                         }
                     }
@@ -70,13 +76,10 @@ namespace DriftLift.Services
             }
         }
 
-        private static string GetActiveForegroundProcessExe(IntPtr hwnd)
+        private static string GetProcessExeByPid(uint pid)
         {
             try
             {
-                if (hwnd == IntPtr.Zero) return string.Empty;
-
-                GetWindowThreadProcessId(hwnd, out uint pid);
                 if (pid == 0 || pid == (uint)Environment.ProcessId) return string.Empty;
 
                 Process[]? allProcesses = null;

@@ -93,9 +93,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Profile:" Foreground="{DynamicResource TextSecondary}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox Width="200" SelectedIndex="0" Style="{StaticResource MappingCombo}">
-                        <ComboBoxItem Content="Default Profile"/>
-                    </ComboBox>
+                    <ComboBox Width="200" ItemsSource="{Binding RemapProfileNames}" SelectedItem="{Binding SelectedRemapProfileName, Mode=TwoWay}" Style="{StaticResource MappingCombo}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button Content="💡 LED LIGHTS" Style="{DynamicResource RedNeonBtn}" Padding="15,6" Margin="5,0" Command="{Binding OpenPsLedSettingsCommand}" Visibility="{Binding IsPlayStation, Converter={StaticResource BoolToVis}}" ToolTip="Customize PlayStation Controller Lightbar LED Color &amp; Brightness"/>
@@ -325,10 +323,7 @@
                                                 <ComboBoxItem Content="None"/>
                                                 <ComboBoxItem Content="Rapid (20/s)"/>
                                             </ComboBox>
-                                            <ComboBox Grid.Column="4" SelectedValue="{Binding MacroName}" SelectedValuePath="Content" Style="{StaticResource MappingCombo}" Margin="0,0,10,0">
-                                                <ComboBoxItem Content="None"/>
-                                                <ComboBoxItem Content="MULTI-KEY"/>
-                                            </ComboBox>
+                                            <ComboBox Grid.Column="4" ItemsSource="{Binding DataContext.AvailableMacroNames, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedItem="{Binding MacroName, Mode=TwoWay}" Style="{StaticResource MappingCombo}" Margin="0,0,10,0"/>
                                             <Button Grid.Column="5" Style="{StaticResource ClearBtn}"
                                                     Command="{Binding DataContext.RemoveMappingCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" ToolTip="Remove mapping">

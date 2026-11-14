@@ -127,16 +127,28 @@ namespace DriftLift.Core.Input
             return false;
         }
 
+        public static List<HidDevice> EnumerateCandidateDevices()
+        {
+            try
+            {
+                return HidDevices.Enumerate()
+                    .Where(d => d != null && !IsVirtualDevice(d) && IsGameController(d))
+                    .ToList();
+            }
+            catch
+            {
+                return new List<HidDevice>();
+            }
+        }
+
         public static List<string> GetAllPhysicalControllerInstanceIds()
         {
             var list = new List<string>();
             try
             {
-                var allHid = HidDevices.Enumerate();
+                var allHid = EnumerateCandidateDevices();
                 foreach (var dev in allHid)
                 {
-                    if (dev == null || !IsGameController(dev)) continue;
-
                     string id = ExtractInstanceId(dev.DevicePath);
                     if (!string.IsNullOrEmpty(id) && id.StartsWith("HID\\", StringComparison.OrdinalIgnoreCase) && !list.Contains(id))
                     {
@@ -148,22 +160,31 @@ namespace DriftLift.Core.Input
             return list;
         }
 
-        public static HashSet<string> GetConnectedDevicePaths(int? virtualUserIndex = null)
+        private static bool IsPlayStationHid(HidDevice d)
+        {
+            return d.Capabilities.InputReportByteLength >= 64
+                && (PlayStationVendorIds.Contains(d.Attributes.VendorId)
+                 || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase)
+                                             || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
+                                             || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase))));
+        }
+
+        private static bool IsXboxHid(HidDevice d)
+        {
+            return !PlayStationVendorIds.Contains(d.Attributes.VendorId)
+                && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId));
+        }
+
+        public static HashSet<string> GetConnectedDevicePaths(int? virtualUserIndex = null, IReadOnlyList<HidDevice>? snapshot = null)
         {
             var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var candidates = snapshot ?? EnumerateCandidateDevices();
+
             try
             {
-                var hidDevices = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d) 
-                             && IsGameController(d)
-                             && d.Capabilities.InputReportByteLength >= 64
-                             && (PlayStationVendorIds.Contains(d.Attributes.VendorId) 
-                              || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase) 
-                                                          || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
-                                                          || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
-                foreach (var dev in hidDevices)
+                foreach (var dev in candidates)
                 {
-                    if (!string.IsNullOrEmpty(dev.DevicePath))
+                    if (IsPlayStationHid(dev) && !string.IsNullOrEmpty(dev.DevicePath))
                     {
                         paths.Add(dev.DevicePath);
                     }
@@ -173,16 +194,13 @@ namespace DriftLift.Core.Input
 
             try
             {
-                var xboxHids = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d)
-                             && IsGameController(d)
-                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
-                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
-                    .ToList();
+                int maxXbox = 0;
+                foreach (var dev in candidates)
+                {
+                    if (IsXboxHid(dev)) maxXbox++;
+                }
 
-                int maxXbox = xboxHids.Count;
                 int added = 0;
-
                 for (uint i = 0; i < 4; i++)
                 {
                     if (added >= maxXbox) break;
@@ -200,23 +218,17 @@ namespace DriftLift.Core.Input
             return paths;
         }
 
-        public static List<IPhysicalController> GetNewControllers(IReadOnlyCollection<string>? existingIds = null, int? virtualUserIndex = null)
+        public static List<IPhysicalController> GetNewControllers(IReadOnlyCollection<string>? existingIds = null, int? virtualUserIndex = null, IReadOnlyList<HidDevice>? snapshot = null)
         {
             var result = new List<IPhysicalController>();
+            var candidates = snapshot ?? EnumerateCandidateDevices();
 
             var psDevices = new List<PlayStationController>();
             try
             {
-                var hidDevices = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d) 
-                             && IsGameController(d)
-                             && d.Capabilities.InputReportByteLength >= 64
-                             && (PlayStationVendorIds.Contains(d.Attributes.VendorId) 
-                              || (d.Description != null && (d.Description.Contains("DualSense", StringComparison.OrdinalIgnoreCase) 
-                                                          || d.Description.Contains("DualShock", StringComparison.OrdinalIgnoreCase)
-                                                          || d.Description.Contains("Wireless Controller", StringComparison.OrdinalIgnoreCase)))));
-                foreach (var dev in hidDevices)
+                foreach (var dev in candidates)
                 {
+                    if (!IsPlayStationHid(dev)) continue;
                     if (existingIds != null && existingIds.Contains(dev.DevicePath))
                         continue;
 
@@ -240,13 +252,7 @@ namespace DriftLift.Core.Input
 
             try
             {
-                var xboxHids = HidDevices.Enumerate()
-                    .Where(d => !IsVirtualDevice(d)
-                             && IsGameController(d)
-                             && !PlayStationVendorIds.Contains(d.Attributes.VendorId)
-                             && (KnownPhysicalControllerVendorIds.Contains(d.Attributes.VendorId) || Xbox360VendorIds.Contains(d.Attributes.VendorId)))
-                    .ToList();
-
+                var xboxHids = candidates.Where(IsXboxHid).ToList();
                 int realXboxHidCount = xboxHids.Count;
                 int xboxAdded = 0;
 

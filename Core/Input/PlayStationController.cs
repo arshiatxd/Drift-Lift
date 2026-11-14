@@ -12,9 +12,13 @@ namespace DriftLift.Core.Input
         private readonly bool _isBluetooth;
         private readonly object _ioLock = new();
         private volatile bool _isDisposed;
+        private volatile bool _isConnected = true;
         private int _cachedBatteryLevel = -1;
         private long _lastBatteryCheckTicks;
-        private ControllerState? _lastGoodState;
+        private readonly ControllerState[] _stateBuffers = { new(), new() };
+        private int _stateBufferIndex;
+        private readonly ControllerState _lastGoodSnapshot = new();
+        private bool _hasLastGoodState;
 
         private byte _pendingLedR = 255;
         private byte _pendingLedG = 0;
@@ -29,7 +33,7 @@ namespace DriftLift.Core.Input
         public string InstanceId => DeviceEnumerator.ExtractInstanceId(_device.DevicePath);
         public string DeviceName { get; }
         public ControllerType Type { get; }
-        public bool IsConnected => !_isDisposed && _device.IsConnected;
+        public bool IsConnected => !_isDisposed && _isConnected;
         public int VendorId => _device.Attributes.VendorId;
         public int ProductId => _device.Attributes.ProductId;
 
@@ -37,6 +41,7 @@ namespace DriftLift.Core.Input
         {
             _device = device;
             _device.OpenDevice();
+            _isConnected = _device.IsConnected;
 
             string path = device.DevicePath?.ToLowerInvariant() ?? string.Empty;
             _isBluetooth = path.Contains("bluetooth") || path.Contains("{00001124") || (!path.Contains("&mi_") && !path.Contains("usb"));
@@ -53,19 +58,26 @@ namespace DriftLift.Core.Input
                 Type = ControllerType.DualShock4;
                 DeviceName = "PS4 DualShock Controller";
             }
+
+            for (int i = 0; i < _stateBuffers.Length; i++)
+            {
+                _stateBuffers[i].DeviceName = DeviceName;
+                _stateBuffers[i].Type = Type;
+            }
+            _lastGoodSnapshot.DeviceName = DeviceName;
+            _lastGoodSnapshot.Type = Type;
         }
 
         public ControllerState GetCurrentState()
         {
-            var state = new ControllerState
-            {
-                DeviceName = DeviceName,
-                Type = Type
-            };
+            _stateBufferIndex ^= 1;
+            var state = _stateBuffers[_stateBufferIndex];
+            state.DeviceName = DeviceName;
+            state.Type = Type;
 
             try
             {
-                if (_isDisposed || !_device.IsConnected)
+                if (_isDisposed || !_isConnected)
                 {
                     state.IsConnected = false;
                     return state;
@@ -74,7 +86,7 @@ namespace DriftLift.Core.Input
                 HidReport? report;
                 lock (_ioLock)
                 {
-                    if (_isDisposed || !_device.IsConnected)
+                    if (_isDisposed || !_isConnected)
                     {
                         state.IsConnected = false;
                         return state;
@@ -85,12 +97,25 @@ namespace DriftLift.Core.Input
                 if (report != null
                     && (report.ReadStatus == HidDeviceData.ReadStatus.WaitTimedOut || report.ReadStatus == HidDeviceData.ReadStatus.NoDataRead))
                 {
-                    ControllerState? held = _lastGoodState;
-                    if (held != null)
-                        return CloneState(held);
+                    if (_hasLastGoodState)
+                    {
+                        CopyState(_lastGoodSnapshot, state);
+                        return state;
+                    }
+                    state.IsConnected = false;
+                    return state;
                 }
 
-                if (report == null || report.ReadStatus != HidDeviceData.ReadStatus.Success)
+                if (report == null
+                    || report.ReadStatus == HidDeviceData.ReadStatus.NotConnected
+                    || report.ReadStatus == HidDeviceData.ReadStatus.ReadError)
+                {
+                    _isConnected = false;
+                    state.IsConnected = false;
+                    return state;
+                }
+
+                if (report.ReadStatus != HidDeviceData.ReadStatus.Success)
                 {
                     state.IsConnected = false;
                     return state;
@@ -196,29 +221,32 @@ namespace DriftLift.Core.Input
                     ParseBatteryReport(data, data[0] == 0x01 ? 1 : 0);
                 }
 
-                _lastGoodState = CloneState(state);
+                _isConnected = true;
+                CopyState(state, _lastGoodSnapshot);
+                _hasLastGoodState = true;
             }
             catch
             {
+                _isConnected = false;
                 state.IsConnected = false;
             }
 
             return state;
         }
 
-        private static ControllerState CloneState(ControllerState s) => new()
+        private static void CopyState(ControllerState src, ControllerState dst)
         {
-            LeftThumbX = s.LeftThumbX,
-            LeftThumbY = s.LeftThumbY,
-            RightThumbX = s.RightThumbX,
-            RightThumbY = s.RightThumbY,
-            LeftTrigger = s.LeftTrigger,
-            RightTrigger = s.RightTrigger,
-            Buttons = s.Buttons,
-            IsConnected = s.IsConnected,
-            DeviceName = s.DeviceName,
-            Type = s.Type
-        };
+            dst.LeftThumbX = src.LeftThumbX;
+            dst.LeftThumbY = src.LeftThumbY;
+            dst.RightThumbX = src.RightThumbX;
+            dst.RightThumbY = src.RightThumbY;
+            dst.LeftTrigger = src.LeftTrigger;
+            dst.RightTrigger = src.RightTrigger;
+            dst.Buttons = src.Buttons;
+            dst.IsConnected = src.IsConnected;
+            dst.DeviceName = src.DeviceName;
+            dst.Type = src.Type;
+        }
 
         private void ParseBatteryReport(byte[] data, int offset)
         {
@@ -251,7 +279,7 @@ namespace DriftLift.Core.Input
         // ##== Output: Vibration & LED ==##
         public void SetVibration(double leftMotor, double rightMotor)
         {
-            if (_isDisposed || !_device.IsConnected) return;
+            if (_isDisposed || !_isConnected) return;
             _pendingMotorLeft = (byte)(Math.Clamp(leftMotor, 0.0, 1.0) * 255);
             _pendingMotorRight = (byte)(Math.Clamp(rightMotor, 0.0, 1.0) * 255);
 
@@ -269,12 +297,12 @@ namespace DriftLift.Core.Input
 
         private void WriteVibrationCore(byte left, byte right)
         {
-            if (_isDisposed || !_device.IsConnected) return;
+            if (_isDisposed || !_isConnected) return;
             try
             {
                 lock (_ioLock)
                 {
-                    if (_isDisposed || !_device.IsConnected) return;
+                    if (_isDisposed || !_isConnected) return;
                     var hidReport = _device.CreateReport();
 
                     if (Type == ControllerType.DualShock4)
@@ -337,7 +365,7 @@ namespace DriftLift.Core.Input
 
         public void SetLedColor(byte r, byte g, byte b)
         {
-            if (_isDisposed || !_device.IsConnected) return;
+            if (_isDisposed || !_isConnected) return;
             _pendingLedR = r;
             _pendingLedG = g;
             _pendingLedB = b;
@@ -356,12 +384,12 @@ namespace DriftLift.Core.Input
 
         private void WriteLedColorCore(byte r, byte g, byte b)
         {
-            if (_isDisposed || !_device.IsConnected) return;
+            if (_isDisposed || !_isConnected) return;
             try
             {
                 lock (_ioLock)
                 {
-                    if (_isDisposed || !_device.IsConnected) return;
+                    if (_isDisposed || !_isConnected) return;
                     var hidReport = _device.CreateReport();
 
                     if (Type == ControllerType.DualShock4)
@@ -429,7 +457,7 @@ namespace DriftLift.Core.Input
         // ##== Battery Info ==##
         public (string Text, double Percentage, bool IsWireless) GetBatteryInfo()
         {
-            if (_isDisposed || !_device.IsConnected) return ("Disconnected", 0.0, false);
+            if (_isDisposed || !_isConnected) return ("Disconnected", 0.0, false);
 
             if (!_isBluetooth)
                 return ("USB Power (Cable Connected)", 1.0, false);

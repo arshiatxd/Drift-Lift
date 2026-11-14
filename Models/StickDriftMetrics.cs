@@ -12,5 +12,6 @@ namespace DriftLift.Models
         public double RestingNoiseVariance { get; set; }
         public int TotalSamplesCount { get; set; }
         public int JitterSpikeCount { get; set; }
+        public double ObservedMaxRadius { get; set; }
     }
 }

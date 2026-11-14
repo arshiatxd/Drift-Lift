@@ -15,23 +15,127 @@
         <Border Grid.Row="0" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="20,12" Margin="0,0,0,14">
             <Grid VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="#2ECC71" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
+                    <Border BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,14,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="BorderBrush" Value="#2ECC71"/>
+                            </Style>
+                        </Border.Style>
                         <TextBlock Text="✓ 1. Connect Device" Foreground="#2ECC71" FontSize="11" FontWeight="Bold"/>
                     </Border>
-                    <Border Background="{DynamicResource RedNeonDark}" BorderBrush="{DynamicResource RedNeon}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="6" Height="6" Fill="{DynamicResource RedNeon}" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="⚙ 2. Center Sticks" Foreground="{DynamicResource TextPrimary}" FontSize="11" FontWeight="Bold"/>
-                        </StackPanel>
+                    <Border BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,14,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CalibrationStep}" Value="1">
+                                        <Setter Property="Background" Value="{DynamicResource RedNeonDark}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource RedNeon}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="⚙ 2. Center Sticks" FontSize="11" FontWeight="Bold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#2ECC71"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="1">
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Border>
-                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
-                        <TextBlock Text="◯ 3. Range Sweep" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    <Border BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,14,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CalibrationStep}" Value="2">
+                                        <Setter Property="Background" Value="{DynamicResource RedNeonDark}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource RedNeon}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="◯ 3. Range Sweep" FontSize="11" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="2">
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="3">
+                                            <Setter Property="Foreground" Value="#2ECC71"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="4">
+                                            <Setter Property="Foreground" Value="#2ECC71"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Border>
-                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,20,0">
-                        <TextBlock Text="✓ 4. Verification" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    <Border BorderThickness="1" CornerRadius="0" Padding="12,4" Margin="0,0,14,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CalibrationStep}" Value="3">
+                                        <Setter Property="Background" Value="{DynamicResource RedNeonDark}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource RedNeon}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="✓ 4. Verification" FontSize="11" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="3">
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="4">
+                                            <Setter Property="Foreground" Value="#2ECC71"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Border>
-                    <Border Background="{DynamicResource SubCardBg}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="0" Padding="12,4">
-                        <TextBlock Text="💾 5. Save NVS" Foreground="{DynamicResource TextSecondary}" FontSize="11" FontWeight="SemiBold"/>
+                    <Border BorderThickness="1" CornerRadius="0" Padding="12,4">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource SubCardBg}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CalibrationStep}" Value="4">
+                                        <Setter Property="Background" Value="{DynamicResource RedNeonDark}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource RedNeon}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="💾 5. Save NVS" FontSize="11" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalibrationStep}" Value="4">
+                                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </Border>
                 </StackPanel>
             </Grid>
@@ -135,7 +239,8 @@
                         <TextBlock Text="{Binding StepSubPromptText}" Foreground="{DynamicResource TextSecondary}" FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,22"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Command="{Binding NextCalibrationStepCommand}" Content="NEXT STEP  ➔" Style="{DynamicResource RedNeonBtn}" Width="150" Height="38" Margin="0,0,12,0"/>
-                            <Button Command="{Binding AutoFixStickDriftCommand}" Content="⚡ AUTO FIX DRIFT" Style="{DynamicResource DefaultButtonStyle}" Padding="16,8" Height="38"/>
+                            <Button Command="{Binding AutoFixStickDriftCommand}" Content="⚡ AUTO FIX DRIFT" Style="{DynamicResource DefaultButtonStyle}" Padding="16,8" Height="38" Margin="0,0,12,0"/>
+                            <Button Command="{Binding ResetCalibrationCommand}" Content="↺ RESET" Style="{DynamicResource DefaultButtonStyle}" Padding="14,8" Height="38" ToolTip="Reset deadzones and center offsets to defaults"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>

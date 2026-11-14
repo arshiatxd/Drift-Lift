@@ -35,6 +35,7 @@ namespace DriftLift.ViewModels
         private readonly SettingsManager _settingsManager = null!;
         private readonly DispatcherTimer _uiTimer = null!;
         private readonly DispatcherTimer _vibrationTimer = null!;
+        private readonly DispatcherTimer _gameProfilesSaveTimer = null!;
         private readonly GameWatcherService _gameWatcher = null!;
         private ControllerProfilePair? _activeProfile;
         private HidHideControlService? _hidHideService;
@@ -42,8 +43,35 @@ namespace DriftLift.ViewModels
         private double _leftCenterOffsetY;
         private double _rightCenterOffsetX;
         private double _rightCenterOffsetY;
+        private int _lastLxPct = int.MinValue, _lastLyPct = int.MinValue, _lastRxPct = int.MinValue, _lastRyPct = int.MinValue;
+        private int _lastAxesRoundLx = int.MinValue, _lastAxesRoundLy = int.MinValue, _lastAxesRoundRx = int.MinValue, _lastAxesRoundRy = int.MinValue;
+        private uint _lastUiButtonsMask = uint.MaxValue;
+        private bool _lastL2Ui, _lastR2Ui;
+        private long _lastBatteryUiTick;
+        private bool _suppressProfileLoad;
         public event Action<string, string>? NotificationRequested;
         // ##== Observable Properties ==##
+        public ObservableCollection<string> RemapProfileNames { get; } = new() { "Default Profile" };
+        [ObservableProperty] private string _selectedRemapProfileName = "Default Profile";
+        partial void OnSelectedRemapProfileNameChanged(string value)
+        {
+            if (_suppressProfileLoad || string.IsNullOrWhiteSpace(value)) return;
+            if (string.Equals(value, "Default Profile", StringComparison.OrdinalIgnoreCase))
+            {
+                string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "user_mappings.json");
+                if (File.Exists(defaultPath))
+                {
+                    LoadProfileFromPath(defaultPath, showDialog: false);
+                }
+                return;
+            }
+            string profilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles", value + ".json");
+            if (File.Exists(profilePath))
+            {
+                LoadProfileFromPath(profilePath, showDialog: false);
+            }
+        }
+        public ObservableCollection<string> AvailableMacroNames { get; } = new() { "None" };
         [ObservableProperty]
         private ObservableCollection<CustomMapping> _activeMappings = new ObservableCollection<CustomMapping>();
         public ObservableCollection<GameProfileModel> GameProfiles { get; } = new();
@@ -346,9 +374,18 @@ namespace DriftLift.ViewModels
             _uiTimer.Start();
             _vibrationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _vibrationTimer.Tick += VibrationTimer_Tick;
+            _gameProfilesSaveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+            _gameProfilesSaveTimer.Tick += (_, _) =>
+            {
+                _gameProfilesSaveTimer.Stop();
+                SaveGameProfilesToDisk();
+            };
 
             InitializeDefaultGameProfiles();
             LoadUserMappingsAndMacros();
+            AttachMacrosTracking(ActiveMacros);
+            SyncAvailableMacroNames();
+            RefreshRemapProfileNames();
             _gameWatcher = new GameWatcherService();
             _gameWatcher.ActiveGameChanged += OnActiveGameChanged;
             _gameWatcher.Start();
@@ -568,6 +605,18 @@ namespace DriftLift.ViewModels
             if (e.PropertyName == nameof(CustomMapping.TurboMode))
             {
                 SyncTurboButtons();
+                SaveUserMappingsAndMacros();
+            }
+            else if (e.PropertyName == nameof(CustomMapping.MacroName) && sender is CustomMapping cm)
+            {
+                if (!string.IsNullOrWhiteSpace(cm.MacroName) && !string.Equals(cm.MacroName, "None", StringComparison.OrdinalIgnoreCase))
+                {
+                    var matchedMacro = ActiveMacros.FirstOrDefault(m => string.Equals(m.Name, cm.MacroName, StringComparison.OrdinalIgnoreCase));
+                    if (matchedMacro != null && !string.IsNullOrWhiteSpace(cm.SourceButton))
+                    {
+                        matchedMacro.TriggerButtonName = cm.SourceButton;
+                    }
+                }
                 SaveUserMappingsAndMacros();
             }
         }
@@ -855,6 +904,13 @@ namespace DriftLift.ViewModels
                 var batInfo = _activeProfile.Physical.GetBatteryInfo();
                 string connType = batInfo.IsWireless ? "Bluetooth" : "USB";
                 DeviceFirmwareText = $"{connType} • v1.1.0";
+                DeviceSerialText = _activeProfile.Physical is PlayStationController ps
+                    ? $"VID_{ps.VendorId:X4}&PID_{ps.ProductId:X4}"
+                    : _activeProfile.Physical.DeviceId;
+                _lastBatteryUiTick = Environment.TickCount64;
+                _lastLxPct = int.MinValue;
+                _lastAxesRoundLx = int.MinValue;
+                _lastUiButtonsMask = uint.MaxValue;
                 
                 UpdateBatteryMetrics();
                 UpdateMappingsForControllerType(IsPlayStation);
@@ -907,6 +963,7 @@ namespace DriftLift.ViewModels
                 DeviceModelText = "No Controller Connected";
                 ControllerConnectionIcon = "NONE";
                 ControllerModelIconKey = "IconControllerDisconnected";
+                DeviceSerialText = "-";
                 DeviceFirmwareText = "";
                 BatteryPercentageText = "Battery: --%";
                 BatteryPercentageShortText = "--%";
@@ -939,6 +996,37 @@ namespace DriftLift.ViewModels
                 {
                     var rawState = profile.LatestRawState ?? profile.Physical.GetCurrentState();
                     var corrState = profile.LatestCorrectedState ?? rawState;
+                    uint rawButtons = rawState.Buttons;
+
+                    if (!IsMacroPlaying && !IsRecordingMacro && ActiveMacros.Count > 0)
+                    {
+                        uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
+                        if (newPresses != 0)
+                        {
+                            foreach (var m in ActiveMacros)
+                            {
+                                if (m.IsEnabled && m.TriggerMask != 0 && (rawButtons & m.TriggerMask) == m.TriggerMask && (newPresses & m.TriggerMask) != 0)
+                                {
+                                    _ = PlayMacro(m);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    var mainWin = Application.Current?.MainWindow;
+                    if (mainWin != null && (mainWin.WindowState == WindowState.Minimized || !mainWin.IsVisible))
+                    {
+                        _lastRawButtons = rawButtons;
+                        return;
+                    }
+
+                    long now = Environment.TickCount64;
+                    if (now - _lastBatteryUiTick >= 5000)
+                    {
+                        _lastBatteryUiTick = now;
+                        UpdateBatteryMetrics();
+                    }
 
                     TriggerL = rawState.LeftTrigger;
                     TriggerR = rawState.RightTrigger;
@@ -952,10 +1040,16 @@ namespace DriftLift.ViewModels
                     CorrectedRightX = corrState.RightThumbX;
                     CorrectedRightY = corrState.RightThumbY;
 
-                    LeftStickTextX = $"X: {(int)(CorrectedLeftX * 100)}%";
-                    LeftStickTextY = $"Y: {(int)(CorrectedLeftY * 100)}%";
-                    RightStickTextX = $"X: {(int)(CorrectedRightX * 100)}%";
-                    RightStickTextY = $"Y: {(int)(CorrectedRightY * 100)}%";
+                    int lxPct = (int)(CorrectedLeftX * 100);
+                    int lyPct = (int)(CorrectedLeftY * 100);
+                    int rxPct = (int)(CorrectedRightX * 100);
+                    int ryPct = (int)(CorrectedRightY * 100);
+
+                    if (lxPct != _lastLxPct) { _lastLxPct = lxPct; LeftStickTextX = $"X: {lxPct}%"; }
+                    if (lyPct != _lastLyPct) { _lastLyPct = lyPct; LeftStickTextY = $"Y: {lyPct}%"; }
+                    if (rxPct != _lastRxPct) { _lastRxPct = rxPct; RightStickTextX = $"X: {rxPct}%"; }
+                    if (ryPct != _lastRyPct) { _lastRyPct = ryPct; RightStickTextY = $"Y: {ryPct}%"; }
+
                     LeftStickValX = Math.Clamp((CorrectedLeftX + 1.0) / 2.0 * 100.0, 0, 100);
                     LeftStickValY = Math.Clamp((CorrectedLeftY + 1.0) / 2.0 * 100.0, 0, 100);
                     RightStickValX = Math.Clamp((CorrectedRightX + 1.0) / 2.0 * 100.0, 0, 100);
@@ -971,7 +1065,6 @@ namespace DriftLift.ViewModels
                         RightNoiseVariance = Math.Round(profile.Drift.RightMetrics.RestingNoiseVariance * 10000.0, 2);
                     }
 
-                    uint rawButtons = rawState.Buttons;
                     if (IsWaitingForInput)
                     {
                         uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
@@ -1012,19 +1105,6 @@ namespace DriftLift.ViewModels
                         }
                     }
 
-                    if (!IsMacroPlaying && !IsRecordingMacro && ActiveMacros.Count > 0)
-                    {
-                        uint newPresses = (uint)(rawButtons & ~_lastRawButtons);
-                        foreach (var m in ActiveMacros)
-                        {
-                            if (m.IsEnabled && m.TriggerMask != 0 && (rawButtons & m.TriggerMask) == m.TriggerMask && (newPresses & m.TriggerMask) != 0)
-                            {
-                                _ = PlayMacro(m);
-                                break;
-                            }
-                        }
-                    }
-
                     _lastRawButtons = rawButtons;
 
                     LeftGraphicTranslateX = CorrectedLeftX * 12.0;
@@ -1036,6 +1116,8 @@ namespace DriftLift.ViewModels
                     PsRightGraphicTranslateX = CorrectedRightX * 12.0;
                     PsRightGraphicTranslateY = -CorrectedRightY * 12.0;
                     uint b = corrState.Buttons;
+                    bool l2Pressed = (b & 0x0400) != 0 || corrState.LeftTrigger > 0.1;
+                    bool r2Pressed = (b & 0x0800) != 0 || corrState.RightTrigger > 0.1;
                     IsDpadUpPressed = (b & 0x0001) != 0;
                     IsDpadDownPressed = (b & 0x0002) != 0;
                     IsDpadLeftPressed = (b & 0x0004) != 0;
@@ -1050,16 +1132,35 @@ namespace DriftLift.ViewModels
                     IsL1Pressed = IsLbPressed;
                     IsRbPressed = (b & 0x0200) != 0;
                     IsR1Pressed = IsRbPressed;
-                    IsL2Pressed = (b & 0x0400) != 0 || corrState.LeftTrigger > 0.1;
-                    IsR2Pressed = (b & 0x0800) != 0 || corrState.RightTrigger > 0.1;
+                    IsL2Pressed = l2Pressed;
+                    IsR2Pressed = r2Pressed;
                     IsAPressed = (b & 0x1000) != 0;
                     IsBPressed = (b & 0x2000) != 0;
                     IsXPressed = (b & 0x4000) != 0;
                     IsYPressed = (b & 0x8000) != 0;
                     IsGuidePressed = (b & 0x00040000) != 0;
                     IsMutePressed = (b & 0x00020000) != 0;
-                    RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
-                    RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
+
+                    int roundLx = (int)Math.Round(CorrectedLeftX * 100);
+                    int roundLy = (int)Math.Round(CorrectedLeftY * 100);
+                    int roundRx = (int)Math.Round(CorrectedRightX * 100);
+                    int roundRy = (int)Math.Round(CorrectedRightY * 100);
+                    if (roundLx != _lastAxesRoundLx || roundLy != _lastAxesRoundLy || roundRx != _lastAxesRoundRx || roundRy != _lastAxesRoundRy)
+                    {
+                        _lastAxesRoundLx = roundLx;
+                        _lastAxesRoundLy = roundLy;
+                        _lastAxesRoundRx = roundRx;
+                        _lastAxesRoundRy = roundRy;
+                        RawAxesText = $"AXES 0: {CorrectedLeftX:+0.00;-0.00}  1: {CorrectedLeftY:+0.00;-0.00}  2: {CorrectedRightX:+0.00;-0.00}  3: {CorrectedRightY:+0.00;-0.00}";
+                    }
+
+                    if (b != _lastUiButtonsMask || l2Pressed != _lastL2Ui || r2Pressed != _lastR2Ui)
+                    {
+                        _lastUiButtonsMask = b;
+                        _lastL2Ui = l2Pressed;
+                        _lastR2Ui = r2Pressed;
+                        RawButtonsText = $"BUTTONS: A:{(IsAPressed ? "ON" : "OFF")} B:{(IsBPressed ? "ON" : "OFF")} X:{(IsXPressed ? "ON" : "OFF")} Y:{(IsYPressed ? "ON" : "OFF")} L1:{(IsL1Pressed ? "ON" : "OFF")} R1:{(IsR1Pressed ? "ON" : "OFF")}";
+                    }
                 }
             }
             catch (Exception ex)
@@ -1182,11 +1283,101 @@ namespace DriftLift.ViewModels
                         foreach (var m in loadedMacros) ActiveMacros.Add(m);
                         ActiveMacro = ActiveMacros.FirstOrDefault();
                     }
+                    SyncAvailableMacroNames();
                 }
             }
             catch (Exception ex)
             {
                 App.LogException(ex, "LoadUserMappingsAndMacros");
+            }
+        }
+
+        private void RefreshRemapProfileNames()
+        {
+            var desired = new List<string> { "Default Profile" };
+            string profilesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles");
+            if (Directory.Exists(profilesDir))
+            {
+                foreach (string file in Directory.GetFiles(profilesDir, "*.json").OrderBy(f => f, StringComparer.OrdinalIgnoreCase))
+                {
+                    string name = Path.GetFileNameWithoutExtension(file);
+                    if (!string.IsNullOrWhiteSpace(name) && !desired.Contains(name, StringComparer.OrdinalIgnoreCase))
+                    {
+                        desired.Add(name);
+                    }
+                }
+            }
+
+            _suppressProfileLoad = true;
+            try
+            {
+                for (int i = RemapProfileNames.Count - 1; i >= 0; i--)
+                {
+                    if (!desired.Contains(RemapProfileNames[i], StringComparer.OrdinalIgnoreCase))
+                    {
+                        RemapProfileNames.RemoveAt(i);
+                    }
+                }
+                foreach (string name in desired)
+                {
+                    if (!RemapProfileNames.Contains(name, StringComparer.OrdinalIgnoreCase))
+                    {
+                        RemapProfileNames.Add(name);
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(SelectedRemapProfileName) || !RemapProfileNames.Contains(SelectedRemapProfileName, StringComparer.OrdinalIgnoreCase))
+                {
+                    SelectedRemapProfileName = "Default Profile";
+                }
+            }
+            finally
+            {
+                _suppressProfileLoad = false;
+            }
+        }
+
+        private bool LoadProfileFromPath(string path, bool showDialog)
+        {
+            try
+            {
+                string json = File.ReadAllText(path);
+                var loaded = JsonSerializer.Deserialize<ObservableCollection<CustomMapping>>(json);
+                if (loaded == null) return false;
+
+                ActiveMappings = loaded;
+                if (_activeProfile != null)
+                {
+                    _activeProfile.Remaps.Clear();
+                    foreach (var map in loaded)
+                    {
+                        uint src = GetBitFromName(map.SourceButton);
+                        uint tgt = GetBitFromName(map.TargetButton);
+                        if (src != 0)
+                        {
+                            _activeProfile.Remaps[src] = tgt;
+                        }
+                    }
+                    UpdateMappingsForControllerType(IsPlayStation);
+                }
+                SyncTurboButtons();
+                SaveUserMappingsAndMacros();
+                if (showDialog)
+                {
+                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(path)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (showDialog)
+                {
+                    DriftLift.Views.Windows.CustomMessageDialog.Show("Failed to load profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    App.LogException(ex, "LoadProfileFromPath");
+                }
+                return false;
             }
         }
 
@@ -1199,69 +1390,64 @@ namespace DriftLift.ViewModels
                 _activeProfile.Remaps.Clear();
                 UpdateMappingsForControllerType(IsPlayStation);
             }
+            SyncTurboButtons();
             SaveUserMappingsAndMacros();
+            RefreshRemapProfileNames();
+            _suppressProfileLoad = true;
+            SelectedRemapProfileName = "Default Profile";
+            _suppressProfileLoad = false;
             DriftLift.Views.Windows.CustomMessageDialog.Show("New Profile created.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         [RelayCommand]
         private void LoadProfile()
         {
+            string profilesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles");
+            Directory.CreateDirectory(profilesDir);
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "JSON Profiles (*.json)|*.json|All files (*.*)|*.*",
                 Title = "Load Controller Profile",
-                InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles")
+                InitialDirectory = profilesDir
             };
-            if (openFileDialog.ShowDialog() == true)
+            if (openFileDialog.ShowDialog() == true && LoadProfileFromPath(openFileDialog.FileName, showDialog: true))
             {
-                try
+                RefreshRemapProfileNames();
+                string profileName = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
+                if (RemapProfileNames.Contains(profileName, StringComparer.OrdinalIgnoreCase))
                 {
-                    string json = File.ReadAllText(openFileDialog.FileName);
-                    var loaded = JsonSerializer.Deserialize<ObservableCollection<CustomMapping>>(json);
-                    if (loaded != null)
-                    {
-                        ActiveMappings = loaded;
-                        if (_activeProfile != null)
-                        {
-                            _activeProfile.Remaps.Clear();
-                            foreach (var map in loaded)
-                            {
-                                uint src = GetBitFromName(map.SourceButton);
-                                uint tgt = GetBitFromName(map.TargetButton);
-                                if (src != 0)
-                                {
-                                    _activeProfile.Remaps[src] = tgt;
-                                }
-                            }
-                            UpdateMappingsForControllerType(IsPlayStation);
-                        }
-                        SaveUserMappingsAndMacros();
-                        DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(openFileDialog.FileName)}' loaded successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    DriftLift.Views.Windows.CustomMessageDialog.Show("Failed to load profile: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    _suppressProfileLoad = true;
+                    SelectedRemapProfileName = RemapProfileNames.First(p => string.Equals(p, profileName, StringComparison.OrdinalIgnoreCase));
+                    _suppressProfileLoad = false;
                 }
             }
         }
         [RelayCommand]
         private void SaveProfile()
         {
+            string profilesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles");
+            Directory.CreateDirectory(profilesDir);
             var saveFileDialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "JSON Profiles (*.json)|*.json",
                 Title = "Save Controller Profile",
                 FileName = "profile.json",
-                InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DriftLift", "Profiles")
+                InitialDirectory = profilesDir
             };
-            Directory.CreateDirectory(saveFileDialog.InitialDirectory);
             if (saveFileDialog.ShowDialog() == true)
             {
                 try
                 {
                     string json = JsonSerializer.Serialize(ActiveMappings, new JsonSerializerOptions { WriteIndented = true });
                     File.WriteAllText(saveFileDialog.FileName, json);
-                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{Path.GetFileNameWithoutExtension(saveFileDialog.FileName)}' saved successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                    RefreshRemapProfileNames();
+                    string profileName = Path.GetFileNameWithoutExtension(saveFileDialog.FileName);
+                    if (RemapProfileNames.Contains(profileName, StringComparer.OrdinalIgnoreCase))
+                    {
+                        _suppressProfileLoad = true;
+                        SelectedRemapProfileName = RemapProfileNames.First(p => string.Equals(p, profileName, StringComparison.OrdinalIgnoreCase));
+                        _suppressProfileLoad = false;
+                    }
+                    DriftLift.Views.Windows.CustomMessageDialog.Show($"Profile '{profileName}' saved successfully!", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
@@ -1293,8 +1479,72 @@ namespace DriftLift.ViewModels
         [RelayCommand]
         private void AddMapping()
         {
-            ActiveMappings.Add(new CustomMapping { SourceButton = "NEW", TargetButton = "UNMAPPED" });
+            if (_activeProfile == null || _activeProfile.Physical == null || !_activeProfile.Physical.IsConnected)
+            {
+                DriftLift.Views.Windows.CustomMessageDialog.Show("Connect a controller before remapping a button.", "Drift Lift", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            BeginRemap("4096");
+        }
+        private void AttachMacrosTracking(ObservableCollection<MacroItem> macros)
+        {
+            macros.CollectionChanged -= OnMacrosCollectionChanged;
+            macros.CollectionChanged += OnMacrosCollectionChanged;
+            foreach (var macro in macros)
+            {
+                macro.PropertyChanged -= OnMacroItemChanged;
+                macro.PropertyChanged += OnMacroItemChanged;
+            }
+        }
+        private void OnMacrosCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (MacroItem macro in e.OldItems) macro.PropertyChanged -= OnMacroItemChanged;
+            }
+            if (e.NewItems != null)
+            {
+                foreach (MacroItem macro in e.NewItems)
+                {
+                    macro.PropertyChanged -= OnMacroItemChanged;
+                    macro.PropertyChanged += OnMacroItemChanged;
+                }
+            }
+            SyncAvailableMacroNames();
             SaveUserMappingsAndMacros();
+        }
+        private void OnMacroItemChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MacroItem.Name))
+            {
+                SyncAvailableMacroNames();
+            }
+            SaveUserMappingsAndMacros();
+        }
+        private void SyncAvailableMacroNames()
+        {
+            var desired = new List<string> { "None" };
+            foreach (var m in ActiveMacros)
+            {
+                if (!string.IsNullOrWhiteSpace(m.Name) && !desired.Contains(m.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    desired.Add(m.Name);
+                }
+            }
+            for (int i = AvailableMacroNames.Count - 1; i >= 0; i--)
+            {
+                if (!desired.Contains(AvailableMacroNames[i], StringComparer.OrdinalIgnoreCase))
+                {
+                    AvailableMacroNames.RemoveAt(i);
+                }
+            }
+            foreach (string name in desired)
+            {
+                if (!AvailableMacroNames.Contains(name, StringComparer.OrdinalIgnoreCase))
+                {
+                    AvailableMacroNames.Add(name);
+                }
+            }
         }
         [RelayCommand]
         private void AddMacro()
@@ -1314,6 +1564,7 @@ namespace DriftLift.ViewModels
             newM.Steps.Add(new MacroStep { ButtonName = "Cross", ButtonMask = 0x1000, DelayMs = 50 });
             ActiveMacros.Add(newM);
             ActiveMacro = newM;
+            SyncAvailableMacroNames();
             SaveUserMappingsAndMacros();
         }
         [RelayCommand]
@@ -1337,10 +1588,13 @@ namespace DriftLift.ViewModels
                 {
                     CreateNewMacro();
                 }
+                ActiveMacro?.Steps.Clear();
             }
             else
             {
                 RecordingStatusText = "▶ RECORD MACRO";
+                SyncAvailableMacroNames();
+                SaveUserMappingsAndMacros();
             }
         }
         [RelayCommand]
@@ -1377,6 +1631,8 @@ namespace DriftLift.ViewModels
             {
                 ActiveMacros.Remove(target);
                 ActiveMacro = ActiveMacros.FirstOrDefault();
+                SyncAvailableMacroNames();
+                SaveUserMappingsAndMacros();
             }
         }
         [RelayCommand]
@@ -1385,6 +1641,7 @@ namespace DriftLift.ViewModels
             if (ActiveMacro != null)
             {
                 ActiveMacro.Steps.Add(new MacroStep { ButtonName = "Cross", ButtonMask = 0x1000, DelayMs = 50 });
+                SaveUserMappingsAndMacros();
             }
         }
         [RelayCommand]
@@ -1393,6 +1650,7 @@ namespace DriftLift.ViewModels
             if (ActiveMacro != null && step != null && ActiveMacro.Steps.Contains(step))
             {
                 ActiveMacro.Steps.Remove(step);
+                SaveUserMappingsAndMacros();
             }
         }
         [RelayCommand]
@@ -1552,13 +1810,59 @@ namespace DriftLift.ViewModels
         private void InitializeDefaultGameProfiles()
         {
             LoadGameProfilesFromDisk();
-            GameProfiles.CollectionChanged -= OnGameProfilesCollectionChanged;
-            GameProfiles.CollectionChanged += OnGameProfilesCollectionChanged;
+            AttachGameProfilesTracking(GameProfiles);
+        }
+
+        private void AttachGameProfilesTracking(ObservableCollection<GameProfileModel> profiles)
+        {
+            profiles.CollectionChanged -= OnGameProfilesCollectionChanged;
+            profiles.CollectionChanged += OnGameProfilesCollectionChanged;
+            foreach (var p in profiles)
+            {
+                p.PropertyChanged -= OnGameProfilePropertyChanged;
+                p.PropertyChanged += OnGameProfilePropertyChanged;
+            }
         }
 
         private void OnGameProfilesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
+            if (e.OldItems != null)
+            {
+                foreach (GameProfileModel p in e.OldItems) p.PropertyChanged -= OnGameProfilePropertyChanged;
+            }
+            if (e.NewItems != null)
+            {
+                foreach (GameProfileModel p in e.NewItems)
+                {
+                    p.PropertyChanged -= OnGameProfilePropertyChanged;
+                    p.PropertyChanged += OnGameProfilePropertyChanged;
+                }
+            }
             SaveGameProfilesToDisk();
+        }
+
+        private void OnGameProfilePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (sender is not GameProfileModel profile) return;
+            if (e.PropertyName == nameof(GameProfileModel.IsActive) || e.PropertyName == nameof(GameProfileModel.GameIcon)) return;
+
+            if (profile.IsActive)
+            {
+                LeftStickDeadzone = profile.LeftStickDeadzone;
+                RightStickDeadzone = profile.RightStickDeadzone;
+                StickSensitivity = profile.StickSensitivity;
+
+                if (_activeProfile != null)
+                {
+                    _activeProfile.Drift.Profile.LeftStick.DeadzoneRadius = profile.LeftStickDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.RightStick.DeadzoneRadius = profile.RightStickDeadzone / 100.0;
+                    _activeProfile.Drift.Profile.LeftStick.Sensitivity = profile.StickSensitivity;
+                    _activeProfile.Drift.Profile.RightStick.Sensitivity = profile.StickSensitivity;
+                }
+            }
+
+            _gameProfilesSaveTimer.Stop();
+            _gameProfilesSaveTimer.Start();
         }
 
         private void OnActiveGameChanged(string activeExe)
@@ -1853,8 +2157,27 @@ namespace DriftLift.ViewModels
                         StepSubPromptText = "Ensure maximum outer boundary reaches 1.0 range, then press Next";
                         break;
                     case 3:
+                        if (_activeProfile != null)
+                        {
+                            double obsL = _activeProfile.Drift.LeftMetrics.ObservedMaxRadius;
+                            double obsR = _activeProfile.Drift.RightMetrics.ObservedMaxRadius;
+                            if (obsL >= 0.75)
+                            {
+                                LeftOuterDeadzone = Math.Clamp(Math.Round(obsL - 0.01, 2), 0.80, 0.99);
+                                _activeProfile.Drift.Profile.LeftStick.OuterDeadzone = LeftOuterDeadzone;
+                            }
+                            if (obsR >= 0.75)
+                            {
+                                RightOuterDeadzone = Math.Clamp(Math.Round(obsR - 0.01, 2), 0.80, 0.99);
+                                _activeProfile.Drift.Profile.RightStick.OuterDeadzone = RightOuterDeadzone;
+                            }
+                            StepSubPromptText = $"Outer bounds L: {LeftOuterDeadzone:F2} | R: {RightOuterDeadzone:F2} — verify metrics, then press Next";
+                        }
+                        else
+                        {
+                            StepSubPromptText = "Check circularity error metrics, then press Next";
+                        }
                         StepPromptText = "Verify zero resting center error and circularity range bounds";
-                        StepSubPromptText = "Check circularity error metrics, then press Next";
                         break;
                     case 4:
                         if (_activeProfile != null)
@@ -2252,7 +2575,7 @@ namespace DriftLift.ViewModels
         {
             if (HidHideInstallerService.IsHidHideInstalled())
             {
-                bool success = HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
+                bool success = HidHideInstallerService.TryConfigureHidHideWithElevation(_hidHideService);
                 SyncHidHideBlockedDevices();
 
                 if (success)
@@ -2264,7 +2587,7 @@ namespace DriftLift.ViewModels
                 else
                 {
                     DriftLift.Views.Windows.CustomMessageDialog.Show(
-                        "HidHide driver is installed but could not be configured automatically.\n\nPlease open the HidHide Configurator as Administrator to verify permissions.",
+                        "HidHide driver is installed but could not be configured automatically.\n\nPlease approve the Administrator prompt or open the HidHide Configurator as Administrator.",
                         "Shield Notification", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
                 }
             }
@@ -2345,7 +2668,7 @@ namespace DriftLift.ViewModels
             string clientPath = Path.Combine(programFiles, "Nefarius Software Solutions", "HidHide", "x64", "HidHideClient.exe");
             if (File.Exists(clientPath) || HidHideInstallerService.IsHidHideInstalled())
             {
-                HidHideInstallerService.AutoShieldAllControllers(_hidHideService);
+                HidHideInstallerService.TryConfigureHidHideWithElevation(_hidHideService);
                 SyncHidHideBlockedDevices();
 
                 DriftLift.Views.Windows.CustomMessageDialog.Show(

@@ -15,6 +15,8 @@ namespace DriftLift.Core.Calibration
         private int _rightCount;
         private double _leftSumX, _leftSumY;
         private double _rightSumX, _rightSumY;
+        private double _leftSumSqX, _leftSumSqY;
+        private double _rightSumSqX, _rightSumSqY;
         private readonly object _leftLock = new();
         private readonly object _rightLock = new();
 
@@ -58,10 +60,12 @@ namespace DriftLift.Core.Calibration
             LeftMetrics.AverageCircularityError = 0;
             LeftMetrics.MinCircularityError = 999;
             LeftMetrics.MaxCircularityError = 0;
+            LeftMetrics.ObservedMaxRadius = 0;
             RightMetrics.LiveCircularityError = 0;
             RightMetrics.AverageCircularityError = 0;
             RightMetrics.MinCircularityError = 999;
             RightMetrics.MaxCircularityError = 0;
+            RightMetrics.ObservedMaxRadius = 0;
         }
 
         public (double lx, double ly, double lDeadzone, double rx, double ry, double rDeadzone) AutoFixStickDrift(double currentLx = 0, double currentLy = 0, double currentRx = 0, double currentRy = 0)
@@ -180,14 +184,14 @@ namespace DriftLift.Core.Calibration
             double rxRightX = Math.Clamp(state.RightThumbX + SimulatedRightOffsetX, -1.0, 1.0);
             double rxRightY = Math.Clamp(state.RightThumbY + SimulatedRightOffsetY, -1.0, 1.0);
 
-            UpdateHistoryRing(_leftRing, ref _leftHead, ref _leftCount, ref _leftSumX, ref _leftSumY, _leftLock, rxLeftX, rxLeftY);
-            UpdateHistoryRing(_rightRing, ref _rightHead, ref _rightCount, ref _rightSumX, ref _rightSumY, _rightLock, rxRightX, rxRightY);
+            UpdateHistoryRing(_leftRing, ref _leftHead, ref _leftCount, ref _leftSumX, ref _leftSumY, ref _leftSumSqX, ref _leftSumSqY, _leftLock, rxLeftX, rxLeftY);
+            UpdateHistoryRing(_rightRing, ref _rightHead, ref _rightCount, ref _rightSumX, ref _rightSumY, ref _rightSumSqX, ref _rightSumSqY, _rightLock, rxRightX, rxRightY);
 
             bool noInput = state.Buttons == 0 && state.LeftTrigger < 0.1 && state.RightTrigger < 0.1;
 
             if (Profile.LeftStick.AutoCalibrate && noInput)
             {
-                if (IsStationaryRing(_leftRing, _leftCount, _leftSumX, _leftSumY, _leftLock, Profile.LeftStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
+                if (IsStationaryRing(_leftCount, _leftSumX, _leftSumY, _leftSumSqX, _leftSumSqY, _leftLock, Profile.LeftStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
                     LeftMetrics.RestingNoiseVariance = noise;
                     double driftFromCalibrated = Math.Sqrt(
@@ -206,7 +210,7 @@ namespace DriftLift.Core.Calibration
 
             if (Profile.RightStick.AutoCalibrate && noInput)
             {
-                if (IsStationaryRing(_rightRing, _rightCount, _rightSumX, _rightSumY, _rightLock, Profile.RightStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
+                if (IsStationaryRing(_rightCount, _rightSumX, _rightSumY, _rightSumSqX, _rightSumSqY, _rightLock, Profile.RightStick.MaxDriftThreshold, out double cx, out double cy, out double noise))
                 {
                     RightMetrics.RestingNoiseVariance = noise;
                     double driftFromCalibrated = Math.Sqrt(
@@ -264,14 +268,18 @@ namespace DriftLift.Core.Calibration
             outY = Math.Clamp(stateY, -1.0, 1.0);
         }
 
-        private void UpdateHistoryRing((double x, double y)[] ring, ref int head, ref int count, ref double sumX, ref double sumY, object lockObj, double x, double y)
+        private void UpdateHistoryRing((double x, double y)[] ring, ref int head, ref int count, ref double sumX, ref double sumY, ref double sumSqX, ref double sumSqY, object lockObj, double x, double y)
         {
             lock (lockObj)
             {
                 if (count >= _windowSize)
                 {
-                    sumX -= ring[head].x;
-                    sumY -= ring[head].y;
+                    double ox = ring[head].x;
+                    double oy = ring[head].y;
+                    sumX -= ox;
+                    sumY -= oy;
+                    sumSqX -= ox * ox;
+                    sumSqY -= oy * oy;
                 }
                 else
                 {
@@ -281,12 +289,14 @@ namespace DriftLift.Core.Calibration
                 ring[head] = (x, y);
                 sumX += x;
                 sumY += y;
+                sumSqX += x * x;
+                sumSqY += y * y;
 
                 head = (head + 1) % _windowSize;
             }
         }
 
-        private bool IsStationaryRing((double x, double y)[] ring, int count, double sumX, double sumY, object lockObj, double maxDriftThreshold, out double centerX, out double centerY, out double noiseVariance)
+        private bool IsStationaryRing(int count, double sumX, double sumY, double sumSqX, double sumSqY, object lockObj, double maxDriftThreshold, out double centerX, out double centerY, out double noiseVariance)
         {
             centerX = 0;
             centerY = 0;
@@ -296,22 +306,15 @@ namespace DriftLift.Core.Calibration
 
             double meanX;
             double meanY;
-            double varianceSum = 0;
 
             lock (lockObj)
             {
                 meanX = sumX / count;
                 meanY = sumY / count;
-
-                for (int i = 0; i < count; i++)
-                {
-                    double dx = ring[i].x - meanX;
-                    double dy = ring[i].y - meanY;
-                    varianceSum += dx * dx + dy * dy;
-                }
+                double varX = Math.Max(0.0, (sumSqX / count) - (meanX * meanX));
+                double varY = Math.Max(0.0, (sumSqY / count) - (meanY * meanY));
+                noiseVariance = varX + varY;
             }
-
-            noiseVariance = varianceSum / count;
 
             if (noiseVariance < 0.0001)
             {
@@ -330,6 +333,10 @@ namespace DriftLift.Core.Calibration
         private void UpdateCircularityMetrics(double x, double y, double[] buckets, ref int bucketCount, ref double bucketSumErr, StickDriftMetrics metrics)
         {
             double r = Math.Sqrt(x * x + y * y);
+            if (r > metrics.ObservedMaxRadius)
+            {
+                metrics.ObservedMaxRadius = Math.Min(1.0, r);
+            }
             if (r < 0.70) return;
 
             double angleRad = Math.Atan2(y, x);
