@@ -53,31 +53,6 @@
 
 ---
 
-## Installation
-
-### Option 1 — Microsoft Store (Recommended)
-1. Get **Drift Lift** from the official [Microsoft Store page](https://apps.microsoft.com/detail/9ndwh1kngw2t).
-2. Click **Get** / **Install** to install and receive automatic updates.
-
-### Option 2 — Setup Installer
-1. Download the latest **`DriftLift_Setup.exe`** from [Releases](https://github.com/arshiatxd/Drift-Lift/releases).
-2. Run the installer and follow the guided wizard.
-3. Launch Drift Lift from the Start Menu or Desktop shortcut.
-
-### Option 3 — Build from Source
-**Prerequisites:**
-- Windows 10 (x64) or Windows 11
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- [ViGEmBus Driver](https://github.com/nefarius/ViGEmBus/releases)
-
-```bash
-git clone https://github.com/arshiatxd/Drift-Lift.git
-cd Drift-Lift
-dotnet publish -c Release -o ./publish
-```
-
----
-
 ## System Requirements
 
 | Component | Minimum Specification |
